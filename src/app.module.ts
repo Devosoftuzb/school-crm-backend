@@ -4,6 +4,9 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { SchoolModule } from './school/school.module';
+import { User } from './user/models/user.model';
+import { School } from './school/models/school.model';
 
 @Module({
   imports: [
@@ -15,13 +18,14 @@ import { UserModule } from './user/user.module';
       username: process.env.POSTGRES_USER,
       password: String(process.env.POSTGRES_PASS),
       database: process.env.POSTGRES_DB,
-      models: [],
+      models: [User, School],
       autoLoadModels: true,
       logging: false,
     }),
     JwtModule,
     UserModule,
     AuthModule,
+    SchoolModule,
   ],
   controllers: [],
   providers: [],

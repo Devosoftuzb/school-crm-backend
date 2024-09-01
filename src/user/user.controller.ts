@@ -56,8 +56,7 @@ export class UserController {
 
   @ApiOperation({ summary: 'User view by ID' })
   @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin')
-  @UseGuards(RolesGuard, JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
@@ -65,8 +64,7 @@ export class UserController {
 
   @ApiOperation({ summary: 'User update by ID' })
   @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin')
-  @UseGuards(RolesGuard, JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   update(@Param('id') id: string, @Body() updateUpdateDto: UpdateUserDto) {
     return this.userService.update(+id, updateUpdateDto);

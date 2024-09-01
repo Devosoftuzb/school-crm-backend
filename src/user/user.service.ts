@@ -27,17 +27,21 @@ export class UserService {
 
       const response = {
         message: 'Super Admin created',
-        user: createdUser
+        user: createdUser,
       };
       return response;
     }
   }
 
   async create(createUserDto: CreateUserDto, res: Response) {
-    const user = await this.repo.findOne({where: {login: createUserDto.login}})
+    const user = await this.repo.findOne({
+      where: { login: createUserDto.login },
+    });
 
-    if (user){
-      throw new BadRequestException(`This login "${createUserDto.login}" already exists`)
+    if (user) {
+      throw new BadRequestException(
+        `This login "${createUserDto.login}" already exists`,
+      );
     }
     const hashedPassword = await bcrypt.hash(createUserDto.password, 7);
     const newUser = await this.repo.create({
@@ -84,7 +88,7 @@ export class UserService {
   }
 
   async findOne(id: number) {
-    const user = await this.repo.findByPk(id);
+    const user = await this.repo.findByPk(id, { include: { all: true } });
     if (!user) {
       throw new BadRequestException(`User with id ${id} not found`);
     }

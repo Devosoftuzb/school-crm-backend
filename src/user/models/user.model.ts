@@ -1,4 +1,5 @@
-import { Column, DataType, Model, Table } from 'sequelize-typescript';
+import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript';
+import { School } from 'src/school/models/school.model';
 
 interface UserAttr {
   full_name: string;
@@ -47,4 +48,10 @@ export class User extends Model<User, UserAttr> {
     type: DataType.STRING,
   })
   role: string;
+
+  @HasMany(() => School, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  school: School;
 }
