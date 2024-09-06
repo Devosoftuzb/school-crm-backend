@@ -7,6 +7,7 @@ import { UserModule } from './user/user.module';
 import { SchoolModule } from './school/school.module';
 import { User } from './user/models/user.model';
 import { School } from './school/models/school.model';
+import { StudentModule } from './student/student.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { School } from './school/models/school.model';
     UserModule,
     AuthModule,
     SchoolModule,
+    StudentModule,
   ],
   controllers: [],
   providers: [],
