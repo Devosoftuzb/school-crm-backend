@@ -9,6 +9,8 @@ import { User } from './user/models/user.model';
 import { School } from './school/models/school.model';
 import { StudentModule } from './student/student.module';
 import { Student } from './student/models/student.model';
+import { GroupModule } from './group/group.module';
+import { Group } from './group/models/group.model';
 
 @Module({
   imports: [
@@ -20,7 +22,7 @@ import { Student } from './student/models/student.model';
       username: process.env.POSTGRES_USER,
       password: String(process.env.POSTGRES_PASS),
       database: process.env.POSTGRES_DB,
-      models: [User, School, Student],
+      models: [User, School, Student, Group],
       autoLoadModels: true,
       logging: false,
     }),
@@ -29,6 +31,7 @@ import { Student } from './student/models/student.model';
     AuthModule,
     SchoolModule,
     StudentModule,
+    GroupModule,
   ],
   controllers: [],
   providers: [],
