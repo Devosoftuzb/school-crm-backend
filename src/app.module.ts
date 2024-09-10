@@ -11,6 +11,11 @@ import { StudentModule } from './student/student.module';
 import { Student } from './student/models/student.model';
 import { GroupModule } from './group/group.module';
 import { Group } from './group/models/group.model';
+import { RoomModule } from './room/room.module';
+import { SmsModule } from './sms/sms.module';
+import { DaysModule } from './days/days.module';
+import { Day } from './days/models/day.model';
+import { Room } from './room/models/room.model';
 
 @Module({
   imports: [
@@ -22,7 +27,7 @@ import { Group } from './group/models/group.model';
       username: process.env.POSTGRES_USER,
       password: String(process.env.POSTGRES_PASS),
       database: process.env.POSTGRES_DB,
-      models: [User, School, Student, Group],
+      models: [User, School, Student, Group, Day, Room],
       autoLoadModels: true,
       logging: false,
     }),
@@ -32,6 +37,9 @@ import { Group } from './group/models/group.model';
     SchoolModule,
     StudentModule,
     GroupModule,
+    RoomModule,
+    SmsModule,
+    DaysModule,
   ],
   controllers: [],
   providers: [],

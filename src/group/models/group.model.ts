@@ -1,5 +1,8 @@
-import { BelongsTo, Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
+import { BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table } from "sequelize-typescript";
+import { Day } from "src/days/models/day.model";
+import { Room } from "src/room/models/room.model";
 import { School } from "src/school/models/school.model";
+import { Sms } from "src/sms/models/sms.model";
 
 interface GroupAttr {
     school_id: number;
@@ -49,26 +52,26 @@ export class Group extends Model<Group, GroupAttr>{
       })
       start_date: string;
 
-      @ForeignKey(() => School)
+      @ForeignKey(() => Room)
       @Column({
         type: DataType.INTEGER,
         onDelete: 'CASCADE',
       })
       room_id: number;
     
-      @BelongsTo(() => School, {
+      @BelongsTo(() => Room, {
         onDelete: 'CASCADE',
       })
       room: School;
 
-      @ForeignKey(() => School)
+      @ForeignKey(() => Day)
       @Column({
         type: DataType.INTEGER,
         onDelete: 'CASCADE',
       })
       days_id: number;
     
-      @BelongsTo(() => School, {
+      @BelongsTo(() => Day, {
         onDelete: 'CASCADE',
       })
       days: School;
@@ -87,4 +90,10 @@ export class Group extends Model<Group, GroupAttr>{
         type: DataType.BOOLEAN,
       })
       status: boolean;
+
+      @HasMany(() => Sms, {
+        onDelete: 'CASCADE',
+        hooks: true,
+      })
+      sms: Sms;
 }
