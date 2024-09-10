@@ -3,9 +3,11 @@ import {
   Column,
   DataType,
   ForeignKey,
+  HasMany,
   Model,
   Table,
 } from 'sequelize-typescript';
+import { Student } from 'src/student/models/student.model';
 import { User } from 'src/user/models/user.model';
 
 interface SchoolAttr {
@@ -43,4 +45,10 @@ export class School extends Model<School, SchoolAttr> {
     onDelete: 'CASCADE',
   })
   owner: User;
+
+  @HasMany(() => Student, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  student: Student;
 }

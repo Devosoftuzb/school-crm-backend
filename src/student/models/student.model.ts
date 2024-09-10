@@ -1,4 +1,5 @@
-import { Column, DataType, Model, Table } from 'sequelize-typescript';
+import { BelongsTo, Column, DataType, ForeignKey, Model, Table } from 'sequelize-typescript';
+import { School } from 'src/school/models/school.model';
 
 interface StudentAttr {
   school_id: number;
@@ -18,10 +19,17 @@ export class Student extends Model<Student, StudentAttr> {
   })
   id: number;
 
+  @ForeignKey(() => School)
   @Column({
     type: DataType.INTEGER,
+    onDelete: 'CASCADE',
   })
   school_id: number;
+
+  @BelongsTo(() => School, {
+    onDelete: 'CASCADE',
+  })
+  school: School;
 
   @Column({
     type: DataType.STRING,
