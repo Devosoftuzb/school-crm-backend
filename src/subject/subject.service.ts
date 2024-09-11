@@ -20,7 +20,7 @@ export class SubjectService {
     return await this.repo.findAll({ include: { all: true } });
   }
 
-  async findAllBySchoolId(school_id: number) {
+  async findAllBySubjectId(school_id: number) {
     return await this.repo.findAll({
       where: { school_id: school_id },
       include: { all: true },
