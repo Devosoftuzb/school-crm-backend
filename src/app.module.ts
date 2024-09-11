@@ -26,6 +26,7 @@ import { AttendanceModule } from './attendance/attendance.module';
 import { PaymentMethod } from './payment_method/models/payment_method.model';
 import { Payment } from './payment/models/payment.model';
 import { Attendance } from './attendance/models/attendance.model';
+import { EmployeeModule } from './employee/employee.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { Attendance } from './attendance/models/attendance.model';
     PaymentMethodModule,
     PaymentModule,
     AttendanceModule,
+    EmployeeModule,
   ],
   controllers: [],
   providers: [],

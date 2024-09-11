@@ -8,6 +8,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { Attendance } from 'src/attendance/models/attendance.model';
+import { Employee } from 'src/employee/models/employee.model';
 import { Group } from 'src/group/models/group.model';
 import { Payment } from 'src/payment/models/payment.model';
 import { PaymentMethod } from 'src/payment_method/models/payment_method.model';
@@ -79,4 +80,10 @@ export class School extends Model<School, SchoolAttr> {
     hooks: true,
   })
   attendance: Attendance;
+
+  @HasMany(() => Employee, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  employee: Employee;
 }
