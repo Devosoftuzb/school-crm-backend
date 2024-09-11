@@ -10,68 +10,65 @@ import {
   Query,
   Put,
 } from '@nestjs/common';
-import { StudentService } from './student.service';
-import { CreateStudentDto } from './dto/create-student.dto';
-import { UpdateStudentDto } from './dto/update-student.dto';
+import { PaymentService } from './payment.service';
+import { CreatePaymentDto } from './dto/create-payment.dto';
+import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
-@ApiTags('Student')
-@Controller('student')
-export class StudentController {
-  constructor(private readonly studentService: StudentService) {}
+@ApiTags('Payment')
+@Controller('payment')
+export class PaymentController {
+  constructor(private readonly paymentService: PaymentService) {}
 
-  @ApiOperation({ summary: 'Student create' })
+  @ApiOperation({ summary: 'Payment create' })
   @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Post()
-  create(@Body() createStudentDto: CreateStudentDto) {
-    return this.studentService.create(createStudentDto);
+  create(@Body() createPaymentDto: CreatePaymentDto) {
+    return this.paymentService.create(createPaymentDto);
   }
 
-  @ApiOperation({ summary: 'Student view all by school ID' })
+  @ApiOperation({ summary: 'Payment view all by school ID' })
   @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Get()
   findAll() {
-    return this.studentService.findAll();
+    return this.paymentService.findAll();
   }
 
-  @ApiOperation({ summary: 'Student view all by school ID' })
+  @ApiOperation({ summary: 'Payment view all by school ID' })
   @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':school_id')
-  findAllBySchoolId(@Param('school_id') school_id: string) {
-    return this.studentService.findAllBySchoolId(+school_id);
+  findAllByPaymentId(@Param('school_id') school_id: string) {
+    return this.paymentService.findAllByPaymentId(+school_id);
   }
 
-  @ApiOperation({ summary: 'Student paginate' })
+  @ApiOperation({ summary: 'Payment paginate' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':school_id/page')
-  paginate(
-    @Query('page') page: number,
-    @Param('school_id') school_id: string
-  ) {
-    return this.studentService.paginate(+school_id, page);
+  paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
+    return this.paymentService.paginate(+school_id, page);
   }
 
-  @ApiOperation({ summary: 'Student view by ID by school ID' })
+  @ApiOperation({ summary: 'Payment view by ID by school ID' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':school_id/:id')
   findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
-    return this.studentService.findOne(+id, +school_id);
+    return this.paymentService.findOne(+id, +school_id);
   }
 
-  @ApiOperation({ summary: 'Student update by ID by school ID' })
+  @ApiOperation({ summary: 'Payment update by ID by school ID' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
@@ -79,20 +76,17 @@ export class StudentController {
   update(
     @Param('id') id: string,
     @Param('school_id') school_id: string,
-    @Body() updateStudentDto: UpdateStudentDto,
+    @Body() updatePaymentDto: UpdatePaymentDto,
   ) {
-    return this.studentService.update(+id, +school_id, updateStudentDto);
+    return this.paymentService.update(+id, +school_id, updatePaymentDto);
   }
 
-  @ApiOperation({ summary: 'Student remove by ID by school ID' })
+  @ApiOperation({ summary: 'Payment remove by ID by school ID' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Delete(':school_id/:id')
-  remove(
-    @Param('id') id: string, 
-    @Param('school_id') school_id: string
-  ) {
-    return this.studentService.remove(+id, +school_id);
+  remove(@Param('id') id: string, @Param('school_id') school_id: string) {
+    return this.paymentService.remove(+id, +school_id);
   }
 }

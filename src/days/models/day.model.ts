@@ -1,5 +1,5 @@
 import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript';
-import { Group } from 'src/group/models/group.model';
+import { GroupDay } from 'src/group_day/models/group_day.model';
 
 interface DaysAttr {
   name: string;
@@ -19,9 +19,9 @@ export class Day extends Model<Day, DaysAttr> {
   })
   name: string;
 
-  @HasMany(() => Group, {
+  @HasMany(() => GroupDay, {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  group: Group;
+  group: GroupDay;
 }

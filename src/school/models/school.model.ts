@@ -7,6 +7,10 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript';
+import { Attendance } from 'src/attendance/models/attendance.model';
+import { Group } from 'src/group/models/group.model';
+import { Payment } from 'src/payment/models/payment.model';
+import { PaymentMethod } from 'src/payment_method/models/payment_method.model';
 import { Student } from 'src/student/models/student.model';
 import { User } from 'src/user/models/user.model';
 
@@ -51,4 +55,28 @@ export class School extends Model<School, SchoolAttr> {
     hooks: true,
   })
   student: Student;
+
+  @HasMany(() => Group, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  group: Group;
+
+  @HasMany(() => PaymentMethod, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  paymentMethod: PaymentMethod;
+
+  @HasMany(() => Payment, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  payment: Payment;
+
+  @HasMany(() => Attendance, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  attendance: Attendance;
 }

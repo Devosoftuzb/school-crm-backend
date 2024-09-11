@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
+  Put,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
@@ -33,7 +34,7 @@ export class GroupController {
 
   @ApiOperation({ summary: 'Group view all by school ID' })
   @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Roles('superadmin', 'admin')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Get()
   findAll() {
@@ -42,7 +43,7 @@ export class GroupController {
 
   @ApiOperation({ summary: 'Group view all by school ID' })
   @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin')
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':school_id')
   findAllByGroupId(@Param('school_id') school_id: string) {
@@ -74,7 +75,7 @@ export class GroupController {
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
-  @Patch(':school_id/:id')
+  @Put(':school_id/:id')
   update(
     @Param('id') id: string,
     @Param('school_id') school_id: string,

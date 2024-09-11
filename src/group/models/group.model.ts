@@ -1,7 +1,9 @@
 import { BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table } from "sequelize-typescript";
 import { Day } from "src/days/models/day.model";
+import { GroupDay } from "src/group_day/models/group_day.model";
 import { Room } from "src/room/models/room.model";
 import { School } from "src/school/models/school.model";
+import { StudentGroup } from "src/student_group/models/student_group.model";
 
 interface GroupAttr {
     school_id: number;
@@ -76,4 +78,16 @@ export class Group extends Model<Group, GroupAttr>{
         type: DataType.BOOLEAN,
       })
       status: boolean;
+
+      @HasMany(() => GroupDay, {
+        onDelete: 'CASCADE',
+        hooks: true,
+      })
+      group: GroupDay;
+
+      @HasMany(() => StudentGroup, {
+        onDelete: 'CASCADE',
+        hooks: true,
+      })
+      student: StudentGroup;
 }

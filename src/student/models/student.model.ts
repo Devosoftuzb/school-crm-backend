@@ -1,5 +1,8 @@
-import { BelongsTo, Column, DataType, ForeignKey, Model, Table } from 'sequelize-typescript';
+import { BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table } from 'sequelize-typescript';
+import { Attendance } from 'src/attendance/models/attendance.model';
+import { Payment } from 'src/payment/models/payment.model';
 import { School } from 'src/school/models/school.model';
+import { StudentGroup } from 'src/student_group/models/student_group.model';
 
 interface StudentAttr {
   school_id: number;
@@ -55,4 +58,22 @@ export class Student extends Model<Student, StudentAttr> {
     type: DataType.BOOLEAN,
   })
   status: boolean;
+
+  @HasMany(() => StudentGroup, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  group: StudentGroup;
+
+  @HasMany(() => Payment, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  payment: Payment;
+
+  @HasMany(() => Attendance, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  attendance: Attendance;
 }

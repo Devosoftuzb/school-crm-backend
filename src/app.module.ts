@@ -20,6 +20,12 @@ import { GroupDayModule } from './group_day/group_day.module';
 import { StudentGroupModule } from './student_group/student_group.module';
 import { GroupDay } from './group_day/models/group_day.model';
 import { StudentGroup } from './student_group/models/student_group.model';
+import { PaymentMethodModule } from './payment_method/payment_method.module';
+import { PaymentModule } from './payment/payment.module';
+import { AttendanceModule } from './attendance/attendance.module';
+import { PaymentMethod } from './payment_method/models/payment_method.model';
+import { Payment } from './payment/models/payment.model';
+import { Attendance } from './attendance/models/attendance.model';
 
 @Module({
   imports: [
@@ -31,7 +37,19 @@ import { StudentGroup } from './student_group/models/student_group.model';
       username: process.env.POSTGRES_USER,
       password: String(process.env.POSTGRES_PASS),
       database: process.env.POSTGRES_DB,
-      models: [User, School, Student, Group, Day, Room, GroupDay, StudentGroup],
+      models: [
+        User,
+        School,
+        Student,
+        Group,
+        Day,
+        Room,
+        GroupDay,
+        StudentGroup,
+        PaymentMethod,
+        Payment,
+        Attendance,
+      ],
       autoLoadModels: true,
       logging: false,
     }),
@@ -46,6 +64,9 @@ import { StudentGroup } from './student_group/models/student_group.model';
     DaysModule,
     GroupDayModule,
     StudentGroupModule,
+    PaymentMethodModule,
+    PaymentModule,
+    AttendanceModule,
   ],
   controllers: [],
   providers: [],
