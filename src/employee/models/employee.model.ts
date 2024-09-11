@@ -1,5 +1,14 @@
-import { BelongsTo, Column, DataType, ForeignKey, Model, Table } from "sequelize-typescript";
-import { School } from "src/school/models/school.model";
+import {
+  BelongsTo,
+  Column,
+  DataType,
+  ForeignKey,
+  HasMany,
+  Model,
+  Table,
+} from 'sequelize-typescript';
+import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
+import { School } from 'src/school/models/school.model';
 
 interface EmployeeAttr {
   school_id: number;
@@ -11,8 +20,8 @@ interface EmployeeAttr {
   role: string;
 }
 
-@Table({tableName: 'employee'})
-export class Employee extends Model<Employee, EmployeeAttr>{
+@Table({ tableName: 'employee' })
+export class Employee extends Model<Employee, EmployeeAttr> {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -62,9 +71,9 @@ export class Employee extends Model<Employee, EmployeeAttr>{
   })
   role: string;
 
-//   @HasMany(() => School, {
-//     onDelete: 'CASCADE',
-//     hooks: true,
-//   })
-//   school: School;
+  @HasMany(() => EmployeeGroup, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  group: EmployeeGroup;
 }

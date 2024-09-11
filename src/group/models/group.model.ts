@@ -1,5 +1,6 @@
 import { BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table } from "sequelize-typescript";
 import { Day } from "src/days/models/day.model";
+import { EmployeeGroup } from "src/employee_group/models/employee_group.model";
 import { GroupDay } from "src/group_day/models/group_day.model";
 import { Room } from "src/room/models/room.model";
 import { School } from "src/school/models/school.model";
@@ -90,4 +91,10 @@ export class Group extends Model<Group, GroupAttr>{
         hooks: true,
       })
       student: StudentGroup;
+
+      @HasMany(() => EmployeeGroup, {
+        onDelete: 'CASCADE',
+        hooks: true,
+      })
+      employee: EmployeeGroup;
 }

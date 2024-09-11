@@ -27,6 +27,9 @@ import { PaymentMethod } from './payment_method/models/payment_method.model';
 import { Payment } from './payment/models/payment.model';
 import { Attendance } from './attendance/models/attendance.model';
 import { EmployeeModule } from './employee/employee.module';
+import { EmployeeGroupModule } from './employee_group/employee_group.module';
+import { Employee } from './employee/models/employee.model';
+import { EmployeeGroup } from './employee_group/models/employee_group.model';
 
 @Module({
   imports: [
@@ -50,6 +53,8 @@ import { EmployeeModule } from './employee/employee.module';
         PaymentMethod,
         Payment,
         Attendance,
+        Employee,
+        EmployeeGroup
       ],
       autoLoadModels: true,
       logging: false,
@@ -69,6 +74,7 @@ import { EmployeeModule } from './employee/employee.module';
     PaymentModule,
     AttendanceModule,
     EmployeeModule,
+    EmployeeGroupModule,
   ],
   controllers: [],
   providers: [],
