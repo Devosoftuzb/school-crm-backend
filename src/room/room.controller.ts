@@ -70,7 +70,7 @@ export class RoomController {
 
   @ApiOperation({ summary: 'Room remove by ID' })
   @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin')
+  @Roles('owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {

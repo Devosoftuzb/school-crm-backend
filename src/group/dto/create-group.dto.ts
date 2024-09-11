@@ -27,11 +27,6 @@ export class CreateGroupDto {
   @IsNotEmpty()
   room_id: number;
 
-  @ApiProperty({ example: 1, description: 'Days ID' })
-  @IsInt()
-  @IsNotEmpty()
-  days_id: number;
-
   @ApiProperty({ example: '18:00', description: 'Group start time' })
   @IsString()
   @IsNotEmpty()
