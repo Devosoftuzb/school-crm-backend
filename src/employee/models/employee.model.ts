@@ -8,6 +8,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
+import { EmployeeSubject } from 'src/employee_subject/models/employee_subject.model';
 import { School } from 'src/school/models/school.model';
 
 interface EmployeeAttr {
@@ -76,4 +77,10 @@ export class Employee extends Model<Employee, EmployeeAttr> {
     hooks: true,
   })
   group: EmployeeGroup;
+
+  @HasMany(() => EmployeeSubject, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  subject: EmployeeSubject;
 }

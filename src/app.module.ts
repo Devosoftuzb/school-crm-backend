@@ -32,6 +32,10 @@ import { Employee } from './employee/models/employee.model';
 import { EmployeeGroup } from './employee_group/models/employee_group.model';
 import { SubjectModule } from './subject/subject.module';
 import { Subject } from './subject/models/subject.model';
+import { GroupSubjectModule } from './group_subject/group_subject.module';
+import { EmployeeSubjectModule } from './employee_subject/employee_subject.module';
+import { GroupSubject } from './group_subject/models/group_subject.model';
+import { EmployeeSubject } from './employee_subject/models/employee_subject.model';
 
 @Module({
   imports: [
@@ -57,7 +61,9 @@ import { Subject } from './subject/models/subject.model';
         Attendance,
         Employee,
         EmployeeGroup,
-        Subject
+        Subject,
+        GroupSubject,
+        EmployeeSubject,
       ],
       autoLoadModels: true,
       logging: false,
@@ -79,6 +85,8 @@ import { Subject } from './subject/models/subject.model';
     EmployeeModule,
     EmployeeGroupModule,
     SubjectModule,
+    GroupSubjectModule,
+    EmployeeSubjectModule,
   ],
   controllers: [],
   providers: [],
