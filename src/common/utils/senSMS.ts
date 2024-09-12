@@ -7,7 +7,7 @@ export async function sendSMS(phone: string, message: string, token: string) {
     const data = new FormData();
     data.append('mobile_phone', phone);
     data.append('message', message);
-    data.append('from', 'Smart Constult');
+    data.append('from', 'DevoSoft');
     data.append('callback_url', 'http://0000.uz/test.php');
     const config = {
       method: 'post',
