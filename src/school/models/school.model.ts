@@ -8,10 +8,12 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { Attendance } from 'src/attendance/models/attendance.model';
+import { Customer } from 'src/customer/models/customer.model';
 import { Employee } from 'src/employee/models/employee.model';
 import { Group } from 'src/group/models/group.model';
 import { Payment } from 'src/payment/models/payment.model';
 import { PaymentMethod } from 'src/payment_method/models/payment_method.model';
+import { SocialMedia } from 'src/social_media/models/social_media.model';
 import { Student } from 'src/student/models/student.model';
 import { Subject } from 'src/subject/models/subject.model';
 import { User } from 'src/user/models/user.model';
@@ -93,4 +95,16 @@ export class School extends Model<School, SchoolAttr> {
     hooks: true,
   })
   subject: Subject;
+
+  @HasMany(() => SocialMedia, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  socialMedia: SocialMedia;
+
+  @HasMany(() => Customer, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  customer: Customer;
 }

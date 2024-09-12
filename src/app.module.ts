@@ -36,6 +36,10 @@ import { GroupSubjectModule } from './group_subject/group_subject.module';
 import { EmployeeSubjectModule } from './employee_subject/employee_subject.module';
 import { GroupSubject } from './group_subject/models/group_subject.model';
 import { EmployeeSubject } from './employee_subject/models/employee_subject.model';
+import { SocialMediaModule } from './social_media/social_media.module';
+import { SocialMedia } from './social_media/models/social_media.model';
+import { CustomerModule } from './customer/customer.module';
+import { Customer } from './customer/models/customer.model';
 
 @Module({
   imports: [
@@ -64,6 +68,8 @@ import { EmployeeSubject } from './employee_subject/models/employee_subject.mode
         Subject,
         GroupSubject,
         EmployeeSubject,
+        SocialMedia,
+        Customer,
       ],
       autoLoadModels: true,
       logging: false,
@@ -87,6 +93,8 @@ import { EmployeeSubject } from './employee_subject/models/employee_subject.mode
     SubjectModule,
     GroupSubjectModule,
     EmployeeSubjectModule,
+    SocialMediaModule,
+    CustomerModule,
   ],
   controllers: [],
   providers: [],
