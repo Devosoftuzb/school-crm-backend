@@ -6,4 +6,9 @@ export class CreateRoomDto {
   @IsString()
   @IsNotEmpty()
   name: string;
+
+  @ApiProperty({ example: 'status', description: 'Room status' })
+  @IsString()
+  @IsNotEmpty()
+  status: string;
 }
