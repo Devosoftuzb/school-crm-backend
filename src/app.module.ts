@@ -40,6 +40,18 @@ import { SocialMediaModule } from './social_media/social_media.module';
 import { SocialMedia } from './social_media/models/social_media.model';
 import { CustomerModule } from './customer/customer.module';
 import { Customer } from './customer/models/customer.model';
+import { AnswerModule } from './answer/answer.module';
+import { QuestionModule } from './question/question.module';
+import { TestGroupModule } from './test-group/test-group.module';
+import { TestResultModule } from './test-result/test-result.module';
+import { TestSubmitModule } from './test-submit/test-submit.module';
+import { TestTimeModule } from './test-time/test-time.module';
+import { Answer } from './answer/models/answer.model';
+import { Question } from './question/models/question.model';
+import { TestGroup } from './test-group/models/test-group.model';
+import { TestResult } from './test-result/models/test-result.model';
+import { TestSubmit } from './test-submit/models/test-submit.model';
+import { TestTime } from './test-time/models/test-time.model';
 
 @Module({
   imports: [
@@ -70,6 +82,12 @@ import { Customer } from './customer/models/customer.model';
         EmployeeSubject,
         SocialMedia,
         Customer,
+        Answer,
+        Question,
+        TestGroup,
+        TestResult,
+        TestSubmit,
+        TestTime,
       ],
       autoLoadModels: true,
       logging: false,
@@ -95,6 +113,12 @@ import { Customer } from './customer/models/customer.model';
     EmployeeSubjectModule,
     SocialMediaModule,
     CustomerModule,
+    AnswerModule,
+    QuestionModule,
+    TestGroupModule,
+    TestResultModule,
+    TestSubmitModule,
+    TestTimeModule,
   ],
   controllers: [],
   providers: [],
