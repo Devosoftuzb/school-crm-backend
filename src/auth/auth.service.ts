@@ -41,22 +41,22 @@ export class AuthService {
     res.clearCookie('refresh_token');
   }
 
-  // async refreshToken(userId: number, refreshToken: string, res: Response) {
-  //   const user = await this.findUserById(userId);
-  //   if (
-  //     !user ||
-  //     !(await bcrypt.compare(refreshToken, user.hashed_refresh_token))
-  //   ) {
-  //     throw new ForbiddenException('Access Denied');
-  //   }
-  //   const tokens = await this.getTokens(user);
-  //   await this.updateRefreshToken(user, tokens.refresh_token);
-  //   res.cookie('refresh_token', tokens.refresh_token, {
-  //     maxAge: 15 * 24 * 60 * 60 * 1000,
-  //     httpOnly: true,
-  //   });
-  //   return tokens;
-  // }
+  async refreshToken(userId: number, refreshToken: string, res: Response) {
+    const user = await this.findUserById(userId);
+    if (
+      !user ||
+      !(await bcrypt.compare(refreshToken, user.hashed_refresh_token))
+    ) {
+      throw new ForbiddenException('Access Denied');
+    }
+    const tokens = await this.getTokens(user);
+    await this.updateRefreshToken(user, tokens.refresh_token);
+    res.cookie('refresh_token', tokens.refresh_token, {
+      maxAge: 15 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+    });
+    return tokens;
+  }
 
   private async findUserByLogin(login: string) {
     return (
