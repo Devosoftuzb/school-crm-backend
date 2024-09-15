@@ -8,16 +8,18 @@ import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/user/models/user.model';
+import { Employee } from 'src/employee/models/employee.model';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User) private readonly userRepo: typeof User,
+    @InjectModel(Employee) private readonly userEmployee: typeof Employee,
     private readonly jwtService: JwtService,
   ) {}
 
   async login(login: string, password: string, res: Response) {
-    const user = await this.findUserByPhoneNumber(login);
+    const user = await this.findUserByLogin(login);
     if (!user || !(await bcrypt.compare(password, user.hashed_password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -39,32 +41,34 @@ export class AuthService {
     res.clearCookie('refresh_token');
   }
 
-  async refreshToken(userId: number, refreshToken: string, res: Response) {
-    const user = await this.findUserById(userId);
-    if (
-      !user ||
-      !(await bcrypt.compare(refreshToken, user.hashed_refresh_token))
-    ) {
-      throw new ForbiddenException('Access Denied');
-    }
-    const tokens = await this.getTokens(user);
-    await this.updateRefreshToken(user, tokens.refresh_token);
-    res.cookie('refresh_token', tokens.refresh_token, {
-      maxAge: 15 * 24 * 60 * 60 * 1000,
-      httpOnly: true,
-    });
-    return tokens;
-  }
+  // async refreshToken(userId: number, refreshToken: string, res: Response) {
+  //   const user = await this.findUserById(userId);
+  //   if (
+  //     !user ||
+  //     !(await bcrypt.compare(refreshToken, user.hashed_refresh_token))
+  //   ) {
+  //     throw new ForbiddenException('Access Denied');
+  //   }
+  //   const tokens = await this.getTokens(user);
+  //   await this.updateRefreshToken(user, tokens.refresh_token);
+  //   res.cookie('refresh_token', tokens.refresh_token, {
+  //     maxAge: 15 * 24 * 60 * 60 * 1000,
+  //     httpOnly: true,
+  //   });
+  //   return tokens;
+  // }
 
-  private async findUserByPhoneNumber(login: string) {
+  private async findUserByLogin(login: string) {
     return (
-      (await this.userRepo.findOne({ where: { login } }))
+      (await this.userRepo.findOne({ where: { login } })) ||
+      (await this.userEmployee.findOne({ where: { login } }))
     );
   }
 
   private async findUserById(id: number) {
     return (
-      (await this.userRepo.findByPk(id))
+      (await this.userRepo.findByPk(id)) ||
+      (await this.userEmployee.findByPk(id))
     );
   }
 
@@ -95,6 +99,11 @@ export class AuthService {
         { hashed_refresh_token: hashedRefreshToken },
         { where: { id: user.id } },
       );
+    } else if (user instanceof Employee) {
+      await this.userEmployee.update(
+        { hashed_refresh_token: hashedRefreshToken },
+        { where: { id: user.id } },
+      );
     }
   }
 
@@ -114,6 +123,11 @@ export class AuthService {
 
     if (user instanceof User) {
       await this.userRepo.update(
+        { hashed_refresh_token: null },
+        { where: { id: user.id } },
+      );
+    } else if (user instanceof Employee) {
+      await this.userEmployee.update(
         { hashed_refresh_token: null },
         { where: { id: user.id } },
       );
