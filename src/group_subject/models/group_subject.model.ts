@@ -11,7 +11,7 @@ import { Subject } from 'src/subject/models/subject.model';
 
 interface GroupSubjectAttr {
   group_id: number;
-  subject_id: number;
+  subject_name: string;
 }
 
 @Table({ tableName: 'group_subject' })
@@ -35,15 +35,8 @@ export class GroupSubject extends Model<GroupSubject, GroupSubjectAttr> {
   })
   group: Group;
 
-  @ForeignKey(() => Subject)
   @Column({
-    type: DataType.INTEGER,
-    onDelete: 'CASCADE',
+    type: DataType.STRING,
   })
-  subject_id: number;
-
-  @BelongsTo(() => Subject, {
-    onDelete: 'CASCADE',
-  })
-  subject: Subject;
+  subject_name: string;
 }

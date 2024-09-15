@@ -41,16 +41,4 @@ export class Subject extends Model<Subject, SubjectAttr> {
     type: DataType.STRING,
   })
   name: string;
-
-  @HasMany(() => GroupSubject, {
-    onDelete: 'CASCADE',
-    hooks: true,
-  })
-  group: GroupSubject;
-
-  @HasMany(() => EmployeeSubject, {
-    onDelete: 'CASCADE',
-    hooks: true,
-  })
-  employee: EmployeeSubject;
 }

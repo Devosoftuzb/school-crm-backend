@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsInt, IsNotEmpty } from "class-validator";
+import { IsInt, IsNotEmpty, IsString } from "class-validator";
 
 export class CreateEmployeeSubjectDto {
   @ApiProperty({ example: 1, description: 'Employee ID' })
@@ -7,8 +7,8 @@ export class CreateEmployeeSubjectDto {
   @IsInt()
   employee_id: number;
 
-  @ApiProperty({ example: 1, description: 'Subject ID' })
+  @ApiProperty({ example: "Backend", description: 'Subject name' })
   @IsNotEmpty()
-  @IsInt()
-  subject_id: number;
+  @IsString()
+  subject_name: string;
 }

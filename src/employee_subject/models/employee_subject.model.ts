@@ -11,7 +11,7 @@ import { Subject } from 'src/subject/models/subject.model';
 
 interface EmployeeSubjectAttr {
   employee_id: number;
-  subject_id: number;
+  subject_name: string;
 }
 
 @Table({ tableName: 'employee_subject' })
@@ -38,15 +38,8 @@ export class EmployeeSubject extends Model<
   })
   employee: Employee;
 
-  @ForeignKey(() => Subject)
   @Column({
-    type: DataType.INTEGER,
-    onDelete: 'CASCADE',
+    type: DataType.STRING,
   })
-  subject_id: number;
-
-  @BelongsTo(() => Subject, {
-    onDelete: 'CASCADE',
-  })
-  subject: Subject;
+  subject_name: string;
 }
