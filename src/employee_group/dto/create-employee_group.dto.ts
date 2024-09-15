@@ -15,5 +15,5 @@ export class CreateEmployeeGroupDto {
   @ApiProperty({ example: "Backend", description: 'Group name' })
   @IsNotEmpty()
   @IsString()
-  group_name: number;
+  group_name: string;
 }
