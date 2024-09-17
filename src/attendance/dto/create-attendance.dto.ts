@@ -12,6 +12,11 @@ export class CreateAttendanceDto {
   @IsInt()
   student_id: number;
 
+  @ApiProperty({ example: 1, description: 'Group ID' })
+  @IsNotEmpty()
+  @IsInt()
+  group_id: number;
+
   @ApiProperty({ example: true, description: 'Attendance status' })
   @IsBoolean()
   @IsNotEmpty()

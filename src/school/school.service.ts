@@ -3,13 +3,22 @@ import { CreateSchoolDto } from './dto/create-school.dto';
 import { UpdateSchoolDto } from './dto/update-school.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { School } from './models/school.model';
+import { FilesService } from 'src/common/files/files.service';
 
 @Injectable()
 export class SchoolService {
-  constructor(@InjectModel(School) private repo: typeof School) {}
+  constructor(
+    @InjectModel(School) private repo: typeof School,
+    private readonly fileService: FilesService,
+  ) {}
 
-  async create(createSchoolDto: CreateSchoolDto) {
-    const school = await this.repo.create(createSchoolDto);
+  async create(createSchoolDto: CreateSchoolDto, image: any) {
+    let image_name: string;
+    image_name = await this.fileService.createFile(image);
+    const school = await this.repo.create({
+      image: image_name,
+      ...createSchoolDto,
+    });
     return {
       message: 'School created',
       school,
@@ -59,17 +68,39 @@ export class SchoolService {
     return school;
   }
 
-  async update(id: number, updateSchoolDto: UpdateSchoolDto) {
+  async update(id: number, updateSchoolDto: UpdateSchoolDto, image: any) {
     const school = await this.repo.findByPk(id, { include: { all: true } });
 
     if (!school) {
       throw new BadRequestException(`School with id ${id} not found`);
     }
 
+    if (image) {
+      let image_name: string;
+      try {
+        if (school.image !== null) {
+          try {
+            await this.fileService.deleteFile(school.image);
+          } catch (error) {
+            // throw new BadRequestException(error.message);
+          }
+        }
+        image_name = await this.fileService.createFile(image);
+      } catch (error) {
+        throw new BadRequestException(error.message);
+      }
+      await school.update({
+        image: image_name,
+        ...updateSchoolDto,
+      });
+      return {
+        message: 'Success',
+        school,
+      };
+    }
     await school.update(updateSchoolDto);
-
     return {
-      message: 'School update',
+      message: 'Success',
       school,
     };
   }
@@ -81,10 +112,17 @@ export class SchoolService {
       throw new BadRequestException(`School with id ${id} not found`);
     }
 
-    await school.destroy();
-
+    if (school.image !== null) {
+      try {
+        await this.fileService.deleteFile(school.image);
+      } catch (error) {
+        school.destroy();
+        // throw new BadRequestException(error.message);
+      }
+    }
+    school.destroy();
     return {
-      message: 'School remove',
+      message: 'Success',
     };
   }
 }

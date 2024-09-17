@@ -9,6 +9,8 @@ import {
   UseGuards,
   Put,
   Query,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { SchoolService } from './school.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
@@ -17,6 +19,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ImageValidationPipe } from 'src/common/pipes/image-validation.pipe';
 
 @ApiTags('School')
 @Controller('school')
@@ -27,9 +31,13 @@ export class SchoolController {
   @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin')
   @UseGuards(RolesGuard, JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
   @Post()
-  create(@Body() createSchoolDto: CreateSchoolDto) {
-    return this.schoolService.create(createSchoolDto);
+  create(
+    @Body() createSchoolDto: CreateSchoolDto,
+    @UploadedFile(new ImageValidationPipe()) image: Express.Multer.File,
+  ) {
+    return this.schoolService.create(createSchoolDto, image);
   }
 
   @ApiOperation({ summary: 'School view all' })
@@ -63,9 +71,14 @@ export class SchoolController {
   @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner')
   @UseGuards(RolesGuard, JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateSchoolDto: UpdateSchoolDto) {
-    return this.schoolService.update(+id, updateSchoolDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateSchoolDto: UpdateSchoolDto,
+    @UploadedFile(new ImageValidationPipe()) image: Express.Multer.File,
+  ) {
+    return this.schoolService.update(+id, updateSchoolDto, image);
   }
 
   @ApiOperation({ summary: 'School remove by ID' })

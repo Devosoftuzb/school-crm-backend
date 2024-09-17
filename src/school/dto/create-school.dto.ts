@@ -12,8 +12,12 @@ export class CreateSchoolDto {
     @IsNotEmpty()
     address: string;
 
+    @ApiProperty({example: 'Logo', description: 'School logo'})
+    image: any;
+
+
     @ApiProperty({example: 1, description: 'School owner ID'})
-    @IsInt()
+    // @IsInt()
     @IsNotEmpty()
     owner_id: number;
 }

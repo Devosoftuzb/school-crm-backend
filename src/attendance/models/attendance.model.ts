@@ -6,12 +6,14 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript';
+import { Group } from 'src/group/models/group.model';
 import { School } from 'src/school/models/school.model';
 import { Student } from 'src/student/models/student.model';
 
 interface AttendanceAttr {
   school_id: number;
   student_id: number;
+  group_id: number;
   status: boolean;
 }
 
@@ -47,6 +49,18 @@ export class Attendance extends Model<Attendance, AttendanceAttr> {
     onDelete: 'CASCADE',
   })
   student: Student;
+
+  @ForeignKey(() => Group)
+  @Column({
+    type: DataType.INTEGER,
+    onDelete: 'CASCADE',
+  })
+  group_id: number;
+
+  @BelongsTo(() => Group, {
+    onDelete: 'CASCADE',
+  })
+  group: Group;
 
   @Column({
     type: DataType.BOOLEAN,

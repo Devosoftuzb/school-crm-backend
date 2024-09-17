@@ -1,4 +1,5 @@
 import { BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table } from "sequelize-typescript";
+import { Attendance } from "src/attendance/models/attendance.model";
 import { Day } from "src/days/models/day.model";
 import { EmployeeGroup } from "src/employee_group/models/employee_group.model";
 import { GroupDay } from "src/group_day/models/group_day.model";
@@ -111,4 +112,10 @@ export class Group extends Model<Group, GroupAttr>{
         hooks: true,
       })
       payment: Payment;
+
+      @HasMany(() => Attendance, {
+        onDelete: 'CASCADE',
+        hooks: true,
+      })
+      attendance: Attendance;
 }

@@ -21,6 +21,8 @@ import { User } from 'src/user/models/user.model';
 interface SchoolAttr {
   name: string;
   address: string;
+  owner_id: number;
+  image: string;
 }
 
 @Table({ tableName: 'school' })
@@ -41,6 +43,11 @@ export class School extends Model<School, SchoolAttr> {
     type: DataType.STRING,
   })
   address: string;
+
+  @Column({
+    type: DataType.STRING,
+  })
+  image: string;
 
   @ForeignKey(() => User)
   @Column({
