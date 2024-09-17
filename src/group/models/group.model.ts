@@ -3,6 +3,7 @@ import { Day } from "src/days/models/day.model";
 import { EmployeeGroup } from "src/employee_group/models/employee_group.model";
 import { GroupDay } from "src/group_day/models/group_day.model";
 import { GroupSubject } from "src/group_subject/models/group_subject.model";
+import { Payment } from "src/payment/models/payment.model";
 import { Room } from "src/room/models/room.model";
 import { School } from "src/school/models/school.model";
 import { StudentGroup } from "src/student_group/models/student_group.model";
@@ -104,4 +105,10 @@ export class Group extends Model<Group, GroupAttr>{
         hooks: true,
       })
       subject: GroupSubject;
+
+      @HasMany(() => Payment, {
+        onDelete: 'CASCADE',
+        hooks: true,
+      })
+      payment: Payment;
 }

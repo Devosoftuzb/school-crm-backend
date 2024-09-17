@@ -12,6 +12,11 @@ export class CreatePaymentDto {
   @IsInt()
   student_id: number;
 
+  @ApiProperty({ example: 1, description: 'Group ID' })
+  @IsNotEmpty()
+  @IsInt()
+  group_id: number;
+
   @ApiProperty({ example: '2024', description: 'Payment year' })
   @IsString()
   @IsNotEmpty()
