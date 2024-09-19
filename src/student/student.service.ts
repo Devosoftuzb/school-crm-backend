@@ -30,7 +30,7 @@ export class StudentService {
   async paginate(school_id: number, page: number): Promise<object> {
     try {
       page = Number(page);
-      const limit = 10;
+      const limit = 50;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
         where: { school_id: school_id },

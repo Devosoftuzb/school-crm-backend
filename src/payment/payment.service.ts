@@ -48,20 +48,32 @@ export class PaymentService {
   async paginate(school_id: number, page: number): Promise<object> {
     try {
       page = Number(page);
-      const limit = 10;
+      const limit = 50;
       const offset = (page - 1) * limit;
-      const user = await this.repo.findAll({
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+
+      const allUsers = await this.repo.findAll({
         where: { school_id: school_id },
         include: { all: true },
-        offset,
-        limit,
       });
-      const total_count = await this.repo.count();
+
+      const filteredUsers = allUsers.filter((user) => {
+        const createdAt = new Date(user.createdAt);
+        const userYear = createdAt.getFullYear();
+        const userMonth = createdAt.getMonth() + 1;
+        return userYear === currentYear && userMonth === currentMonth;
+      });
+
+      const paginatedUsers = filteredUsers.slice(offset, offset + limit);
+      const total_count = filteredUsers.length;
       const total_pages = Math.ceil(total_count / limit);
       const res = {
         status: 200,
         data: {
-          records: user,
+          records: paginatedUsers,
           pagination: {
             currentPage: page,
             total_pages,
