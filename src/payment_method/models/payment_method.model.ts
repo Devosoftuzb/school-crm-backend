@@ -32,10 +32,4 @@ export class PaymentMethod extends Model<PaymentMethod, PaymentMethodAttr> {
     type: DataType.STRING,
   })
   name: string;
-
-  @HasMany(() => Payment, {
-    onDelete: 'CASCADE',
-    hooks: true,
-  })
-  payment: Payment;
 }

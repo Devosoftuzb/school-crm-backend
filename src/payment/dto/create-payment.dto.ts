@@ -25,10 +25,10 @@ export class CreatePaymentDto {
   @ApiProperty({ example: 'September', description: 'Payment month' })
   month: string;
 
-  @ApiProperty({ example: 1, description: 'Payment method ID' })
+  @ApiProperty({ example: "Terminal", description: 'Payment method name' })
   @IsNotEmpty()
-  @IsInt()
-  method_id: number;
+  @IsString()
+  method: string;
 
   @ApiProperty({ example: 50, description: 'Payment discount' })
   @IsNotEmpty()

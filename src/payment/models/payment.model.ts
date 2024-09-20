@@ -17,7 +17,7 @@ interface PaymentAttr {
   group_id: number
   year: string;
   month: string;
-  method_id: number;
+  method: string;
   discount: number;
   price: number;
 }
@@ -76,18 +76,10 @@ export class Payment extends Model<Payment, PaymentAttr> {
     type: DataType.STRING,
   })
   month: string;
-
-  @ForeignKey(() => PaymentMethod)
   @Column({
-    type: DataType.INTEGER,
-    onDelete: 'CASCADE',
+    type: DataType.STRING,
   })
-  method_id: number;
-
-  @BelongsTo(() => PaymentMethod, {
-    onDelete: 'CASCADE',
-  })
-  method: PaymentMethod;
+  method: string;
 
   @Column({
     type: DataType.INTEGER,
