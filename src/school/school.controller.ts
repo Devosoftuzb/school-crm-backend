@@ -60,7 +60,7 @@ export class SchoolController {
 
   @ApiOperation({ summary: 'School view by ID' })
   @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin', 'owner')
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
