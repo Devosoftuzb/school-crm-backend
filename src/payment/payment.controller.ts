@@ -54,9 +54,9 @@ export class PaymentController {
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
-  @Get(':school_id/page')
-  paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
-    return this.paymentService.paginate(+school_id, page);
+  @Get(':school_id')
+  getOneDay(@Param('school_id') school_id: string) {
+    return this.paymentService.getOneDay(+school_id);
   }
 
   @ApiOperation({ summary: 'Payment view by ID by school ID' })

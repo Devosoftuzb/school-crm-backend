@@ -45,43 +45,33 @@ export class PaymentService {
     });
   }
 
-  async paginate(school_id: number, page: number): Promise<object> {
+  async getOneDay(school_id: number) {
     try {
-      page = Number(page);
-      const limit = 50;
-      const offset = (page - 1) * limit;
-
       const now = new Date();
       const currentYear = now.getFullYear();
       const currentMonth = now.getMonth() + 1;
+      const currentDate = now.getDate();
 
+      // Barcha foydalanuvchilarni olish
       const allUsers = await this.repo.findAll({
         where: { school_id: school_id },
         include: { all: true },
       });
 
+      // Hozirgi yil, oy va kunga mos keladigan foydalanuvchilarni filtrlash
       const filteredUsers = allUsers.filter((user) => {
         const createdAt = new Date(user.createdAt);
         const userYear = createdAt.getFullYear();
         const userMonth = createdAt.getMonth() + 1;
-        return userYear === currentYear && userMonth === currentMonth;
+        const userDate = createdAt.getDate();
+        return (
+          userYear === currentYear &&
+          userMonth === currentMonth &&
+          userDate === currentDate
+        );
       });
 
-      const paginatedUsers = filteredUsers.slice(offset, offset + limit);
-      const total_count = filteredUsers.length;
-      const total_pages = Math.ceil(total_count / limit);
-      const res = {
-        status: 200,
-        data: {
-          records: paginatedUsers,
-          pagination: {
-            currentPage: page,
-            total_pages,
-            total_count,
-          },
-        },
-      };
-      return res;
+      return filteredUsers;
     } catch (error) {
       throw new BadRequestException(error.message);
     }
