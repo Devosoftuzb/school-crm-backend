@@ -4,12 +4,16 @@ import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Payment } from './models/payment.model';
 import { Student } from 'src/student/models/student.model';
+import { Group } from 'src/group/models/group.model';
+import { Employee } from 'src/employee/models/employee.model';
 
 @Injectable()
 export class PaymentService {
   constructor(
     @InjectModel(Payment) private repo: typeof Payment,
     @InjectModel(Student) private repoStudent: typeof Student,
+    @InjectModel(Group) private repoGroup: typeof Group,
+    @InjectModel(Employee) private repoEmployee: typeof Employee,
   ) {}
 
   async create(createPaymentDto: CreatePaymentDto) {
@@ -52,13 +56,11 @@ export class PaymentService {
       const currentMonth = now.getMonth() + 1;
       const currentDate = now.getDate();
 
-      // Barcha foydalanuvchilarni olish
       const allUsers = await this.repo.findAll({
         where: { school_id: school_id },
         include: { all: true },
       });
 
-      // Hozirgi yil, oy va kunga mos keladigan foydalanuvchilarni filtrlash
       const filteredUsers = allUsers.filter((user) => {
         const createdAt = new Date(user.createdAt);
         const userYear = createdAt.getFullYear();
@@ -71,7 +73,38 @@ export class PaymentService {
         );
       });
 
-      return filteredUsers;
+      const allProduct = await Promise.all(
+        filteredUsers.map(async (user) => {
+          const group = await this.repoGroup.findOne({
+            where: {
+              id: user.group.id,
+              school_id: school_id,
+            },
+            include: { all: true },
+          });
+
+          const employee = await this.repoEmployee.findOne({
+            where: {
+              id: group.employee[0].employee_id,
+            },
+            include: { all: true },
+          });
+
+          return {
+            id: user.id,
+            student_name: user.student.full_name,
+            teacher_name: employee.full_name,
+            group_name: user.group.name,
+            group_price: user.group.price,
+            method: user.method,
+            price: user.price,
+            month: user.month,
+            createdAt: user.createdAt
+          };
+        }),
+      );
+
+      return allProduct;
     } catch (error) {
       throw new BadRequestException(error.message);
     }

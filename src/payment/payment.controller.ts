@@ -54,7 +54,7 @@ export class PaymentController {
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
-  @Get(':school_id')
+  @Get('day/:school_id')
   getOneDay(@Param('school_id') school_id: string) {
     return this.paymentService.getOneDay(+school_id);
   }
