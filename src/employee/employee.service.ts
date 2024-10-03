@@ -14,26 +14,27 @@ export class EmployeeService {
   ) {}
 
   async create(createEmployeeDto: CreateEmployeeDto) {
-    const employee = await this.repo.findOne({
+    const existingEmployee = await this.repo.findOne({
       where: { login: createEmployeeDto.login },
     });
 
-    const user = await this.repoUser.findOne({
+    const userExists = await this.repoUser.findOne({
       where: { login: createEmployeeDto.login },
     });
 
-    if (employee || user) {
+    if (existingEmployee || userExists) {
       throw new BadRequestException(
-        `This login "${createEmployeeDto.login}" already exists`,
+        `Login "${createEmployeeDto.login}" already exists`,
       );
     }
+
     const hashedPassword = await bcrypt.hash(createEmployeeDto.password, 7);
     const newEmployee = await this.repo.create({
       ...createEmployeeDto,
       hashed_password: hashedPassword,
     });
     return {
-      message: 'Employee created',
+      message: 'Employee created successfully',
       employee: newEmployee,
     };
   }
@@ -42,9 +43,9 @@ export class EmployeeService {
     return await this.repo.findAll({ include: { all: true } });
   }
 
-  async findAllByEmployeeId(school_id: number) {
+  async findAllBySchoolId(school_id: number) {
     return await this.repo.findAll({
-      where: { school_id: school_id },
+      where: { school_id },
       include: { all: true },
     });
   }
@@ -52,20 +53,20 @@ export class EmployeeService {
   async paginate(school_id: number, page: number): Promise<object> {
     try {
       page = Number(page);
-      const limit = 50;
+      const limit = 15;
       const offset = (page - 1) * limit;
-      const user = await this.repo.findAll({
-        where: { school_id: school_id },
+      const employees = await this.repo.findAll({
+        where: { school_id },
         include: { all: true },
         offset,
         limit,
       });
-      const total_count = await this.repo.count();
+      const total_count = await this.repo.count({ where: { school_id } });
       const total_pages = Math.ceil(total_count / limit);
-      const res = {
+      return {
         status: 200,
         data: {
-          records: user,
+          records: employees,
           pagination: {
             currentPage: page,
             total_pages,
@@ -73,25 +74,24 @@ export class EmployeeService {
           },
         },
       };
-      return res;
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new BadRequestException(
+        'Failed to paginate employees: ' + error.message,
+      );
     }
   }
 
   async findOne(id: number, school_id: number) {
     const employee = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
+      where: { id, school_id },
       include: { all: true },
     });
 
     if (!employee) {
-      throw new BadRequestException(`Employee with id ${id} not found`);
+      throw new BadRequestException(
+        `Employee ith id ${id} not found in school ${school_id}`,
+      );
     }
-
     return employee;
   }
 
@@ -100,43 +100,21 @@ export class EmployeeService {
     school_id: number,
     updateEmployeeDto: UpdateEmployeeDto,
   ) {
-    const employee = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!employee) {
-      throw new BadRequestException(`Employee with id ${id} not found`);
-    }
-
+    const employee = await this.findOne(id, school_id);
     await employee.update(updateEmployeeDto);
 
     return {
-      message: 'Employee update',
+      message: 'Employee updated successfully',
       employee,
     };
   }
 
   async remove(id: number, school_id: number) {
-    const employee = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!employee) {
-      throw new BadRequestException(`Employee with id ${id} not found`);
-    }
-
+    const employee = await this.findOne(id, school_id);
     await employee.destroy();
 
     return {
-      message: 'Employee remove',
+      message: 'Employee removed successfully',
     };
   }
 }

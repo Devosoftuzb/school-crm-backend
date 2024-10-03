@@ -11,7 +11,7 @@ export class PaymentMethodService {
   async create(createPaymentMethodDto: CreatePaymentMethodDto) {
     const student = await this.repo.create(createPaymentMethodDto);
     return {
-      message: 'Payment method created',
+      message: 'Payment method created successfully',
       student,
     };
   }
@@ -20,9 +20,9 @@ export class PaymentMethodService {
     return await this.repo.findAll({ include: { all: true } });
   }
 
-  async findAllByMethodId(school_id: number) {
+  async findAllBySchoolId(school_id: number) {
     return await this.repo.findAll({
-      where: { school_id: school_id },
+      where: { school_id },
       include: { all: true },
     });
   }
@@ -30,7 +30,7 @@ export class PaymentMethodService {
   async paginate(school_id: number, page: number): Promise<object> {
     try {
       page = Number(page);
-      const limit = 10;
+      const limit = 15;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
         where: { school_id: school_id },
@@ -60,8 +60,8 @@ export class PaymentMethodService {
   async findOne(id: number, school_id: number) {
     const paymentMethod = await this.repo.findOne({
       where: {
-        id: id,
-        school_id: school_id,
+        id,
+        school_id,
       },
       include: { all: true },
     });
@@ -78,43 +78,21 @@ export class PaymentMethodService {
     school_id: number,
     updatePaymentMethodDto: UpdatePaymentMethodDto,
   ) {
-    const paymentMethod = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!paymentMethod) {
-      throw new BadRequestException(`Payment method with id ${id} not found`);
-    }
-
+    const paymentMethod = await this.findOne(id, school_id);
     await paymentMethod.update(updatePaymentMethodDto);
 
     return {
-      message: 'Payment method update',
+      message: 'Payment method updated successfully',
       paymentMethod,
     };
   }
 
   async remove(id: number, school_id: number) {
-    const paymentMethod = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!paymentMethod) {
-      throw new BadRequestException(`Payment method with id ${id} not found`);
-    }
-
+    const paymentMethod = await this.findOne(id, school_id);
     await paymentMethod.destroy();
 
     return {
-      message: 'Payment method remove',
+      message: 'Payment method removed successfully',
     };
   }
 }

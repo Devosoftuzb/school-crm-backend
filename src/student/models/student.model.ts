@@ -26,6 +26,7 @@ export class Student extends Model<Student, StudentAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   school_id: number;
 
@@ -36,26 +37,31 @@ export class Student extends Model<Student, StudentAttr> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   parents_full_name: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   parents_phone_number: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   full_name: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   phone_number: string;
 
   @Column({
     type: DataType.BOOLEAN,
+    allowNull: false,
   })
   status: boolean;
 
@@ -63,17 +69,17 @@ export class Student extends Model<Student, StudentAttr> {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  group: StudentGroup;
+  group: StudentGroup[];
 
   @HasMany(() => Payment, {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  payment: Payment;
+  payment: Payment[];
 
   @HasMany(() => Attendance, {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  attendance: Attendance;
+  attendance: Attendance[];
 }

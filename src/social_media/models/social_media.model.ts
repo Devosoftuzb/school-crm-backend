@@ -20,6 +20,7 @@ export class SocialMedia extends Model<SocialMedia, SocialMediaAttr>{
       @Column({
         type: DataType.INTEGER,
         onDelete: 'CASCADE',
+        allowNull: false,
       })
       school_id: number;
     
@@ -30,6 +31,7 @@ export class SocialMedia extends Model<SocialMedia, SocialMediaAttr>{
     
       @Column({
         type: DataType.STRING,
+        allowNull: false,
       })
       name: string;
     
@@ -37,5 +39,5 @@ export class SocialMedia extends Model<SocialMedia, SocialMediaAttr>{
         onDelete: 'CASCADE',
         hooks: true,
       })
-      customer: Customer;
+      customer: Customer[];
 }

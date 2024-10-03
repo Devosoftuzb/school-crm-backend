@@ -10,7 +10,7 @@ export class StudentGroupService {
   async create(createStudentGroupDto: CreateStudentGroupDto) {
     const studentGroup = await this.repo.create(createStudentGroupDto);
     return {
-      message: 'Student Group created',
+      message: 'Student Group created successfully',
       studentGroup,
     };
   }
@@ -32,18 +32,11 @@ export class StudentGroupService {
   }
 
   async remove(id: number) {
-    const studentGroup = await this.repo.findByPk(id, {
-      include: { all: true },
-    });
-
-    if (!studentGroup) {
-      throw new BadRequestException(`Student Group with id ${id} not found`);
-    }
-
+    const studentGroup = await this.findOne(id);
     await studentGroup.destroy();
 
     return {
-      message: 'Student Group remove',
+      message: 'Student Group removed successfully',
     };
   }
 }

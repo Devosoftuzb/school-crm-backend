@@ -20,7 +20,7 @@ export class SchoolService {
       ...createSchoolDto,
     });
     return {
-      message: 'School created',
+      message: 'School created successfully',
       school,
     };
   }
@@ -69,11 +69,7 @@ export class SchoolService {
   }
 
   async update(id: number, updateSchoolDto: UpdateSchoolDto, image: any) {
-    const school = await this.repo.findByPk(id, { include: { all: true } });
-
-    if (!school) {
-      throw new BadRequestException(`School with id ${id} not found`);
-    }
+    const school = await this.findOne(id);
 
     if (image) {
       let image_name: string;
@@ -106,11 +102,7 @@ export class SchoolService {
   }
 
   async remove(id: number) {
-    const school = await this.repo.findByPk(id, { include: { all: true } });
-
-    if (!school) {
-      throw new BadRequestException(`School with id ${id} not found`);
-    }
+    const school = await this.findOne(id);
 
     if (school.image !== null) {
       try {

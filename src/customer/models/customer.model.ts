@@ -11,44 +11,44 @@ interface CustomerAttr {
 
 @Table({ tableName: 'customer' })
 export class Customer extends Model<Customer, CustomerAttr> {
-    @Column({
-        type: DataType.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      })
-      id: number;
-    
-      @ForeignKey(() => School)
-      @Column({
-        type: DataType.INTEGER,
-        onDelete: 'CASCADE',
-      })
-      school_id: number;
-    
-      @BelongsTo(() => School, {
-        onDelete: 'CASCADE',
-      })
-      school: School;
-    
-      @Column({
-        type: DataType.STRING,
-      })
-      full_name: string;
+  @Column({
+    type: DataType.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  })
+  id: number;
 
-      @Column({
-        type: DataType.STRING,
-      })
-      phone_number: string;
+  @ForeignKey(() => School)
+  @Column({
+    type: DataType.INTEGER,
+    onDelete: 'CASCADE',
+    allowNull: false,
+  })
+  school_id: number;
 
-      @ForeignKey(() => SocialMedia)
-      @Column({
-        type: DataType.INTEGER,
-        onDelete: 'CASCADE',
-      })
-      social_media_id: number;
-    
-      @BelongsTo(() => SocialMedia, {
-        onDelete: 'CASCADE',
-      })
-      social_media: SocialMedia;
+  @BelongsTo(() => School, { onDelete: 'CASCADE' })
+  school: School;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  full_name: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false, 
+  })
+  phone_number: string;
+
+  @ForeignKey(() => SocialMedia)
+  @Column({
+    type: DataType.INTEGER,
+    onDelete: 'CASCADE',
+    allowNull: false, 
+  })
+  social_media_id: number;
+
+  @BelongsTo(() => SocialMedia, { onDelete: 'CASCADE' })
+  social_media: SocialMedia;
 }

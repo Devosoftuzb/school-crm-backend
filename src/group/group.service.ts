@@ -11,7 +11,7 @@ export class GroupService {
   async create(createGroupDto: CreateGroupDto) {
     const group = await this.repo.create(createGroupDto);
     return {
-      message: 'Group created',
+      message: 'Group created successfully',
       group,
     };
   }
@@ -20,9 +20,9 @@ export class GroupService {
     return await this.repo.findAll({ include: { all: true } });
   }
 
-  async findAllByGroupId(school_id: number) {
+  async findAllBySchoolId(school_id: number) {
     return await this.repo.findAll({
-      where: { school_id: school_id },
+      where: { school_id },
       include: { all: true },
     });
   }
@@ -30,9 +30,9 @@ export class GroupService {
   async paginate(school_id: number, page: number): Promise<object> {
     try {
       page = Number(page);
-      const limit = 10;
+      const limit = 15;
       const offset = (page - 1) * limit;
-      const user = await this.repo.findAll({
+      const groups = await this.repo.findAll({
         where: { school_id: school_id },
         include: { all: true },
         offset,
@@ -40,10 +40,10 @@ export class GroupService {
       });
       const total_count = await this.repo.count();
       const total_pages = Math.ceil(total_count / limit);
-      const res = {
+      return {
         status: 200,
         data: {
-          records: user,
+          records: groups,
           pagination: {
             currentPage: page,
             total_pages,
@@ -51,66 +51,44 @@ export class GroupService {
           },
         },
       };
-      return res;
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new BadRequestException(
+        'Failed to paginate groups: ' + error.message,
+      );
     }
   }
 
   async findOne(id: number, school_id: number) {
     const group = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
+      where: { id, school_id },
       include: { all: true },
     });
 
     if (!group) {
-      throw new BadRequestException(`Group with id ${id} not found`);
+      throw new BadRequestException(
+        `Group with id ${id} not found in school ${school_id}`,
+      );
     }
 
     return group;
   }
 
   async update(id: number, school_id: number, updateGroupDto: UpdateGroupDto) {
-    const group = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!group) {
-      throw new BadRequestException(`Group with id ${id} not found`);
-    }
-
+    const group = await this.findOne(id, school_id);
     await group.update(updateGroupDto);
 
     return {
-      message: 'Group update',
+      message: 'Group updated successfully',
       group,
     };
   }
 
   async remove(id: number, school_id: number) {
-    const group = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!group) {
-      throw new BadRequestException(`Group with id ${id} not found`);
-    }
-
+    const group = await this.findOne(id, school_id);
     await group.destroy();
 
     return {
-      message: 'Group remove',
+      message: 'Group removed successfully',
     };
   }
 }

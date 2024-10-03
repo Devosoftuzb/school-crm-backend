@@ -28,6 +28,7 @@ export class StudentGroup extends Model<StudentGroup, StudentGroupAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   student_id: number;
 
@@ -40,6 +41,7 @@ export class StudentGroup extends Model<StudentGroup, StudentGroupAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   group_id: number;
 
@@ -50,6 +52,7 @@ export class StudentGroup extends Model<StudentGroup, StudentGroupAttr> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   group_name: string;
 }

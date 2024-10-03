@@ -9,40 +9,34 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
 @ApiTags('Payment Method')
 @Controller('payment-method')
+@UseGuards(RolesGuard, JwtAuthGuard)
+@ApiBearerAuth('access-token')
 export class PaymentMethodController {
   constructor(private readonly paymentMethodService: PaymentMethodService) {}
 
   @ApiOperation({ summary: 'Payment method create' })
-  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Post()
   create(@Body() createPaymentMethodDto: CreatePaymentMethodDto) {
     return this.paymentMethodService.create(createPaymentMethodDto);
   }
 
   @ApiOperation({ summary: 'Payment method view all by school ID' })
-  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get()
   findAll() {
     return this.paymentMethodService.findAll();
   }
 
   @ApiOperation({ summary: 'Payment method view all by school ID' })
-  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':school_id')
-  findAllByMethodlId(@Param('school_id') school_id: string) {
-    return this.paymentMethodService.findAllByMethodId(+school_id);
+  findAllBySchoolId(@Param('school_id') school_id: string) {
+    return this.paymentMethodService.findAllBySchoolId(+school_id);
   }
 
   @ApiOperation({ summary: 'Payment method paginate' })
-  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':school_id/page')
   paginate(
     @Query('page') page: number,
@@ -52,18 +46,14 @@ export class PaymentMethodController {
   }
 
   @ApiOperation({ summary: 'Payment method view by ID by school ID' })
-  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':school_id/:id')
   findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.paymentMethodService.findOne(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'Payment method update by ID by school ID' })
-  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Put(':school_id/:id')
   update(
     @Param('id') id: string,
@@ -74,9 +64,7 @@ export class PaymentMethodController {
   }
 
   @ApiOperation({ summary: 'Payment method remove by ID by school ID' })
-  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Delete(':school_id/:id')
   remove(
     @Param('id') id: string, 

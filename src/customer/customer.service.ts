@@ -11,7 +11,7 @@ export class CustomerService {
   async create(createCustomerDto: CreateCustomerDto) {
     const customer = await this.repo.create(createCustomerDto);
     return {
-      message: 'Customer created',
+      message: 'Customer created successfully',
       customer,
     };
   }
@@ -20,9 +20,9 @@ export class CustomerService {
     return await this.repo.findAll({ include: { all: true } });
   }
 
-  async findAllByCustomerId(school_id: number) {
+  async findAllBySchoolId(school_id: number) {
     return await this.repo.findAll({
-      where: { school_id: school_id },
+      where: { school_id },
       include: { all: true },
     });
   }
@@ -30,20 +30,20 @@ export class CustomerService {
   async paginate(school_id: number, page: number): Promise<object> {
     try {
       page = Number(page);
-      const limit = 10;
+      const limit = 15;
       const offset = (page - 1) * limit;
-      const user = await this.repo.findAll({
-        where: { school_id: school_id },
+      const customers = await this.repo.findAll({
+        where: { school_id },
         include: { all: true },
         offset,
         limit,
       });
-      const total_count = await this.repo.count();
+      const total_count = await this.repo.count({ where: { school_id } });
       const total_pages = Math.ceil(total_count / limit);
-      const res = {
+      return {
         status: 200,
         data: {
-          records: user,
+          records: customers,
           pagination: {
             currentPage: page,
             total_pages,
@@ -51,70 +51,41 @@ export class CustomerService {
           },
         },
       };
-      return res;
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new BadRequestException('Failed to paginate customers: ' + error.message);
     }
   }
 
   async findOne(id: number, school_id: number) {
     const customer = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
+      where: { id, school_id },
       include: { all: true },
     });
 
     if (!customer) {
-      throw new BadRequestException(`Customer with id ${id} not found`);
+      throw new BadRequestException(`Customer with id ${id} not found in school ${school_id}`);
     }
 
     return customer;
   }
 
-  async update(
-    id: number,
-    school_id: number,
-    updateCustomerDto: UpdateCustomerDto,
-  ) {
-    const customer = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!customer) {
-      throw new BadRequestException(`Customer with id ${id} not found`);
-    }
+  async update(id: number, school_id: number, updateCustomerDto: UpdateCustomerDto) {
+    const customer = await this.findOne(id, school_id);
 
     await customer.update(updateCustomerDto);
 
     return {
-      message: 'Customer update',
+      message: 'Customer updated successfully',
       customer,
     };
   }
 
   async remove(id: number, school_id: number) {
-    const customer = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!customer) {
-      throw new BadRequestException(`Customer with id ${id} not found`);
-    }
-
+    const customer = await this.findOne(id, school_id);
     await customer.destroy();
 
     return {
-      message: 'Customer remove',
+      message: 'Customer removed successfully',
     };
   }
 }

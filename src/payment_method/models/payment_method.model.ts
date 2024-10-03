@@ -1,5 +1,4 @@
 import { BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table } from 'sequelize-typescript';
-import { Payment } from 'src/payment/models/payment.model';
 import { School } from 'src/school/models/school.model';
 
 interface PaymentMethodAttr {
@@ -20,6 +19,7 @@ export class PaymentMethod extends Model<PaymentMethod, PaymentMethodAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   school_id: number;
 
@@ -30,6 +30,7 @@ export class PaymentMethod extends Model<PaymentMethod, PaymentMethodAttr> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   name: string;
 }

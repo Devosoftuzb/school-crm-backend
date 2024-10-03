@@ -28,6 +28,7 @@ export class EmployeeGroup extends Model<EmployeeGroup, EmployeeGroupAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   employee_id: number;
 
@@ -40,6 +41,7 @@ export class EmployeeGroup extends Model<EmployeeGroup, EmployeeGroupAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   group_id: number;
 
@@ -50,6 +52,7 @@ export class EmployeeGroup extends Model<EmployeeGroup, EmployeeGroupAttr> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   group_name: string;
 }

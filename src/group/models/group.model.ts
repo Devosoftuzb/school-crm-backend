@@ -33,6 +33,7 @@ export class Group extends Model<Group, GroupAttr>{
       @Column({
         type: DataType.INTEGER,
         onDelete: 'CASCADE',
+        allowNull: false,
       })
       school_id: number;
     
@@ -43,16 +44,19 @@ export class Group extends Model<Group, GroupAttr>{
     
       @Column({
         type: DataType.STRING,
+        allowNull: false,
       })
       name: string;
     
       @Column({
         type: DataType.STRING,
+        allowNull: false,
       })
       price: string;
     
       @Column({
         type: DataType.STRING,
+        allowNull: false,
       })
       start_date: string;
 
@@ -60,6 +64,7 @@ export class Group extends Model<Group, GroupAttr>{
       @Column({
         type: DataType.INTEGER,
         onDelete: 'CASCADE',
+        allowNull: false,
       })
       room_id: number;
     
@@ -70,16 +75,19 @@ export class Group extends Model<Group, GroupAttr>{
     
       @Column({
         type: DataType.STRING,
+        allowNull: false,
       })
       start_time: string;
 
       @Column({
         type: DataType.STRING,
+        allowNull: false,
       })
       end_time: string;
     
       @Column({
         type: DataType.BOOLEAN,
+        allowNull: false,
       })
       status: boolean;
 
@@ -87,35 +95,35 @@ export class Group extends Model<Group, GroupAttr>{
         onDelete: 'CASCADE',
         hooks: true,
       })
-      group: GroupDay;
+      group: GroupDay[];
 
       @HasMany(() => StudentGroup, {
         onDelete: 'CASCADE',
         hooks: true,
       })
-      student: StudentGroup;
+      student: StudentGroup[];
 
       @HasMany(() => EmployeeGroup, {
         onDelete: 'CASCADE',
         hooks: true,
       })
-      employee: EmployeeGroup;
+      employee: EmployeeGroup[];
 
       @HasMany(() => GroupSubject, {
         onDelete: 'CASCADE',
         hooks: true,
       })
-      subject: GroupSubject;
+      subject: GroupSubject[];
 
       @HasMany(() => Payment, {
         onDelete: 'CASCADE',
         hooks: true,
       })
-      payment: Payment;
+      payment: Payment[];
 
       @HasMany(() => Attendance, {
         onDelete: 'CASCADE',
         hooks: true,
       })
-      attendance: Attendance;
+      attendance: Attendance[];
 }

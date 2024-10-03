@@ -30,7 +30,7 @@ export class UserService {
       const createdUser = await this.repo.create(defaultSuperAdminDto);
 
       const response = {
-        message: 'Super Admin created',
+        message: 'Super Admin created successfully',
         user: createdUser,
       };
       return response;
@@ -42,11 +42,11 @@ export class UserService {
       where: { login: createUserDto.login },
     });
 
-    const employee = await this.repoEmployee.findOne({
+    const employeeExists = await this.repoEmployee.findOne({
       where: { login: createUserDto.login },
     });
 
-    if (user || employee) {
+    if (user || employeeExists) {
       throw new BadRequestException(
         `This login "${createUserDto.login}" already exists`,
       );
@@ -57,7 +57,7 @@ export class UserService {
       hashed_password: hashedPassword,
     });
     return {
-      message: 'User created',
+      message: 'User created successfully',
       user: newUser,
     };
   }
@@ -69,7 +69,7 @@ export class UserService {
   async paginate(page: number): Promise<object> {
     try {
       page = Number(page);
-      const limit = 10;
+      const limit = 15;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
         include: { all: true },
@@ -104,29 +104,21 @@ export class UserService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.repo.findByPk(id);
-    if (!user) {
-      throw new BadRequestException(`User with id ${id} not found`);
-    }
-
+    const user = await this.findOne(id);
     await user.update(updateUserDto);
 
     return {
-      message: 'User updated',
+      message: 'User updated successfully',
       user,
     };
   }
 
   async delete(id: number) {
-    const user = await this.repo.findByPk(id);
-    if (!user) {
-      throw new BadRequestException(`User with id ${id} not found`);
-    }
-
+    const user = await this.findOne(id);
     await user.destroy();
 
     return {
-      message: 'User deleted',
+      message: 'User deleted successfully',
     };
   }
 }

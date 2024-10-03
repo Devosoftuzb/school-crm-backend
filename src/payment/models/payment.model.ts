@@ -7,7 +7,6 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { Group } from 'src/group/models/group.model';
-import { PaymentMethod } from 'src/payment_method/models/payment_method.model';
 import { School } from 'src/school/models/school.model';
 import { Student } from 'src/student/models/student.model';
 
@@ -35,6 +34,7 @@ export class Payment extends Model<Payment, PaymentAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   school_id: number;
 
@@ -47,6 +47,7 @@ export class Payment extends Model<Payment, PaymentAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   student_id: number;
 
@@ -59,6 +60,7 @@ export class Payment extends Model<Payment, PaymentAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   group_id: number;
 
@@ -69,25 +71,31 @@ export class Payment extends Model<Payment, PaymentAttr> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   year: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   month: string;
+
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   method: string;
 
   @Column({
     type: DataType.INTEGER,
+    allowNull: false,
   })
   discount: number;
 
   @Column({
     type: DataType.INTEGER,
+    allowNull: false,
   })
   price: number;
 }

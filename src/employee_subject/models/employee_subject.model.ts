@@ -7,7 +7,6 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { Employee } from 'src/employee/models/employee.model';
-import { Subject } from 'src/subject/models/subject.model';
 
 interface EmployeeSubjectAttr {
   employee_id: number;
@@ -30,6 +29,7 @@ export class EmployeeSubject extends Model<
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   employee_id: number;
 
@@ -40,6 +40,7 @@ export class EmployeeSubject extends Model<
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   subject_name: string;
 }

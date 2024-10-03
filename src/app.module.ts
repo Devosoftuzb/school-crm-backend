@@ -43,6 +43,7 @@ import { Customer } from './customer/models/customer.model';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { resolve } from 'path';
 import { FilesModule } from './common/files/files.module';
+import { StatisticModule } from './statistic/statistic.module';
 
 @Module({
   imports: [
@@ -104,6 +105,7 @@ import { FilesModule } from './common/files/files.module';
     EmployeeSubjectModule,
     SocialMediaModule,
     CustomerModule,
+    StatisticModule,
   ],
   controllers: [],
   providers: [],

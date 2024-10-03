@@ -17,11 +17,13 @@ export class Room extends Model<Room, RoomAttr> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   name: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   status: string;
 
@@ -29,5 +31,5 @@ export class Room extends Model<Room, RoomAttr> {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  group: Group;
+  group: Group[];
 }

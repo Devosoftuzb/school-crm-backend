@@ -16,6 +16,7 @@ export class Day extends Model<Day, DaysAttr> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   name: string;
 
@@ -23,5 +24,5 @@ export class Day extends Model<Day, DaysAttr> {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  group: GroupDay;
+  group: GroupDay[];
 }

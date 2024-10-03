@@ -20,40 +20,34 @@ import { UpdateGroupDto } from './dto/update-group.dto';
 
 @ApiTags('Group')
 @Controller('group')
+@UseGuards(RolesGuard, JwtAuthGuard)
+@ApiBearerAuth('access-token')
 export class GroupController {
   constructor(private readonly groupService: GroupService) {}
 
-  @ApiOperation({ summary: 'Group create' })
-  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Create a new group' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Post()
   create(@Body() createGroupDto: CreateGroupDto) {
     return this.groupService.create(createGroupDto);
   }
 
-  @ApiOperation({ summary: 'Group view all by school ID' })
-  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'View all groups by school ID' })
   @Roles('superadmin', 'admin')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get()
   findAll() {
     return this.groupService.findAll();
   }
 
-  @ApiOperation({ summary: 'Group view all by school ID' })
-  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'View all groups by school ID' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':school_id')
-  findAllByGroupId(@Param('school_id') school_id: string) {
-    return this.groupService.findAllByGroupId(+school_id);
+  findAllBySchoolId(@Param('school_id') school_id: string) {
+    return this.groupService.findAllBySchoolId(+school_id);
   }
 
-  @ApiOperation({ summary: 'Group paginate' })
-  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Paginate groups by school ID' })
   @Roles('owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':school_id/page')
   paginate(
     @Query('page') page: number,
@@ -62,19 +56,15 @@ export class GroupController {
     return this.groupService.paginate(+school_id, page);
   }
 
-  @ApiOperation({ summary: 'Group view by ID by school ID' })
-  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'View a group by ID and school ID' })
   @Roles('owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':school_id/:id')
   findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.groupService.findOne(+id, +school_id);
   }
 
-  @ApiOperation({ summary: 'Group update by ID by school ID' })
-  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Update a group by ID and school ID' })
   @Roles('owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Put(':school_id/:id')
   update(
     @Param('id') id: string,
@@ -84,10 +74,8 @@ export class GroupController {
     return this.groupService.update(+id, +school_id, updateGroupDto);
   }
 
-  @ApiOperation({ summary: 'Group remove by ID by school ID' })
-  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Remove a group by ID and school ID' })
   @Roles('owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Delete(':school_id/:id')
   remove(
     @Param('id') id: string, 

@@ -34,6 +34,7 @@ export class Employee extends Model<Employee, EmployeeAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   school_id: number;
 
@@ -44,31 +45,38 @@ export class Employee extends Model<Employee, EmployeeAttr> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   full_name: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   phone_number: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: false, 
+    unique: true, 
   })
   login: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   hashed_password: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: true,
   })
   hashed_refresh_token: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   role: string;
 
@@ -76,11 +84,11 @@ export class Employee extends Model<Employee, EmployeeAttr> {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  group: EmployeeGroup;
+  group: EmployeeGroup[];
 
   @HasMany(() => EmployeeSubject, {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  subject: EmployeeSubject;
+  subject: EmployeeSubject[];
 }

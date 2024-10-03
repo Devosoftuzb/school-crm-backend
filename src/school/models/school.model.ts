@@ -36,16 +36,19 @@ export class School extends Model<School, SchoolAttr> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   name: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   address: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: true,
   })
   image: string;
 
@@ -53,11 +56,13 @@ export class School extends Model<School, SchoolAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   owner_id: number;
 
   @BelongsTo(() => User, {
     onDelete: 'CASCADE',
+    hooks: true,
   })
   owner: User;
 
@@ -65,53 +70,53 @@ export class School extends Model<School, SchoolAttr> {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  student: Student;
+  student: Student[];
 
   @HasMany(() => Group, {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  group: Group;
+  group: Group[];
 
   @HasMany(() => PaymentMethod, {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod[];
 
   @HasMany(() => Payment, {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  payment: Payment;
+  payment: Payment[];
 
   @HasMany(() => Attendance, {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  attendance: Attendance;
+  attendance: Attendance[];
 
   @HasMany(() => Employee, {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  employee: Employee;
+  employee: Employee[];
 
   @HasMany(() => Subject, {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  subject: Subject;
+  subject: Subject[];
 
   @HasMany(() => SocialMedia, {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  socialMedia: SocialMedia;
+  socialMedia: SocialMedia[];
 
   @HasMany(() => Customer, {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  customer: Customer;
+  customer: Customer[];
 }

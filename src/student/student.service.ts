@@ -11,7 +11,7 @@ export class StudentService {
   async create(createStudentDto: CreateStudentDto) {
     const student = await this.repo.create(createStudentDto);
     return {
-      message: 'Student created',
+      message: 'Student created successfully',
       student,
     };
   }
@@ -22,7 +22,7 @@ export class StudentService {
 
   async findAllBySchoolId(school_id: number) {
     return await this.repo.findAll({
-      where: { school_id: school_id },
+      where: { school_id },
       include: { all: true },
     });
   }
@@ -30,7 +30,7 @@ export class StudentService {
   async paginate(school_id: number, page: number): Promise<object> {
     try {
       page = Number(page);
-      const limit = 50;
+      const limit = 15;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
         where: { school_id: school_id },
@@ -60,8 +60,8 @@ export class StudentService {
   async findOne(id: number, school_id: number) {
     const student = await this.repo.findOne({
       where: {
-        id: id,
-        school_id: school_id,
+        id,
+        school_id,
       },
       include: { all: true },
     });
@@ -78,43 +78,21 @@ export class StudentService {
     school_id: number,
     updateStudentDto: UpdateStudentDto,
   ) {
-    const student = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!student) {
-      throw new BadRequestException(`Student with id ${id} not found`);
-    }
-
+    const student = await this.findOne(id, school_id);
     await student.update(updateStudentDto);
 
     return {
-      message: 'Student update',
+      message: 'Student updated successfully',
       student,
     };
   }
 
   async remove(id: number, school_id: number) {
-    const student = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!student) {
-      throw new BadRequestException(`Student with id ${id} not found`);
-    }
-
+    const student = await this.findOne(id, school_id);
     await student.destroy();
 
     return {
-      message: 'Student remove',
+      message: 'Student removed successfully',
     };
   }
 }

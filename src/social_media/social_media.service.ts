@@ -11,7 +11,7 @@ export class SocialMediaService {
   async create(createSocialMediaDto: CreateSocialMediaDto) {
     const socialMedia = await this.repo.create(createSocialMediaDto);
     return {
-      message: 'Social Media created',
+      message: 'Social Media created successfully',
       socialMedia,
     };
   }
@@ -20,9 +20,9 @@ export class SocialMediaService {
     return await this.repo.findAll({ include: { all: true } });
   }
 
-  async findAllBySocialMediaId(school_id: number) {
+  async findAllBySchoolId(school_id: number) {
     return await this.repo.findAll({
-      where: { school_id: school_id },
+      where: { school_id },
       include: { all: true },
     });
   }
@@ -30,7 +30,7 @@ export class SocialMediaService {
   async paginate(school_id: number, page: number): Promise<object> {
     try {
       page = Number(page);
-      const limit = 10;
+      const limit = 15;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
         where: { school_id: school_id },
@@ -60,8 +60,8 @@ export class SocialMediaService {
   async findOne(id: number, school_id: number) {
     const socialMedia = await this.repo.findOne({
       where: {
-        id: id,
-        school_id: school_id,
+        id,
+        school_id,
       },
       include: { all: true },
     });
@@ -78,43 +78,21 @@ export class SocialMediaService {
     school_id: number,
     updateSocialMediaDto: UpdateSocialMediaDto,
   ) {
-    const socialMedia = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!socialMedia) {
-      throw new BadRequestException(`Social Media with id ${id} not found`);
-    }
-
+    const socialMedia = await this.findOne(id, school_id);
     await socialMedia.update(updateSocialMediaDto);
 
     return {
-      message: 'Social Media update',
+      message: 'Social Media updated successfully',
       socialMedia,
     };
   }
 
   async remove(id: number, school_id: number) {
-    const socialMedia = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!socialMedia) {
-      throw new BadRequestException(`Social Media with id ${id} not found`);
-    }
-
+    const socialMedia = await this.findOne(id, school_id);
     await socialMedia.destroy();
 
     return {
-      message: 'Social Media remove',
+      message: 'Social Media removed successfully',
     };
   }
 }

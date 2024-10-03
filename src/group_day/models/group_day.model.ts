@@ -27,6 +27,7 @@ export class GroupDay extends Model<GroupDay, GroupDayAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   group_id: number;
 
@@ -39,6 +40,7 @@ export class GroupDay extends Model<GroupDay, GroupDayAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   day_id: number;
 

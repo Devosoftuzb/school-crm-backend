@@ -7,7 +7,6 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { Group } from 'src/group/models/group.model';
-import { Subject } from 'src/subject/models/subject.model';
 
 interface GroupSubjectAttr {
   group_id: number;
@@ -27,6 +26,7 @@ export class GroupSubject extends Model<GroupSubject, GroupSubjectAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
+    allowNull: false,
   })
   group_id: number;
 
@@ -37,6 +37,7 @@ export class GroupSubject extends Model<GroupSubject, GroupSubjectAttr> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   subject_name: string;
 }

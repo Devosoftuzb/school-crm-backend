@@ -10,7 +10,7 @@ export class EmployeeGroupService {
   async create(createEmployeeGroupDto: CreateEmployeeGroupDto) {
     const employeeGroup = await this.repo.create(createEmployeeGroupDto);
     return {
-      message: 'Employee Group created',
+      message: 'Employee Group created successfully',
       employeeGroup,
     };
   }
@@ -32,18 +32,11 @@ export class EmployeeGroupService {
   }
 
   async remove(id: number) {
-    const employeeGroup = await this.repo.findByPk(id, {
-      include: { all: true },
-    });
-
-    if (!employeeGroup) {
-      throw new BadRequestException(`Employee Group with id ${id} not found`);
-    }
-
+    const employeeGroup = await this.findOne(id);
     await employeeGroup.destroy();
 
     return {
-      message: 'Employee Group remove',
+      message: 'Employee Group removed successfully',
     };
   }
 }

@@ -10,7 +10,7 @@ export class GroupSubjectService {
   async create(createGroupSubjectDto: CreateGroupSubjectDto) {
     const groupSubject = await this.repo.create(createGroupSubjectDto);
     return {
-      message: 'Group Subject created',
+      message: 'Group Subject created successfully',
       groupSubject,
     };
   }
@@ -32,18 +32,11 @@ export class GroupSubjectService {
   }
 
   async remove(id: number) {
-    const groupSubject = await this.repo.findByPk(id, {
-      include: { all: true },
-    });
-
-    if (!groupSubject) {
-      throw new BadRequestException(`Group Subject with id ${id} not found`);
-    }
-
+    const groupSubject = await this.findOne(id);
     await groupSubject.destroy();
 
     return {
-      message: 'Group Subject remove',
+      message: 'Group Subject removed successfully',
     };
   }
 }

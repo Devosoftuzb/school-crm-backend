@@ -24,13 +24,13 @@ import { ImageValidationPipe } from 'src/common/pipes/image-validation.pipe';
 
 @ApiTags('School')
 @Controller('school')
+@UseGuards(RolesGuard, JwtAuthGuard)
+@ApiBearerAuth('access-token')
 export class SchoolController {
   constructor(private readonly schoolService: SchoolService) {}
 
   @ApiOperation({ summary: 'School create' })
-  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image'))
   @Post()
   create(
@@ -41,36 +41,28 @@ export class SchoolController {
   }
 
   @ApiOperation({ summary: 'School view all' })
-  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get()
   findAll() {
     return this.schoolService.findAll();
   }
 
   @ApiOperation({ summary: 'User pagination' })
-  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get('page')
   paginate(@Query('page') page: number) {
     return this.schoolService.paginate(page);
   }
 
   @ApiOperation({ summary: 'School view by ID' })
-  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.schoolService.findOne(+id);
   }
 
   @ApiOperation({ summary: 'School update by ID' })
-  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image'))
   @Put(':id')
   update(
@@ -82,9 +74,7 @@ export class SchoolController {
   }
 
   @ApiOperation({ summary: 'School remove by ID' })
-  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.schoolService.remove(+id);

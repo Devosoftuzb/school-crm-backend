@@ -12,7 +12,7 @@ export class EmployeeSubjectService {
   async create(createEmployeeSubjectDto: CreateEmployeeSubjectDto) {
     const employeeSubject = await this.repo.create(createEmployeeSubjectDto);
     return {
-      message: 'Employee Subject created',
+      message: 'Employee Subject created successfully',
       employeeSubject,
     };
   }
@@ -34,18 +34,11 @@ export class EmployeeSubjectService {
   }
 
   async remove(id: number) {
-    const employeeSubject = await this.repo.findByPk(id, {
-      include: { all: true },
-    });
-
-    if (!employeeSubject) {
-      throw new BadRequestException(`Employee Subject with id ${id} not found`);
-    }
-
+    const employeeSubject = await this.findOne(id);
     await employeeSubject.destroy();
 
     return {
-      message: 'Employee Subject remove',
+      message: 'Employee Subject removed successfully',
     };
   }
 }

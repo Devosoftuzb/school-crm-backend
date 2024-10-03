@@ -20,58 +20,48 @@ import { UpdateRoomDto } from './dto/update-room.dto';
 
 @ApiTags('Room')
 @Controller('room')
+@UseGuards(RolesGuard, JwtAuthGuard)
+@ApiBearerAuth('access-token')
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
   @ApiOperation({ summary: 'Room create' })
-  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Post()
   create(@Body() createRoomDto: CreateRoomDto) {
     return this.roomService.create(createRoomDto);
   }
 
   @ApiOperation({ summary: 'Room view all' })
-  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get()
   findAll() {
     return this.roomService.findAll();
   }
 
   @ApiOperation({ summary: 'Room pagination' })
-  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get('page')
   paginate(@Query('page') page: number) {
     return this.roomService.paginate(page);
   }
 
   @ApiOperation({ summary: 'Room view by ID' })
-  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.roomService.findOne(+id);
   }
 
   @ApiOperation({ summary: 'Room update by ID' })
-  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Put(':id')
   update(@Param('id') id: string, @Body() updateRoomDto: UpdateRoomDto) {
     return this.roomService.update(+id, updateRoomDto);
   }
 
   @ApiOperation({ summary: 'Room remove by ID' })
-  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.roomService.remove(+id);

@@ -10,7 +10,7 @@ export class GroupDayService {
   async create(createGroupDayDto: CreateGroupDayDto) {
     const groupDay = await this.repo.create(createGroupDayDto);
     return {
-      message: 'Group Day created',
+      message: 'Group Day created successfully',
       groupDay,
     };
   }
@@ -30,16 +30,11 @@ export class GroupDayService {
   }
 
   async remove(id: number) {
-    const groupDay = await this.repo.findByPk(id, { include: { all: true } });
-
-    if (!groupDay) {
-      throw new BadRequestException(`Group Day with id ${id} not found`);
-    }
-
+    const groupDay = await this.findOne(id);
     await groupDay.destroy();
 
     return {
-      message: 'Group Day remove',
+      message: 'Group Day removed successfully',
     };
   }
 }

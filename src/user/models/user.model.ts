@@ -21,31 +21,38 @@ export class User extends Model<User, UserAttr> {
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   full_name: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   phone_number: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
+    unique: true,
   })
   login: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: true,
   })
   hashed_password: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: true,
   })
   hashed_refresh_token: string;
 
   @Column({
     type: DataType.STRING,
+    allowNull: false,
   })
   role: string;
 
@@ -53,5 +60,5 @@ export class User extends Model<User, UserAttr> {
     onDelete: 'CASCADE',
     hooks: true,
   })
-  school: School;
+  school: School[];
 }

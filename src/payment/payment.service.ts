@@ -6,6 +6,7 @@ import { Payment } from './models/payment.model';
 import { Student } from 'src/student/models/student.model';
 import { Group } from 'src/group/models/group.model';
 import { Employee } from 'src/employee/models/employee.model';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class PaymentService {
@@ -22,59 +23,58 @@ export class PaymentService {
         id: createPaymentDto.student_id,
         school_id: createPaymentDto.school_id,
       },
-      include: { all: true },
     });
 
     if (!student) {
       throw new BadRequestException(
-        `Student with id ${createPaymentDto.student_id} not found`,
+        `Student with id ${createPaymentDto.student_id} not found in school ${createPaymentDto.school_id}`,
       );
     }
 
     const payment = await this.repo.create(createPaymentDto);
     return {
-      message: 'Payment created',
+      message: 'Payment created successfully',
       payment,
     };
   }
 
   async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
+    return this.repo.findAll({ include: { all: true } });
   }
 
-  async findAllByPaymentId(school_id: number) {
-    return await this.repo.findAll({
-      where: { school_id: school_id },
-      include: { all: true },
-    });
+  async findAllBySchoolId(school_id: number) {
+    return this.repo.findAll({ where: { school_id }, include: { all: true } });
   }
 
-  async getOneDay(school_id: number) {
+  async getOneDay(school_id: number, page: number): Promise<object> {
     try {
+      page = Number(page);
+      const limit = 15;
+      const offset = (page - 1) * limit;
+
       const now = new Date();
       const currentYear = now.getFullYear();
       const currentMonth = now.getMonth() + 1;
       const currentDate = now.getDate();
 
       const allUsers = await this.repo.findAll({
-        where: { school_id: school_id },
+        where: {
+          school_id,
+          createdAt: {
+            [Op.gte]: new Date(currentYear, currentMonth - 1, currentDate),
+            [Op.lt]: new Date(currentYear, currentMonth - 1, currentDate + 1),
+          },
+        },
         include: { all: true },
+        offset,
+        limit,
       });
 
-      const filteredUsers = allUsers.filter((user) => {
-        const createdAt = new Date(user.createdAt);
-        const userYear = createdAt.getFullYear();
-        const userMonth = createdAt.getMonth() + 1;
-        const userDate = createdAt.getDate();
-        return (
-          userYear === currentYear &&
-          userMonth === currentMonth &&
-          userDate === currentDate
-        );
-      });
+      const total_count = allUsers.length;
+      const total_pages = Math.ceil(total_count / limit);
 
       const allProduct = await Promise.all(
-        filteredUsers.map(async (user) => {
+        allUsers.map(async (user) => {
           const group = await this.repoGroup.findOne({
             where: {
               id: user.group.id,
@@ -83,9 +83,10 @@ export class PaymentService {
             include: { all: true },
           });
 
+          
           const employee = await this.repoEmployee.findOne({
             where: {
-              id: group.employee[0].employee_id,
+              id: group.employee[0]?.employee_id,
             },
             include: { all: true },
           });
@@ -93,18 +94,28 @@ export class PaymentService {
           return {
             id: user.id,
             student_name: user.student.full_name,
-            teacher_name: employee.full_name,
+            teacher_name: employee?.full_name,
             group_name: user.group.name,
             group_price: user.group.price,
             method: user.method,
             price: user.price,
             month: user.month,
-            createdAt: user.createdAt
+            createdAt: user.createdAt,
           };
         }),
       );
 
-      return allProduct;
+      return {
+        status: 200,
+        data: {
+          records: allProduct,
+          pagination: {
+            currentPage: page,
+            total_pages,
+            total_count,
+          },
+        },
+      };
     } catch (error) {
       throw new BadRequestException(error.message);
     }
@@ -113,14 +124,16 @@ export class PaymentService {
   async findOne(id: number, school_id: number) {
     const payment = await this.repo.findOne({
       where: {
-        id: id,
-        school_id: school_id,
+        id,
+        school_id,
       },
       include: { all: true },
     });
 
     if (!payment) {
-      throw new BadRequestException(`Payment with id ${id} not found`);
+      throw new BadRequestException(
+        `Payment with id ${id} not found in school ${school_id}`,
+      );
     }
 
     return payment;
@@ -131,43 +144,21 @@ export class PaymentService {
     school_id: number,
     updatePaymentDto: UpdatePaymentDto,
   ) {
-    const payment = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!payment) {
-      throw new BadRequestException(`Payment with id ${id} not found`);
-    }
-
+    const payment = await this.findOne(id, school_id);
     await payment.update(updatePaymentDto);
 
     return {
-      message: 'Payment update',
+      message: 'Payment updated successfully',
       payment,
     };
   }
 
   async remove(id: number, school_id: number) {
-    const payment = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!payment) {
-      throw new BadRequestException(`Payment with id ${id} not found`);
-    }
-
+    const payment = await this.findOne(id, school_id);
     await payment.destroy();
 
     return {
-      message: 'Payment remove',
+      message: 'Payment removed successfully',
     };
   }
 }
