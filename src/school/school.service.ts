@@ -59,7 +59,7 @@ export class SchoolService {
   }
 
   async findOne(id: number) {
-    const school = await this.repo.findByPk(id, { include: { all: true } });
+    const school = await this.repo.findByPk(id);
 
     if (!school) {
       throw new BadRequestException(`School with id ${id} not found`);
