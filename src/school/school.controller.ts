@@ -55,7 +55,7 @@ export class SchoolController {
   }
 
   @ApiOperation({ summary: 'School view by ID' })
-  // @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.schoolService.findOne(+id);
