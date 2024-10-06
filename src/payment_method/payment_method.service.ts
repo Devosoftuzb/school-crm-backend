@@ -23,7 +23,6 @@ export class PaymentMethodService {
   async findAllBySchoolId(school_id: number) {
     return await this.repo.findAll({
       where: { school_id },
-      include: { all: true },
     });
   }
 

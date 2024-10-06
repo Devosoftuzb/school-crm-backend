@@ -4,6 +4,7 @@ import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Attendance } from './models/attendance.model';
 import { Student } from 'src/student/models/student.model';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class AttendanceService {
@@ -70,6 +71,52 @@ export class AttendanceService {
         },
       };
       return res;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async findGroupHistory(
+    school_id: number,
+    group_id: number,
+    year: number,
+    month: number,
+    page: number,
+  ): Promise<object> {
+    try {
+      page = Number(page);
+      const limit = 15;
+      const offset = (page - 1) * limit;
+
+      const allUsers = await this.repo.findAll({
+        where: {
+          school_id,
+          group_id,
+          createdAt: {
+            [Op.gte]: new Date(year, month - 1),
+            [Op.lt]: new Date(year, month - 1),
+          },
+        },
+        include: { all: true },
+        offset,
+        limit,
+      });
+
+      const total_count = allUsers.length;
+      const total_pages = Math.ceil(total_count / limit);
+
+      
+      return {
+        status: 200,
+        data: {
+          records: allUsers,
+          pagination: {
+            currentPage: page,
+            total_pages,
+            total_count,
+          },
+        },
+      };
     } catch (error) {
       throw new BadRequestException(error.message);
     }

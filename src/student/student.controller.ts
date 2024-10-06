@@ -46,6 +46,13 @@ export class StudentController {
     return this.studentService.findAllBySchoolId(+school_id);
   }
 
+  @ApiOperation({ summary: 'Student view all by school ID' })
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Get(':school_id/find')
+  findBySchoolId(@Param('school_id') school_id: string) {
+    return this.studentService.findAllBySchoolId(+school_id);
+  }
+
   @ApiOperation({ summary: 'Student paginate' })
   @Roles('owner', 'administrator')
   @Get(':school_id/page')

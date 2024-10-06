@@ -83,7 +83,160 @@ export class PaymentService {
             include: { all: true },
           });
 
-          
+          const employee = await this.repoEmployee.findOne({
+            where: {
+              id: group.employee[0]?.employee_id,
+            },
+            include: { all: true },
+          });
+
+          return {
+            id: user.id,
+            student_name: user.student.full_name,
+            teacher_name: employee?.full_name,
+            group_name: user.group.name,
+            group_price: user.group.price,
+            method: user.method,
+            price: user.price,
+            month: user.month,
+            createdAt: user.createdAt,
+          };
+        }),
+      );
+
+      return {
+        status: 200,
+        data: {
+          records: allProduct,
+          pagination: {
+            currentPage: page,
+            total_pages,
+            total_count,
+          },
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async findGroupDayHistory(
+    school_id: number,
+    group_id: number,
+    year: number,
+    month: number,
+    day: number,
+    page: number,
+  ): Promise<object> {
+    try {
+      page = Number(page);
+      const limit = 15;
+      const offset = (page - 1) * limit;
+      
+
+      const allUsers = await this.repo.findAll({
+        where: {
+          school_id,
+          group_id,
+          createdAt: {
+            [Op.gte]: new Date(year, month - 1, day),
+            [Op.lt]: new Date(year, month - 1, day + 1),
+          },
+        },
+        include: { all: true },
+        offset,
+        limit,
+      });
+
+      const total_count = allUsers.length;
+      const total_pages = Math.ceil(total_count / limit);
+
+      const allProduct = await Promise.all(
+        allUsers.map(async (user) => {
+          const group = await this.repoGroup.findOne({
+            where: {
+              id: user.group.id,
+              school_id: school_id,
+            },
+            include: { all: true },
+          });
+
+          const employee = await this.repoEmployee.findOne({
+            where: {
+              id: group.employee[0]?.employee_id,
+            },
+            include: { all: true },
+          });
+
+          return {
+            id: user.id,
+            student_name: user.student.full_name,
+            teacher_name: employee?.full_name,
+            group_name: user.group.name,
+            group_price: user.group.price,
+            method: user.method,
+            price: user.price,
+            month: user.month,
+            createdAt: user.createdAt,
+          };
+        }),
+      );
+
+      return {
+        status: 200,
+        data: {
+          records: allProduct,
+          pagination: {
+            currentPage: page,
+            total_pages,
+            total_count,
+          },
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async findDayHistory(
+    school_id: number,
+    year: number,
+    month: number,
+    day: number,
+    page: number,
+  ): Promise<object> {
+    try {
+      page = Number(page);
+      const limit = 15;
+      const offset = (page - 1) * limit;
+      
+
+      const allUsers = await this.repo.findAll({
+        where: {
+          school_id,
+          createdAt: {
+            [Op.gte]: new Date(year, month - 1, day),
+            [Op.lt]: new Date(year, month - 1, day + 1),
+          },
+        },
+        include: { all: true },
+        offset,
+        limit,
+      });
+
+      const total_count = allUsers.length;
+      const total_pages = Math.ceil(total_count / limit);
+
+      const allProduct = await Promise.all(
+        allUsers.map(async (user) => {
+          const group = await this.repoGroup.findOne({
+            where: {
+              id: user.group.id,
+              school_id: school_id,
+            },
+            include: { all: true },
+          });
+
           const employee = await this.repoEmployee.findOne({
             where: {
               id: group.employee[0]?.employee_id,

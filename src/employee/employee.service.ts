@@ -50,6 +50,12 @@ export class EmployeeService {
     });
   }
 
+  async findBySchoolId(school_id: number) {
+    return await this.repo.findAll({
+      where: { school_id },
+    });
+  }
+
   async paginate(school_id: number, page: number): Promise<object> {
     try {
       page = Number(page);

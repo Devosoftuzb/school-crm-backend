@@ -59,6 +59,19 @@ export class AttendanceController {
     return this.attendanceService.paginate(+school_id, page);
   }
 
+  @ApiOperation({ summary: 'Attendance group history view by ID by school ID' })
+  @Roles('owner', 'administrator')
+  @Get(':school_id/:group_id/:year/:month/page')
+  findGroupHistory(
+    @Param('school_id') school_id: string,
+    @Param('group_id') group_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+    @Query('page') page: number,
+  ) {
+    return this.attendanceService.findGroupHistory(+school_id, +group_id, +year, +month, page);
+  }
+
   @ApiOperation({ summary: 'Attendance view by ID by school ID' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')

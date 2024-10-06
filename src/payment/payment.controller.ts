@@ -49,7 +49,10 @@ export class PaymentController {
   @ApiOperation({ summary: 'Payment paginate' })
   @Roles('owner', 'administrator')
   @Get('day/:school_id/page')
-  getOneDay(@Query('page') page: number, @Param('school_id') school_id: string) {
+  getOneDay(
+    @Param('school_id') school_id: string,
+    @Query('page') page: number,
+  ) {
     return this.paymentService.getOneDay(+school_id, page);
   }
 
@@ -58,6 +61,33 @@ export class PaymentController {
   @Get(':school_id/:id')
   findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.paymentService.findOne(+id, +school_id);
+  }
+
+  @ApiOperation({ summary: 'Payment group history one day view by ID by school ID' })
+  @Roles('owner', 'administrator')
+  @Get(':school_id/:group_id/:year/:month/:day/page')
+  findGroupDayHistory(
+    @Param('school_id') school_id: string,
+    @Param('group_id') group_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+    @Param('day') day: string,
+    @Query('page') page: number,
+  ) {
+    return this.paymentService.findGroupDayHistory(+school_id, +group_id, +year, +month, +day, page);
+  }
+
+  @ApiOperation({ summary: 'Payment history one day view by ID by school ID' })
+  @Roles('owner', 'administrator')
+  @Get(':school_id/:year/:month/:day/page')
+  findDayHistory(
+    @Param('school_id') school_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+    @Param('day') day: string,
+    @Query('page') page: number,
+  ) {
+    return this.paymentService.findDayHistory(+school_id, +year, +month, +day, page);
   }
 
   @ApiOperation({ summary: 'Payment update by ID by school ID' })

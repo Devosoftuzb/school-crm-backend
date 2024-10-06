@@ -38,11 +38,19 @@ export class GroupController {
   findAll() {
     return this.groupService.findAll();
   }
+  
 
   @ApiOperation({ summary: 'View all groups by school ID' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get(':school_id')
   findAllBySchoolId(@Param('school_id') school_id: string) {
+    return this.groupService.findAllBySchoolId(+school_id);
+  }
+
+  @ApiOperation({ summary: 'View all groups by school ID' })
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Get(':school_id/find')
+  findBySchoolId(@Param('school_id') school_id: string) {
     return this.groupService.findAllBySchoolId(+school_id);
   }
 
