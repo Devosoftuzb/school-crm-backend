@@ -46,16 +46,6 @@ export class PaymentController {
     return this.paymentService.findAllBySchoolId(+school_id);
   }
 
-  @ApiOperation({ summary: 'Payment paginate' })
-  @Roles('owner', 'administrator')
-  @Get('day/:school_id/page')
-  getOneDay(
-    @Param('school_id') school_id: string,
-    @Query('page') page: number,
-  ) {
-    return this.paymentService.getOneDay(+school_id, page);
-  }
-
   @ApiOperation({ summary: 'Payment view by ID by school ID' })
   @Roles('owner', 'administrator')
   @Get(':school_id/:id')
