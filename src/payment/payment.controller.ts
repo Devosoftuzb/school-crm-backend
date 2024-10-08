@@ -65,7 +65,7 @@ export class PaymentController {
 
   @ApiOperation({ summary: 'Payment group history one day view by ID by school ID' })
   @Roles('owner', 'administrator')
-  @Get(':school_id/:group_id/:year/:month/:day/page')
+  @Get(':school_id/:group_id/:year/:month/page')
   findMonthHistory(
     @Param('school_id') school_id: string,
     @Param('group_id') group_id: string,
