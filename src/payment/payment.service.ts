@@ -125,7 +125,6 @@ export class PaymentService {
     group_id: number,
     year: number,
     month: number,
-    day: number,
     page: number,
   ): Promise<object> {
     try {
@@ -139,8 +138,8 @@ export class PaymentService {
           school_id,
           group_id,
           createdAt: {
-            [Op.gte]: new Date(year, month - 1, day),
-            [Op.lt]: new Date(year, month - 1, day + 1),
+            [Op.gte]: new Date(year, month - 1),
+            [Op.lt]: new Date(year, month - 1),
           },
         },
         include: { all: true },
