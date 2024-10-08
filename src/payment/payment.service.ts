@@ -131,15 +131,31 @@ export class PaymentService {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
-      
 
+      // Tarixiy vaqtlar oralig'ini olish
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+
+      // Jami yozuvlar sonini olish
+      const total_count = await this.repo.count({
+        where: {
+          school_id,
+          group_id,
+          createdAt: {
+            [Op.gte]: startDate,
+            [Op.lt]: endDate,
+          },
+        },
+      });
+
+      // Ma'lumotlarni limit va offset bilan olish
       const allUsers = await this.repo.findAll({
         where: {
           school_id,
           group_id,
           createdAt: {
-            [Op.gte]: new Date(year, month - 1),
-            [Op.lt]: new Date(year, month - 1),
+            [Op.gte]: startDate,
+            [Op.lt]: endDate,
           },
         },
         include: { all: true },
@@ -147,7 +163,6 @@ export class PaymentService {
         limit,
       });
 
-      const total_count = allUsers.length;
       const total_pages = Math.ceil(total_count / limit);
 
       const allProduct = await Promise.all(
@@ -208,7 +223,6 @@ export class PaymentService {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
-      
 
       const allUsers = await this.repo.findAll({
         where: {

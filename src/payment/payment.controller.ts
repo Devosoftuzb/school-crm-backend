@@ -63,9 +63,9 @@ export class PaymentController {
     return this.paymentService.findOne(+id, +school_id);
   }
 
-  @ApiOperation({ summary: 'Payment group history one day view by ID by school ID' })
+  @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
   @Roles('owner', 'administrator')
-  @Get(':school_id/:group_id/:year/:month/page')
+  @Get('month/:school_id/:group_id/:year/:month/page')
   findMonthHistory(
     @Param('school_id') school_id: string,
     @Param('group_id') group_id: string,
@@ -78,7 +78,7 @@ export class PaymentController {
 
   @ApiOperation({ summary: 'Payment history one day view by ID by school ID' })
   @Roles('owner', 'administrator')
-  @Get(':school_id/:year/:month/:day/page')
+  @Get('day/:school_id/:year/:month/:day/page')
   findDayHistory(
     @Param('school_id') school_id: string,
     @Param('year') year: string,
