@@ -120,7 +120,7 @@ export class PaymentService {
     }
   }
 
-  async findGroupDayHistory(
+  async findMonthHistory(
     school_id: number,
     group_id: number,
     year: number,
