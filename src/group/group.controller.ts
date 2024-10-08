@@ -51,7 +51,7 @@ export class GroupController {
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get(':school_id/find')
   findBySchoolId(@Param('school_id') school_id: string) {
-    return this.groupService.findAllBySchoolId(+school_id);
+    return this.groupService.findBySchoolId(+school_id);
   }
 
   @ApiOperation({ summary: 'Paginate groups by school ID' })
