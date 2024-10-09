@@ -1,3 +1,4 @@
+import { EmployeeSubject } from './../employee_subject/models/employee_subject.model';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
@@ -5,6 +6,8 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Employee } from './models/employee.model';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/user/models/user.model';
+import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class EmployeeService {
@@ -61,18 +64,37 @@ export class EmployeeService {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
+      
+      const whereClause: any = { school_id, role: 'teacher' };
+      
       const employees = await this.repo.findAll({
-        where: { school_id },
-        include: { all: true },
+        where: whereClause,
+        include: [
+          {
+            model: EmployeeGroup,
+          },
+          {
+            model: EmployeeSubject,
+          },
+        ],
         offset,
         limit,
       });
+      
+      // teacher bo'lmagan xodimlarni ham kiritish uchun yana bir so'rov
+      const nonTeacherEmployees = await this.repo.findAll({
+        where: { school_id, role: { [Op.ne]: 'teacher' } },
+        offset,
+        limit,
+      });
+      
       const total_count = await this.repo.count({ where: { school_id } });
       const total_pages = Math.ceil(total_count / limit);
+      
       return {
         status: 200,
         data: {
-          records: employees,
+          records: [...employees, ...nonTeacherEmployees],
           pagination: {
             currentPage: page,
             total_pages,
@@ -86,6 +108,7 @@ export class EmployeeService {
       );
     }
   }
+  
 
   async findOne(id: number, school_id: number) {
     const employee = await this.repo.findOne({

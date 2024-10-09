@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Student } from './models/student.model';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
+import { StudentGroup } from 'src/student_group/models/student_group.model';
 
 @Injectable()
 export class StudentService {
@@ -40,7 +41,9 @@ export class StudentService {
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
         where: { school_id: school_id },
-        include: { all: true },
+        include: [{
+          model: StudentGroup
+        }],
         offset,
         limit,
       });

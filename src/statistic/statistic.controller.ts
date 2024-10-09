@@ -44,4 +44,11 @@ export class StatisticController {
   ) {
     return this.statisticService.getTeacherMoneys(+school_id, +id);
   }
+
+  @ApiOperation({ summary: 'School Payments' })
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Get('payment-day/:school_id')
+  getDayPayments(@Param('school_id') school_id: string) {
+    return this.statisticService.getDayPayments(+school_id);
+  }
 }

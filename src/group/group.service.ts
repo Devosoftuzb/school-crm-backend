@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Group } from './models/group.model';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
+import { GroupSubject } from 'src/group_subject/models/group_subject.model';
 
 @Injectable()
 export class GroupService {
@@ -40,7 +41,9 @@ export class GroupService {
       const offset = (page - 1) * limit;
       const groups = await this.repo.findAll({
         where: { school_id: school_id },
-        include: { all: true },
+        include: [{
+          model: GroupSubject
+        }],
         offset,
         limit,
       });

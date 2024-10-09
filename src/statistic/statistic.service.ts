@@ -5,7 +5,7 @@ import { Group } from 'src/group/models/group.model';
 import { Payment } from 'src/payment/models/payment.model';
 import { Student } from 'src/student/models/student.model';
 import { School } from 'src/school/models/school.model';
-import { Op } from 'sequelize';
+import { Op, fn, col, Sequelize } from 'sequelize';
 
 @Injectable()
 export class StatisticService {
@@ -156,6 +156,61 @@ export class StatisticService {
       dayPayments: dayPaymentSum || 0,
     };
   }
-  
+
   async getTeacherMoneys(school_id: number, id: number) {}
+
+  async getDayPayments(school_id: number) {
+    const currentDate = new Date();
+    const startDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      currentDate.getDate(),
+    );
+    startDate.setHours(startDate.getHours() + 5);
+
+    const endDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      currentDate.getDate(),
+      23,
+      59,
+      59,
+    );
+    endDate.setHours(endDate.getHours() + 5);
+
+    const payments = await this.repoPayment.findAll({
+      where: {
+        school_id,
+        createdAt: {
+          [Op.between]: [startDate, endDate],
+        },
+      },
+      attributes: [
+        'method',
+        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count'],
+      ],
+      group: ['method'],
+    });
+
+    const paymentSum = await this.repoPayment.sum('price', {
+      where: {
+        school_id,
+        createdAt: {
+          [Op.between]: [startDate, endDate],
+        },
+      },
+    });
+
+    const paymentMethods = payments.reduce((acc, payment) => {
+      const method = payment.get('method');
+      const count = payment.get('count');
+      acc[method] = count;
+      return acc;
+    }, {});
+
+    return {
+      payment_sum: paymentSum,
+      payment_methods: paymentMethods,
+    };
+  }
 }
