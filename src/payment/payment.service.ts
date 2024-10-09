@@ -7,6 +7,7 @@ import { Student } from 'src/student/models/student.model';
 import { Group } from 'src/group/models/group.model';
 import { Employee } from 'src/employee/models/employee.model';
 import { Op } from 'sequelize';
+import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 
 @Injectable()
 export class PaymentService {
@@ -58,11 +59,9 @@ export class PaymentService {
       const limit = 15;
       const offset = (page - 1) * limit;
 
-      // Tarixiy vaqtlar oralig'ini olish
       const startDate = new Date(year, month - 1, 1);
       const endDate = new Date(year, month, 0, 23, 59, 59, 999);
 
-      // Jami yozuvlar sonini olish
       const total_count = await this.repo.count({
         where: {
           school_id,
@@ -74,7 +73,6 @@ export class PaymentService {
         },
       });
 
-      // Ma'lumotlarni limit va offset bilan olish
       const allUsers = await this.repo.findAll({
         where: {
           school_id,
@@ -84,7 +82,17 @@ export class PaymentService {
             [Op.lt]: endDate,
           },
         },
-        include: { all: true },
+        attributes: ['id', 'method', 'price', 'month', 'createdAt'],
+        include: [
+          {
+            model: Group,
+            attributes: ['id', 'name', 'price'],
+          },
+          {
+            model: Student,
+            attributes: ['full_name'],
+          },
+        ],
         offset,
         limit,
       });
@@ -98,14 +106,19 @@ export class PaymentService {
               id: user.group.id,
               school_id: school_id,
             },
-            include: { all: true },
+            include: [
+              {
+                model: EmployeeGroup,
+                attributes: ['employee_id'],
+              },
+            ],
           });
 
           const employee = await this.repoEmployee.findOne({
             where: {
               id: group.employee[0]?.employee_id,
             },
-            include: { all: true },
+            attributes: ['full_name'],
           });
 
           return {
@@ -158,7 +171,17 @@ export class PaymentService {
             [Op.lt]: new Date(year, month - 1, day + 1),
           },
         },
-        include: { all: true },
+        attributes: ['id', 'method', 'price', 'month', 'createdAt'],
+        include: [
+          {
+            model: Group,
+            attributes: ['id', 'name', 'price'],
+          },
+          {
+            model: Student,
+            attributes: ['full_name'],
+          },
+        ],
         offset,
         limit,
       });
@@ -173,20 +196,25 @@ export class PaymentService {
               id: user.group.id,
               school_id: school_id,
             },
-            include: { all: true },
+            include: [
+              {
+                model: EmployeeGroup,
+                attributes: ['employee_id'],
+              },
+            ],
           });
 
           const employee = await this.repoEmployee.findOne({
             where: {
               id: group.employee[0]?.employee_id,
             },
-            include: { all: true },
+            attributes: ['full_name'],
           });
 
           return {
             id: user.id,
             student_name: user.student.full_name,
-            teacher_name: employee?.full_name,
+            teacher_name: employee.full_name,
             group_name: user.group.name,
             group_price: user.group.price,
             method: user.method,
