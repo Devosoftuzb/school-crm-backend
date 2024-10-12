@@ -202,6 +202,9 @@ export class StatisticService {
     endDate.setHours(endDate.getHours() + 5);
 
     const allMethods = await this.repoMethod.findAll({
+      where: {
+        school_id,
+      },
       attributes: ['name'],
     });
 
