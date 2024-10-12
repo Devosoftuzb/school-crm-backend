@@ -6,6 +6,7 @@ import { Payment } from 'src/payment/models/payment.model';
 import { Student } from 'src/student/models/student.model';
 import { School } from 'src/school/models/school.model';
 import { Op, fn, col, Sequelize } from 'sequelize';
+import { PaymentMethod } from 'src/payment_method/models/payment_method.model';
 
 @Injectable()
 export class StatisticService {
@@ -15,6 +16,7 @@ export class StatisticService {
     @InjectModel(Group) private repoGroup: typeof Group,
     @InjectModel(Payment) private repoPayment: typeof Payment,
     @InjectModel(School) private repoSchool: typeof School,
+    @InjectModel(PaymentMethod) private repoMethod: typeof PaymentMethod,
   ) {}
 
   async getSchoolStatistics(school_id: number) {
@@ -189,6 +191,8 @@ export class StatisticService {
         59,
       );
     } else {
+      console.log(date);
+
       throw new Error(
         "Noto'g'ri sana formati. 'YYYY-MM-DD' yoki 'YYYY-MM' formatida kiriting.",
       );
@@ -197,13 +201,10 @@ export class StatisticService {
     startDate.setHours(startDate.getHours() + 5);
     endDate.setHours(endDate.getHours() + 5);
 
-    
-    const allMethods = await this.repoPayment.findAll({
-      attributes: ['method'],
-      group: ['method'],
+    const allMethods = await this.repoMethod.findAll({
+      attributes: ['name'],
     });
 
-    
     const payments = await this.repoPayment.findAll({
       where: {
         school_id,
@@ -227,17 +228,16 @@ export class StatisticService {
       },
     });
 
-    
     const paymentMethods = allMethods.reduce((acc, method) => {
-      acc[method.method] = 0;
+      acc[method.name] = 0;
       return acc;
     }, {});
 
-    
     payments.forEach((payment) => {
       const method = payment.get('method');
       const count = payment.get('count');
       paymentMethods[method] = count;
+      console.log(paymentMethods);
     });
 
     const statistics = Object.entries(paymentMethods).map(
