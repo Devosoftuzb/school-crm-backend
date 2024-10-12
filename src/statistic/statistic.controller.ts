@@ -47,8 +47,8 @@ export class StatisticController {
 
   @ApiOperation({ summary: 'School Payments' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @Get('payment-day/:school_id')
-  getDayPayments(@Param('school_id') school_id: string) {
-    return this.statisticService.getDayPayments(+school_id);
+  @Get('payment-day/:school_id/:date')
+  getDayPayments(@Param('school_id') school_id: string, @Param('date') date: string) {
+    return this.statisticService.getDayPayments(+school_id, date);
   }
 }

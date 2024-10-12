@@ -159,25 +159,51 @@ export class StatisticService {
 
   async getTeacherMoneys(school_id: number, id: number) {}
 
-  async getDayPayments(school_id: number) {
-    const currentDate = new Date();
-    const startDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      currentDate.getDate(),
-    );
-    startDate.setHours(startDate.getHours() + 5);
+  async getDayPayments(school_id: number, date: string) {
+    let startDate: Date;
+    let endDate: Date;
 
-    const endDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      currentDate.getDate(),
-      23,
-      59,
-      59,
-    );
+    const dateParts = date.split('-');
+    if (dateParts.length === 3) {
+      startDate = new Date(
+        Number(dateParts[0]),
+        Number(dateParts[1]) - 1,
+        Number(dateParts[2]),
+      );
+      endDate = new Date(
+        Number(dateParts[0]),
+        Number(dateParts[1]) - 1,
+        Number(dateParts[2]),
+        23,
+        59,
+        59,
+      );
+    } else if (dateParts.length === 2) {
+      startDate = new Date(Number(dateParts[0]), Number(dateParts[1]) - 1, 1);
+      endDate = new Date(
+        Number(dateParts[0]),
+        Number(dateParts[1]),
+        0,
+        23,
+        59,
+        59,
+      );
+    } else {
+      throw new Error(
+        "Noto'g'ri sana formati. 'YYYY-MM-DD' yoki 'YYYY-MM' formatida kiriting.",
+      );
+    }
+
+    startDate.setHours(startDate.getHours() + 5);
     endDate.setHours(endDate.getHours() + 5);
 
+    
+    const allMethods = await this.repoPayment.findAll({
+      attributes: ['method'],
+      group: ['method'],
+    });
+
+    
     const payments = await this.repoPayment.findAll({
       where: {
         school_id,
@@ -201,16 +227,33 @@ export class StatisticService {
       },
     });
 
-    const paymentMethods = payments.reduce((acc, payment) => {
-      const method = payment.get('method');
-      const count = payment.get('count');
-      acc[method] = count;
+    
+    const paymentMethods = allMethods.reduce((acc, method) => {
+      acc[method.method] = 0;
       return acc;
     }, {});
 
+    
+    payments.forEach((payment) => {
+      const method = payment.get('method');
+      const count = payment.get('count');
+      paymentMethods[method] = count;
+    });
+
+    const statistics = Object.entries(paymentMethods).map(
+      ([method, count]) => ({
+        method,
+        count,
+      }),
+    );
+
+    statistics.push({
+      method: 'Tushum',
+      count: paymentSum || 0,
+    });
+
     return {
-      payment_sum: paymentSum,
-      payment_methods: paymentMethods,
+      statistics,
     };
   }
 }
