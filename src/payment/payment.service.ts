@@ -62,18 +62,7 @@ export class PaymentService {
       const startDate = new Date(year, month - 1, 1);
       const endDate = new Date(year, month, 0, 23, 59, 59, 999);
 
-      const total_count = await this.repo.count({
-        where: {
-          school_id,
-          group_id,
-          createdAt: {
-            [Op.gte]: startDate,
-            [Op.lt]: endDate,
-          },
-        },
-      });
-
-      const allUsers = await this.repo.findAll({
+      const { count, rows: allUsers } = await this.repo.findAndCountAll({
         where: {
           school_id,
           group_id,
@@ -97,6 +86,7 @@ export class PaymentService {
         limit,
       });
 
+      const total_count = count;
       const total_pages = Math.ceil(total_count / limit);
 
       const allProduct = await Promise.all(
@@ -162,8 +152,8 @@ export class PaymentService {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
-
-      const allUsers = await this.repo.findAll({
+      
+      const { count, rows: allUsers } = await this.repo.findAndCountAll({
         where: {
           school_id,
           createdAt: {
@@ -186,7 +176,7 @@ export class PaymentService {
         limit,
       });
 
-      const total_count = allUsers.length;
+      const total_count = count;
       const total_pages = Math.ceil(total_count / limit);
 
       const allProduct = await Promise.all(

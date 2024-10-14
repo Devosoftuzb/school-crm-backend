@@ -191,7 +191,6 @@ export class StatisticService {
         59,
       );
     } else {
-      console.log(date);
 
       throw new Error(
         "Noto'g'ri sana formati. 'YYYY-MM-DD' yoki 'YYYY-MM' formatida kiriting.",
