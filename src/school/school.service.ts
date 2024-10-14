@@ -36,6 +36,7 @@ export class SchoolService {
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
         include: { all: true },
+        order: [['createdAt', 'DESC']],
         offset,
         limit,
       });

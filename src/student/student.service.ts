@@ -44,6 +44,7 @@ export class StudentService {
         include: [{
           model: StudentGroup
         }],
+        order: [['createdAt', 'DESC']],
         offset,
         limit,
       });

@@ -77,6 +77,7 @@ export class EmployeeService {
             model: EmployeeSubject,
           },
         ],
+        order: [['createdAt', 'DESC']],
         offset,
         limit,
       });

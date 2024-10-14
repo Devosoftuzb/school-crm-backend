@@ -82,6 +82,7 @@ export class PaymentService {
             attributes: ['full_name'],
           },
         ],
+        order: [['createdAt', 'DESC']],
         offset,
         limit,
       });
@@ -172,6 +173,7 @@ export class PaymentService {
             attributes: ['full_name'],
           },
         ],
+        order: [['createdAt', 'DESC']],
         offset,
         limit,
       });

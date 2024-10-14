@@ -93,23 +93,48 @@ export class AttendanceService {
           school_id,
           group_id,
           createdAt: {
-            [Op.gte]: new Date(year, month - 1),
-            [Op.lt]: new Date(year, month - 1),
+            [Op.gte]: new Date(year, month - 1, 1),
+            [Op.lt]: new Date(year, month, 1),
           },
         },
-        include: { all: true },
-        offset,
-        limit,
+        include: [
+          {
+            model: Student,
+            attributes: ['full_name'],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
       });
 
-      const total_count = allUsers.length;
+      const attendanceMap = new Map();
+
+      allUsers.forEach((user) => {
+        const studentName = user.student.full_name;
+        const attendanceRecord = {
+          date: user.createdAt.toISOString().split('T')[0],
+          status: user.status,
+        };
+
+        if (attendanceMap.has(studentName)) {
+          attendanceMap.get(studentName).attendance.push(attendanceRecord);
+        } else {
+          attendanceMap.set(studentName, {
+            student_name: studentName,
+            attendance: [attendanceRecord],
+          });
+        }
+      });
+
+      const attendanceRecords = Array.from(attendanceMap.values());
+      const paginatedRecords = attendanceRecords.slice(offset, offset + limit);
+
+      const total_count = attendanceRecords.length;
       const total_pages = Math.ceil(total_count / limit);
 
-      
       return {
         status: 200,
         data: {
-          records: allUsers,
+          records: paginatedRecords,
           pagination: {
             currentPage: page,
             total_pages,

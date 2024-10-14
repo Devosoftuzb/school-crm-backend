@@ -44,6 +44,7 @@ export class GroupService {
         include: [{
           model: GroupSubject
         }],
+        order: [['createdAt', 'DESC']],
         offset,
         limit,
       });

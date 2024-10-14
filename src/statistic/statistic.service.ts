@@ -164,7 +164,7 @@ export class StatisticService {
   async getDayPayments(school_id: number, date: string) {
     let startDate: Date;
     let endDate: Date;
-
+  
     const dateParts = date.split('-');
     if (dateParts.length === 3) {
       startDate = new Date(
@@ -191,22 +191,21 @@ export class StatisticService {
         59,
       );
     } else {
-
       throw new Error(
         "Noto'g'ri sana formati. 'YYYY-MM-DD' yoki 'YYYY-MM' formatida kiriting.",
       );
     }
-
-    startDate.setHours(startDate.getHours() + 5);
-    endDate.setHours(endDate.getHours() + 5);
-
+  
+    startDate.setHours(startDate.getHours());
+    endDate.setHours(endDate.getHours());
+  
     const allMethods = await this.repoMethod.findAll({
       where: {
         school_id,
       },
       attributes: ['name'],
     });
-
+  
     const payments = await this.repoPayment.findAll({
       where: {
         school_id,
@@ -217,10 +216,11 @@ export class StatisticService {
       attributes: [
         'method',
         [Sequelize.fn('COUNT', Sequelize.col('id')), 'count'],
+        [Sequelize.fn('SUM', Sequelize.col('price')), 'sum'],
       ],
       group: ['method'],
     });
-
+  
     const paymentSum = await this.repoPayment.sum('price', {
       where: {
         school_id,
@@ -231,31 +231,38 @@ export class StatisticService {
     });
 
     const paymentMethods = allMethods.reduce((acc, method) => {
-      acc[method.name] = 0;
+      acc[method.name] = { count: 0, sum: 0 };
       return acc;
-    }, {});
-
+    }, {} as Record<string, { count: number, sum: number }>);
+  
     payments.forEach((payment) => {
       const method = payment.get('method');
       const count = payment.get('count');
-      paymentMethods[method] = count;
-      console.log(paymentMethods);
+      const sum = payment.get('sum');
+      paymentMethods[method] = { count: Number(count), sum: Number(sum) };
     });
-
+  
+    let totalCount = 0;
     const statistics = Object.entries(paymentMethods).map(
-      ([method, count]) => ({
-        method,
-        count,
-      }),
+      ([method, { count, sum }]) => {
+        totalCount += count;
+        return {
+          method,
+          count,
+          sum,
+        };
+      },
     );
-
+  
     statistics.push({
       method: 'Tushum',
-      count: paymentSum || 0,
+       count: totalCount,
+      sum: paymentSum || 0,
     });
-
+  
     return {
       statistics,
     };
   }
+  
 }

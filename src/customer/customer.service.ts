@@ -35,6 +35,7 @@ export class CustomerService {
       const customers = await this.repo.findAll({
         where: { school_id },
         include: { all: true },
+        order: [['createdAt', 'DESC']],
         offset,
         limit,
       });
