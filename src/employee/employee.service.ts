@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from 'src/user/models/user.model';
 import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 import { Op } from 'sequelize';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 
 @Injectable()
 export class EmployeeService {
@@ -64,9 +65,9 @@ export class EmployeeService {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
-      
+
       const whereClause: any = { school_id, role: 'teacher' };
-      
+
       const employees = await this.repo.findAll({
         where: whereClause,
         include: [
@@ -81,17 +82,17 @@ export class EmployeeService {
         offset,
         limit,
       });
-      
+
       // teacher bo'lmagan xodimlarni ham kiritish uchun yana bir so'rov
       const nonTeacherEmployees = await this.repo.findAll({
         where: { school_id, role: { [Op.ne]: 'teacher' } },
         offset,
         limit,
       });
-      
+
       const total_count = await this.repo.count({ where: { school_id } });
       const total_pages = Math.ceil(total_count / limit);
-      
+
       return {
         status: 200,
         data: {
@@ -109,7 +110,6 @@ export class EmployeeService {
       );
     }
   }
-  
 
   async findOne(id: number, school_id: number) {
     const employee = await this.repo.findOne({
@@ -130,6 +130,20 @@ export class EmployeeService {
     school_id: number,
     updateEmployeeDto: UpdateEmployeeDto,
   ) {
+    const existingEmployee = await this.repo.findOne({
+      where: { login: updateEmployeeDto.login },
+    });
+
+    const userExists = await this.repoUser.findOne({
+      where: { login: updateEmployeeDto.login },
+    });
+
+    if (existingEmployee || userExists) {
+      throw new BadRequestException(
+        `Login "${updateEmployeeDto.login}" already exists`,
+      );
+    }
+
     const employee = await this.findOne(id, school_id);
     await employee.update(updateEmployeeDto);
 
@@ -145,6 +159,34 @@ export class EmployeeService {
 
     return {
       message: 'Employee removed successfully',
+    };
+  }
+
+  async changePassword(
+    school_id: number,
+    id: number,
+    changePasswordDto: ChangePasswordDto,
+  ) {
+    const { old_password, new_password } = changePasswordDto;
+    const employee = await this.findOne(id, school_id);
+
+    const isOldPasswordValid = await bcrypt.compare(
+      old_password,
+      employee.hashed_password,
+    );
+    if (!isOldPasswordValid) {
+      throw new BadRequestException('The current password did not match!');
+    }
+
+    const hashedPassword = await bcrypt.hash(new_password, 7);
+
+    await this.repo.update(
+      { hashed_password: hashedPassword },
+      { where: { id } },
+    );
+
+    return {
+      message: 'Password changed successfully',
     };
   }
 }

@@ -17,6 +17,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 
 @ApiTags('Employee')
 @Controller('employee')
@@ -83,5 +84,20 @@ export class EmployeeController {
   @Delete(':school_id/:id')
   remove(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.employeeService.remove(+id, +school_id);
+  }
+
+  @ApiOperation({ summary: 'Change password employee' })
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Post('change-password/:school_id/:id')
+  changePassword(
+    @Param('school_id') school_id: string,
+    @Param('id') id: string,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return this.employeeService.changePassword(
+      +school_id,
+      +id,
+      changePasswordDto,
+    );
   }
 }

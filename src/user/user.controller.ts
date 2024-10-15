@@ -18,6 +18,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -77,5 +78,17 @@ export class UserController {
   @Delete(':id')
   delete(@Param('id') id: string) {
     return this.userService.delete(+id);
+  }
+
+  @ApiOperation({ summary: 'Change password user' })
+  @Post('change-password/:id')
+  changePassword(
+    @Param('id') id: string,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return this.userService.changePassword(
+      +id,
+      changePasswordDto,
+    );
   }
 }

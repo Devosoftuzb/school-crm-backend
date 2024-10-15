@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { User } from './models/user.model';
 import * as bcrypt from 'bcrypt';
 import { Employee } from 'src/employee/models/employee.model';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 
 @Injectable()
 export class UserService {
@@ -104,6 +105,20 @@ export class UserService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    const userExists = await this.repo.findOne({
+      where: { login: updateUserDto.login },
+    });
+
+    const employeeExists = await this.repoEmployee.findOne({
+      where: { login: updateUserDto.login },
+    });
+
+    if (userExists || employeeExists) {
+      throw new BadRequestException(
+        `This login "${updateUserDto.login}" already exists`,
+      );
+    }
+
     const user = await this.findOne(id);
     await user.update(updateUserDto);
 
@@ -119,6 +134,33 @@ export class UserService {
 
     return {
       message: 'User deleted successfully',
+    };
+  }
+
+  async changePassword(
+    id: number,
+    changePasswordDto: ChangePasswordDto,
+  ) {
+    const { old_password, new_password } = changePasswordDto;
+    const employee = await this.findOne(id);
+
+    const isOldPasswordValid = await bcrypt.compare(
+      old_password,
+      employee.hashed_password,
+    );
+    if (!isOldPasswordValid) {
+      throw new BadRequestException('The current password did not match!');
+    }
+
+    const hashedPassword = await bcrypt.hash(new_password, 7);
+
+    await this.repo.update(
+      { hashed_password: hashedPassword },
+      { where: { id } },
+    );
+
+    return {
+      message: 'Password changed successfully',
     };
   }
 }
