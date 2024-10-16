@@ -31,6 +31,11 @@ export class GroupService {
   async findBySchoolId(school_id: number) {
     return await this.repo.findAll({
       where: { school_id },
+      include: [
+        {
+          model: GroupSubject,
+        },
+      ],
     });
   }
 
@@ -41,9 +46,11 @@ export class GroupService {
       const offset = (page - 1) * limit;
       const groups = await this.repo.findAll({
         where: { school_id: school_id },
-        include: [{
-          model: GroupSubject
-        }],
+        include: [
+          {
+            model: GroupSubject,
+          },
+        ],
         order: [['createdAt', 'DESC']],
         offset,
         limit,

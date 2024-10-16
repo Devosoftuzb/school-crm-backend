@@ -3,6 +3,7 @@ import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Customer } from './models/customer.model';
+import { SocialMedia } from 'src/social_media/models/social_media.model';
 
 @Injectable()
 export class CustomerService {
@@ -23,7 +24,11 @@ export class CustomerService {
   async findAllBySchoolId(school_id: number) {
     return await this.repo.findAll({
       where: { school_id },
-      include: { all: true },
+      include: [
+        {
+          model: SocialMedia,
+        },
+      ],
     });
   }
 
@@ -53,7 +58,9 @@ export class CustomerService {
         },
       };
     } catch (error) {
-      throw new BadRequestException('Failed to paginate customers: ' + error.message);
+      throw new BadRequestException(
+        'Failed to paginate customers: ' + error.message,
+      );
     }
   }
 
@@ -64,13 +71,19 @@ export class CustomerService {
     });
 
     if (!customer) {
-      throw new BadRequestException(`Customer with id ${id} not found in school ${school_id}`);
+      throw new BadRequestException(
+        `Customer with id ${id} not found in school ${school_id}`,
+      );
     }
 
     return customer;
   }
 
-  async update(id: number, school_id: number, updateCustomerDto: UpdateCustomerDto) {
+  async update(
+    id: number,
+    school_id: number,
+    updateCustomerDto: UpdateCustomerDto,
+  ) {
     const customer = await this.findOne(id, school_id);
 
     await customer.update(updateCustomerDto);

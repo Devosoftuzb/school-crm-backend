@@ -50,7 +50,7 @@ export class StudentController {
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get(':school_id/find')
   findBySchoolId(@Param('school_id') school_id: string) {
-    return this.studentService.findAllBySchoolId(+school_id);
+    return this.studentService.findBySchoolId(+school_id);
   }
 
   @ApiOperation({ summary: 'Student paginate' })

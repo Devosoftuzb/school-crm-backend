@@ -51,7 +51,7 @@ export class EmployeeController {
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get(':school_id/find')
   findBySchoolId(@Param('school_id') school_id: string) {
-    return this.employeeService.findAllBySchoolId(+school_id);
+    return this.employeeService.findBySchoolId(+school_id);
   }
 
   @ApiOperation({ summary: 'Paginate employees by school ID' })
