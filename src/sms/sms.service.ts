@@ -93,7 +93,11 @@ export class SmsService {
   async sendDev(smsDto: CreateSmsDevDto) {
     const group = await this.repo.findOne({
       where: { id: smsDto.group_id },
-      include: { all: true },
+      include: [
+        {
+          model: StudentGroup,
+        },
+      ],
     });
 
     let student = [];
