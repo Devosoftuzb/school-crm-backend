@@ -7,9 +7,9 @@ export class CreateSmsPaymentDto {
   @IsInt()
   group_id: number;
 
-  @ApiProperty({ example: 'September', description: 'Month' })
-  @IsString()
-  month: string;
+  // @ApiProperty({ example: 'September', description: 'Month' })
+  // @IsString()
+  // month: string;
 }
 
 export class CreateSmsDevDto {
@@ -20,12 +20,7 @@ export class CreateSmsDevDto {
 }
 
 export class CreateSmsAttendanceDto {
-  @ApiProperty({ example: '+998901234567', description: 'Sms phone number' })
+  @ApiProperty({ example: 1, description: 'Student ID' })
   @IsNotEmpty()
-  @IsPhoneNumber()
-  phone_number: string;
-
-  @ApiProperty({ example: 'text', description: 'Sms text' })
-  @IsString()
-  text: string;
+  student_id: number;
 }
