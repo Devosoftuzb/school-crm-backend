@@ -168,7 +168,7 @@ export class SmsService {
           bearerToken = `Bearer ${token}`;
           sendSMS(
             student.parents_phone_number,
-            `Assalomu alaykum ${student.full_name} ning ota-ona. Farzandingiz ${student.full_name} bugun BIZNING DARSLARIMIZGA QATNASHMADI! Unutmang, farzandingiz darslardan qolib ketishi tufayli ko’zlangan natijaga yetishishi qiyinlashadi. Hurmat bilan CAMELOT o’quv markazi!`,
+            `Assalomu alaykum ${student.full_name} ning ota-onasi. Farzandingiz ${student.full_name} bugun BIZNING DARSLARIMIZGA QATNASHMADI! Unutmang, farzandingiz darslardan qolib ketishi tufayli ko’zlangan natijaga yetishishi qiyinlashadi. Hurmat bilan CAMELOT o’quv markazi!`,
             bearerToken,
           );
         })
