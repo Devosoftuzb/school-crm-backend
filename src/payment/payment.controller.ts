@@ -63,7 +63,7 @@ export class PaymentController {
     @Param('month') month: string,
     @Query('page') page: number,
   ) {
-    return this.paymentService.findMonthHistory(+school_id, +group_id, +year, +month, page);
+    return this.paymentService.findMonthHistory(+school_id, +group_id, year, month, page);
   }
 
   @ApiOperation({ summary: 'Payment history one day view by ID by school ID' })

@@ -50,8 +50,8 @@ export class PaymentService {
   async findMonthHistory(
     school_id: number,
     group_id: number,
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     page: number,
   ): Promise<object> {
     try {
@@ -59,17 +59,12 @@ export class PaymentService {
       const limit = 15;
       const offset = (page - 1) * limit;
 
-      const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
-
       const { count, rows: allUsers } = await this.repo.findAndCountAll({
         where: {
           school_id,
           group_id,
-          createdAt: {
-            [Op.gte]: startDate,
-            [Op.lt]: endDate,
-          },
+          year,
+          month,
         },
         attributes: ['id', 'method', 'price', 'month', 'createdAt'],
         include: [

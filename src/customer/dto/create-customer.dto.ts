@@ -19,4 +19,12 @@ export class CreateCustomerDto {
   @IsNotEmpty()
   @IsInt()
   social_media_id: number;
+
+  @ApiProperty({ example: 1, description: 'Subject ID' })
+  @IsNotEmpty()
+  @IsInt()
+  subject_id: number;
+
+  @ApiProperty({ example: 'Description', description: 'Customer description' })
+  description: string;
 }

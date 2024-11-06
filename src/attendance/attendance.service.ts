@@ -100,7 +100,7 @@ export class AttendanceService {
         include: [
           {
             model: Student,
-            attributes: ['full_name'],
+            attributes: ['id', 'full_name'],
           },
         ],
         order: [['createdAt', 'DESC']],
@@ -110,6 +110,8 @@ export class AttendanceService {
 
       allUsers.forEach((user) => {
         const studentName = user.student.full_name;
+        const studentId = user.student.id
+        
         const attendanceRecord = {
           date: user.createdAt.toISOString().split('T')[0],
           status: user.status,
@@ -119,6 +121,7 @@ export class AttendanceService {
           attendanceMap.get(studentName).attendance.push(attendanceRecord);
         } else {
           attendanceMap.set(studentName, {
+            student_id: studentId,
             student_name: studentName,
             attendance: [attendanceRecord],
           });

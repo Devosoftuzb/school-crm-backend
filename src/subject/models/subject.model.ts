@@ -7,6 +7,7 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript';
+import { Customer } from 'src/customer/models/customer.model';
 
 import { School } from 'src/school/models/school.model';
 
@@ -42,4 +43,10 @@ export class Subject extends Model<Subject, SubjectAttr> {
     allowNull: false,
   })
   name: string;
+
+  @HasMany(() => Customer, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  customer: Customer;
 }
