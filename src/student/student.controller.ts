@@ -70,6 +70,28 @@ export class StudentController {
     return this.studentService.findOne(+id, +school_id);
   }
 
+  @ApiOperation({ summary: 'Student view by ID by school ID' })
+  @Roles('owner', 'administrator')
+  @Get(':school_id/:id/not')
+  findOneNot(@Param('id') id: string, @Param('school_id') school_id: string) {
+    return this.studentService.findOneNot(+id, +school_id);
+  }
+
+  @ApiOperation({ summary: 'Student view by ID by school ID' })
+  @Roles('owner', 'administrator')
+  @Get(':school_id/:id/payment')
+  findOnePayment(@Param('id') id: string, @Param('school_id') school_id: string) {
+    return this.studentService.findOnePayment(+id, +school_id);
+  }
+
+  @ApiOperation({ summary: 'Student view by ID by school ID' })
+  @Roles('owner', 'administrator')
+  @Get(':school_id/:id/group')
+  findOnePaymentGroup(@Param('id') id: string, @Param('school_id') school_id: string) {
+    return this.studentService.findOnePaymentGroup(+id, +school_id);
+  }
+
+
   @ApiOperation({ summary: 'Student update by ID by school ID' })
   @Roles('owner', 'administrator')
   @Put(':school_id/:id')

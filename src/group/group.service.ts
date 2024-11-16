@@ -4,6 +4,9 @@ import { Group } from './models/group.model';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { GroupSubject } from 'src/group_subject/models/group_subject.model';
+import { StudentGroup } from 'src/student_group/models/student_group.model';
+import { School } from 'src/school/models/school.model';
+import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 
 @Injectable()
 export class GroupService {
@@ -78,6 +81,84 @@ export class GroupService {
     const group = await this.repo.findOne({
       where: { id, school_id },
       include: { all: true },
+    });
+
+    if (!group) {
+      throw new BadRequestException(
+        `Group with id ${id} not found in school ${school_id}`,
+      );
+    }
+
+    return group;
+  }
+
+  async findOneNotInclude(id: number, school_id: number) {
+    const group = await this.repo.findOne({
+      where: { id, school_id },
+      include: [
+        {
+          model: GroupSubject,
+        },
+      ],
+    });
+
+    if (!group) {
+      throw new BadRequestException(
+        `Group with id ${id} not found in school ${school_id}`,
+      );
+    }
+
+    return group;
+  }
+
+  async findOneStudent(id: number, school_id: number) {
+    const group = await this.repo.findOne({
+      where: { id, school_id },
+      include: [
+        {
+          model: StudentGroup,
+        },
+      ],
+    });
+
+    if (!group) {
+      throw new BadRequestException(
+        `Group with id ${id} not found in school ${school_id}`,
+      );
+    }
+
+    return group;
+  }
+
+  async findOnePayment(id: number, school_id: number) {
+    const group = await this.repo.findOne({
+      where: { id, school_id },
+      include: [
+        {
+          model: School,
+        },
+        {
+          model: EmployeeGroup,
+        },
+        {
+          model: StudentGroup,
+        },
+      ],
+    });
+
+    if (!group) {
+      throw new BadRequestException(
+        `Group with id ${id} not found in school ${school_id}`,
+      );
+    }
+
+    return group;
+  }
+
+  async findOneGroup(id: number, school_id: number) {
+    const group = await this.repo.findOne({
+      where: { id, school_id },
+      attributes: ['name', 'price']
     });
 
     if (!group) {

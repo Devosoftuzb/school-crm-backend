@@ -133,6 +133,34 @@ export class EmployeeService {
     return employee;
   }
 
+  async findOneNot(id: number, school_id: number) {
+    const employee = await this.repo.findOne({
+      where: { id, school_id },
+      attributes: ['full_name', 'role', 'phone_number'],
+    });
+
+    if (!employee) {
+      throw new BadRequestException(
+        `Employee ith id ${id} not found in school ${school_id}`,
+      );
+    }
+    return employee;
+  }
+
+  async findOneFullName(id: number, school_id: number) {
+    const employee = await this.repo.findOne({
+      where: { id, school_id },
+      attributes: ['full_name'],
+    });
+
+    if (!employee) {
+      throw new BadRequestException(
+        `Employee ith id ${id} not found in school ${school_id}`,
+      );
+    }
+    return employee;
+  }
+
   async update(
     id: number,
     school_id: number,

@@ -1,9 +1,11 @@
+import { Attendance } from './../attendance/models/attendance.model';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Student } from './models/student.model';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
+import { Payment } from 'src/payment/models/payment.model';
 
 @Injectable()
 export class StudentService {
@@ -77,6 +79,68 @@ export class StudentService {
         school_id,
       },
       include: { all: true },
+    });
+
+    if (!student) {
+      throw new BadRequestException(`Student with id ${id} not found`);
+    }
+
+    return student;
+  }
+
+  async findOneNot(id: number, school_id: number) {
+    const student = await this.repo.findOne({
+      where: {
+        id,
+        school_id,
+      },
+      attributes: ['id','full_name', 'phone_number']
+    });
+
+    if (!student) {
+      throw new BadRequestException(`Student with id ${id} not found`);
+    }
+
+    return student;
+  }
+
+  async findOnePayment(id: number, school_id: number) {
+    const student = await this.repo.findOne({
+      where: {
+        id,
+        school_id,
+      },
+      include: [
+        {
+          model: Payment,
+        },
+        {
+          model: Attendance,
+        },
+      ],
+    });
+
+    if (!student) {
+      throw new BadRequestException(`Student with id ${id} not found`);
+    }
+
+    return student;
+  }
+
+  async findOnePaymentGroup(id: number, school_id: number) {
+    const student = await this.repo.findOne({
+      where: {
+        id,
+        school_id,
+      },
+      include: [
+        {
+          model: Payment,
+        },
+        {
+          model: StudentGroup,
+        },
+      ],
     });
 
     if (!student) {

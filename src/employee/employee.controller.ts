@@ -68,6 +68,20 @@ export class EmployeeController {
     return this.employeeService.findOne(+id, +school_id);
   }
 
+  @ApiOperation({ summary: 'View employee by ID and school ID' })
+  @Roles('owner', 'administrator')
+  @Get(':school_id/:id/not')
+  findOneNot(@Param('id') id: string, @Param('school_id') school_id: string) {
+    return this.employeeService.findOneNot(+id, +school_id);
+  }
+
+  @ApiOperation({ summary: 'View employee by ID and school ID' })
+  @Roles('owner', 'administrator')
+  @Get(':school_id/:id/fullname')
+  findOneFullName(@Param('id') id: string, @Param('school_id') school_id: string) {
+    return this.employeeService.findOneFullName(+id, +school_id);
+  }
+
   @ApiOperation({ summary: 'Update employee by ID and school ID' })
   @Roles('owner', 'administrator')
   @Put(':school_id/:id')
