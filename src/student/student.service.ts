@@ -150,6 +150,26 @@ export class StudentService {
     return student;
   }
 
+  async findOneGroup(id: number, school_id: number) {
+    const student = await this.repo.findOne({
+      where: {
+        id,
+        school_id,
+      },
+      include: [
+        {
+          model: StudentGroup,
+        },
+      ],
+    });
+
+    if (!student) {
+      throw new BadRequestException(`Student with id ${id} not found`);
+    }
+
+    return student;
+  }
+
   async update(
     id: number,
     school_id: number,

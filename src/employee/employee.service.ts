@@ -50,7 +50,6 @@ export class EmployeeService {
   async findAllBySchoolId(school_id: number) {
     return await this.repo.findAll({
       where: { school_id },
-      include: { all: true },
     });
   }
 
@@ -136,7 +135,45 @@ export class EmployeeService {
   async findOneNot(id: number, school_id: number) {
     const employee = await this.repo.findOne({
       where: { id, school_id },
-      attributes: ['full_name', 'role', 'phone_number'],
+      attributes: ['id', 'full_name', 'role', 'phone_number', 'login'],
+    });
+
+    if (!employee) {
+      throw new BadRequestException(
+        `Employee ith id ${id} not found in school ${school_id}`,
+      );
+    }
+    return employee;
+  }
+
+  async findOneSubject(id: number, school_id: number) {
+    const employee = await this.repo.findOne({
+      where: { id, school_id },
+      attributes: [],
+      include: [
+        {
+          model: EmployeeSubject,
+        },
+      ],
+    });
+
+    if (!employee) {
+      throw new BadRequestException(
+        `Employee ith id ${id} not found in school ${school_id}`,
+      );
+    }
+    return employee;
+  }
+
+  async findOneGroup(id: number, school_id: number) {
+    const employee = await this.repo.findOne({
+      where: { id, school_id },
+      attributes: [],
+      include: [
+        {
+          model: EmployeeGroup,
+        },
+      ],
     });
 
     if (!employee) {

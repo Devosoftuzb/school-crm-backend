@@ -104,6 +104,14 @@ export class UserService {
     return user;
   }
 
+  async findOneNot(id: number) {
+    const user = await this.repo.findByPk(id);
+    if (!user) {
+      throw new BadRequestException(`User with id ${id} not found`);
+    }
+    return user;
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto) {
     const userExists = await this.repo.findOne({
       where: { login: updateUserDto.login },

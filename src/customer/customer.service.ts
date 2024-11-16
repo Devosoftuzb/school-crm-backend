@@ -4,6 +4,7 @@ import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Customer } from './models/customer.model';
 import { SocialMedia } from 'src/social_media/models/social_media.model';
+import { Subject } from 'src/subject/models/subject.model';
 
 @Injectable()
 export class CustomerService {
@@ -27,6 +28,9 @@ export class CustomerService {
       include: [
         {
           model: SocialMedia,
+        },
+        {
+          model: Subject,
         },
       ],
     });

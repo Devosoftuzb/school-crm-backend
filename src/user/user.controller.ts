@@ -63,6 +63,14 @@ export class UserController {
     return this.userService.findOne(+id);
   }
 
+  @ApiOperation({ summary: 'User view by ID' })
+  @ApiBearerAuth('access-token')
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/not')
+  findOneNot(@Param('id') id: string) {
+    return this.userService.findOneNot(+id);
+  }
+
   @ApiOperation({ summary: 'User update by ID' })
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)

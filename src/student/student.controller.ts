@@ -91,6 +91,12 @@ export class StudentController {
     return this.studentService.findOnePaymentGroup(+id, +school_id);
   }
 
+  @ApiOperation({ summary: 'Student view by ID by school ID' })
+  @Roles('owner', 'administrator')
+  @Get(':school_id/:id/studentGroup')
+  findOneGroup(@Param('id') id: string, @Param('school_id') school_id: string) {
+    return this.studentService.findOneGroup(+id, +school_id);
+  }
 
   @ApiOperation({ summary: 'Student update by ID by school ID' })
   @Roles('owner', 'administrator')

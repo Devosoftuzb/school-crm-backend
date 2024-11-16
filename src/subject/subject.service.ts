@@ -61,7 +61,6 @@ export class SubjectService {
         id,
         school_id,
       },
-      include: { all: true },
     });
 
     if (!subject) {

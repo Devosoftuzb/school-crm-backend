@@ -80,7 +80,13 @@ export class GroupService {
   async findOne(id: number, school_id: number) {
     const group = await this.repo.findOne({
       where: { id, school_id },
-      include: { all: true },
+      include: [{
+        model: GroupSubject,
+      },
+      {
+        model: EmployeeGroup,
+      }
+    ]
     });
 
     if (!group) {
@@ -158,7 +164,7 @@ export class GroupService {
   async findOneGroup(id: number, school_id: number) {
     const group = await this.repo.findOne({
       where: { id, school_id },
-      attributes: ['name', 'price']
+      attributes: ['id', 'name', 'price']
     });
 
     if (!group) {

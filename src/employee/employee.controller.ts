@@ -77,6 +77,20 @@ export class EmployeeController {
 
   @ApiOperation({ summary: 'View employee by ID and school ID' })
   @Roles('owner', 'administrator')
+  @Get(':school_id/:id/subject')
+  findOneSubject(@Param('id') id: string, @Param('school_id') school_id: string) {
+    return this.employeeService.findOneSubject(+id, +school_id);
+  }
+
+  @ApiOperation({ summary: 'View employee by ID and school ID' })
+  @Roles('owner', 'administrator')
+  @Get(':school_id/:id/group')
+  findOneGroup(@Param('id') id: string, @Param('school_id') school_id: string) {
+    return this.employeeService.findOneGroup(+id, +school_id);
+  }
+
+  @ApiOperation({ summary: 'View employee by ID and school ID' })
+  @Roles('owner', 'administrator')
   @Get(':school_id/:id/fullname')
   findOneFullName(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.employeeService.findOneFullName(+id, +school_id);
