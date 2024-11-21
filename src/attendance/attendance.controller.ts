@@ -85,13 +85,12 @@ export class AttendanceController {
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
-  @Put(':school_id/:id')
+  @Put(':school_id')
   update(
-    @Param('id') id: string,
     @Param('school_id') school_id: string,
     @Body() updateAttendanceDto: UpdateAttendanceDto,
   ) {
-    return this.attendanceService.update(+id, +school_id, updateAttendanceDto);
+    return this.attendanceService.update(+school_id, updateAttendanceDto);
   }
 
   @ApiOperation({ summary: 'Attendance remove by ID by school ID' })

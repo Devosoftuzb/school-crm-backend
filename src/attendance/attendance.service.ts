@@ -14,21 +14,20 @@ export class AttendanceService {
   ) {}
 
   async create(createAttendanceDto: CreateAttendanceDto) {
-    const student = await this.repoStudent.findOne({
-      where: {
-        id: createAttendanceDto.student_id,
-        school_id: createAttendanceDto.school_id,
-      },
-      include: { all: true },
-    });
+    let attendance = [];
+    for (const item of createAttendanceDto.list) {
+      const student = await this.repoStudent.findOne({
+        where: {
+          id: item.student_id,
+          school_id: item.school_id,
+        },
+      });
 
-    if (!student) {
-      throw new BadRequestException(
-        `Student with id ${createAttendanceDto.student_id} not found`,
-      );
+      if (student) {
+        const createdAttendance = await this.repo.create(item);
+        attendance.push(createdAttendance);
+      }
     }
-
-    const attendance = await this.repo.create(createAttendanceDto);
     return {
       message: 'Attendance created',
       attendance,
@@ -110,8 +109,8 @@ export class AttendanceService {
 
       allUsers.forEach((user) => {
         const studentName = user.student.full_name;
-        const studentId = user.student.id
-        
+        const studentId = user.student.id;
+
         const attendanceRecord = {
           date: user.createdAt.toISOString().split('T')[0],
           status: user.status,
@@ -166,27 +165,23 @@ export class AttendanceService {
     return attendance;
   }
 
-  async update(
-    id: number,
-    school_id: number,
-    updateAttendanceDto: UpdateAttendanceDto,
-  ) {
-    const attendance = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
+  async update(school_id: number, updateAttendanceDto: UpdateAttendanceDto) {
+    let attendance = [];
+    for (const item of updateAttendanceDto.list) {
+      const attendanceRecord = await this.repo.findOne({
+        where: {
+          id: item.attendance_id,
+          school_id: school_id,
+        },
+      });
 
-    if (!attendance) {
-      throw new BadRequestException(`Attendance with id ${id} not found`);
+      if (attendanceRecord) {
+        const updatedRecord = await attendanceRecord.update(item);
+        attendance.push(updatedRecord);
+      }
     }
-
-    await attendance.update(updateAttendanceDto);
-
     return {
-      message: 'Attendance update',
+      message: 'Attendance updated',
       attendance,
     };
   }
