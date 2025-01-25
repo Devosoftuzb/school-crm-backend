@@ -33,9 +33,11 @@ export class StudentService {
   async findBySchoolId(school_id: number) {
     return await this.repo.findAll({
       where: { school_id },
-      include: [{
-        model: StudentGroup
-      }],
+      include: [
+        {
+          model: StudentGroup,
+        },
+      ],
     });
   }
 
@@ -46,14 +48,16 @@ export class StudentService {
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
         where: { school_id: school_id },
-        include: [{
-          model: StudentGroup
-        }],
+        include: [
+          {
+            model: StudentGroup,
+          },
+        ],
         order: [['createdAt', 'DESC']],
         offset,
         limit,
       });
-      const total_count = await this.repo.count();
+      const total_count = await this.repo.count({ where: { school_id } });
       const total_pages = Math.ceil(total_count / limit);
       const res = {
         status: 200,
@@ -94,7 +98,7 @@ export class StudentService {
         id,
         school_id,
       },
-      attributes: ['id','full_name', 'phone_number']
+      attributes: ['id', 'full_name', 'phone_number'],
     });
 
     if (!student) {

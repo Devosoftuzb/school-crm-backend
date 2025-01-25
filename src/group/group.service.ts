@@ -57,7 +57,7 @@ export class GroupService {
         offset,
         limit,
       });
-      const total_count = await this.repo.count();
+      const total_count = await this.repo.count({ where: { school_id } });
       const total_pages = Math.ceil(total_count / limit);
       return {
         status: 200,
