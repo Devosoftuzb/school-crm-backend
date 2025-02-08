@@ -97,7 +97,7 @@ export class AttendanceController {
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
-  @Delete(':school_id/:group_id:student_id')
+  @Delete(':school_id/:group_id/:student_id')
   remove(@Param('group_id') group_id: string, @Param('student_id') student_id: string, @Param('school_id') school_id: string) {
     return this.attendanceService.remove(+group_id, +student_id, +school_id);
   }
