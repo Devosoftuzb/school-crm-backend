@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Attendance } from './models/attendance.model';
 import { Student } from 'src/student/models/student.model';
 import { Op } from 'sequelize';
+import { StudentGroup } from 'src/student_group/models/student_group.model';
 
 @Injectable()
 export class AttendanceService {
@@ -75,6 +76,80 @@ export class AttendanceService {
     }
   }
 
+  // async findGroupHistory(
+  //   school_id: number,
+  //   group_id: number,
+  //   year: number,
+  //   month: number,
+  //   page: number,
+  // ): Promise<object> {
+  //   try {
+  //     page = Number(page);
+  //     const limit = 15;
+  //     const offset = (page - 1) * limit;
+
+  //     const allUsers = await this.repo.findAll({
+  //       where: {
+  //         school_id,
+  //         group_id,
+  //         createdAt: {
+  //           [Op.gte]: new Date(year, month - 1, 1),
+  //           [Op.lt]: new Date(year, month, 1),
+  //         },
+  //       },
+  //       include: [
+  //         {
+  //           model: Student,
+  //           attributes: ['id', 'full_name'],
+  //         },
+  //       ],
+  //       order: [['createdAt', 'DESC']],
+  //     });
+
+  //     const attendanceMap = new Map();
+
+  //     allUsers.forEach((user) => {
+  //       const studentName = user.student.full_name;
+  //       const studentId = user.student.id;
+
+  //       const attendanceRecord = {
+  //         date: user.createdAt.toISOString().split('T')[0],
+  //         status: user.status,
+  //       };
+
+  //       if (attendanceMap.has(studentName)) {
+  //         attendanceMap.get(studentName).attendance.push(attendanceRecord);
+  //       } else {
+  //         attendanceMap.set(studentName, {
+  //           student_id: studentId,
+  //           student_name: studentName,
+  //           attendance: [attendanceRecord],
+  //         });
+  //       }
+  //     });
+
+  //     const attendanceRecords = Array.from(attendanceMap.values());
+  //     const paginatedRecords = attendanceRecords.slice(offset, offset + limit);
+
+  //     const total_count = attendanceRecords.length;
+  //     const total_pages = Math.ceil(total_count / limit);
+
+  //     return {
+  //       status: 200,
+  //       data: {
+  //         records: paginatedRecords,
+  //         pagination: {
+  //           currentPage: page,
+  //           total_pages,
+  //           total_count,
+  //         },
+  //       },
+  //     };
+  //   } catch (error) {
+  //     throw new BadRequestException(error.message);
+  //   }
+  // }
+
   async findGroupHistory(
     school_id: number,
     group_id: number,
@@ -86,8 +161,19 @@ export class AttendanceService {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
+      const allStudents = await this.repoStudent.findAll({
+        where: { school_id },
+        include: [
+          {
+            model: StudentGroup,
+            where: { group_id },
+            attributes: [],
+          },
+        ],
+        attributes: ['id', 'full_name'],
+      });
 
-      const allUsers = await this.repo.findAll({
+      const allAttendances = await this.repo.findAll({
         where: {
           school_id,
           group_id,
@@ -96,33 +182,26 @@ export class AttendanceService {
             [Op.lt]: new Date(year, month, 1),
           },
         },
-        include: [
-          {
-            model: Student,
-            attributes: ['id', 'full_name'],
-          },
-        ],
+        attributes: ['createdAt', 'status', 'student_id'],
         order: [['createdAt', 'DESC']],
       });
 
       const attendanceMap = new Map();
 
-      allUsers.forEach((user) => {
-        const studentName = user.student.full_name;
-        const studentId = user.student.id;
+      allStudents.forEach((student) => {
+        attendanceMap.set(student.id, {
+          student_id: student.id,
+          student_name: student.full_name,
+          attendance: [],
+        });
+      });
 
-        const attendanceRecord = {
-          date: user.createdAt.toISOString().split('T')[0],
-          status: user.status,
-        };
-
-        if (attendanceMap.has(studentName)) {
-          attendanceMap.get(studentName).attendance.push(attendanceRecord);
-        } else {
-          attendanceMap.set(studentName, {
-            student_id: studentId,
-            student_name: studentName,
-            attendance: [attendanceRecord],
+      allAttendances.forEach((record) => {
+        const student = attendanceMap.get(record.student_id);
+        if (student) {
+          student.attendance.push({
+            date: record.createdAt.toISOString().split('T')[0],
+            status: record.status,
           });
         }
       });
