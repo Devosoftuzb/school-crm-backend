@@ -47,7 +47,7 @@ export class StudentService {
       const limit = 15;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
-        where: { school_id: school_id },
+        where: { school_id: school_id, status: true },
         include: [
           {
             model: StudentGroup,
