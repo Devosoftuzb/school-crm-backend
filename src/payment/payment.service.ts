@@ -66,7 +66,7 @@ export class PaymentService {
           year,
           month,
         },
-        attributes: ['id', 'method', 'price', 'month', 'createdAt'],
+        attributes: ['id', 'method', 'price', 'discount', 'month', 'createdAt'],
         include: [
           {
             model: Group,
@@ -158,7 +158,7 @@ export class PaymentService {
             [Op.lt]: new Date(year, month - 1, day + 1),
           },
         },
-        attributes: ['id', 'method', 'price', 'month', 'createdAt'],
+        attributes: ['id', 'method', 'price',  'discount', 'month', 'createdAt'],
         include: [
           {
             model: Group,
