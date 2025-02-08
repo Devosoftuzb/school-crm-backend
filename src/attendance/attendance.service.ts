@@ -186,23 +186,31 @@ export class AttendanceService {
     };
   }
 
-  async remove(id: number, school_id: number) {
-    const attendance = await this.repo.findOne({
+  async remove(group_id: number, student_id: number, school_id: number) {
+    const attendances = await this.repo.findAll({
       where: {
-        id: id,
+        group_id: group_id,
+        student_id: student_id,
         school_id: school_id,
       },
-      include: { all: true },
     });
 
-    if (!attendance) {
-      throw new BadRequestException(`Attendance with id ${id} not found`);
+    if (!attendances.length) {
+      throw new BadRequestException(
+        `Attendance not found for group_id: ${group_id}, student_id: ${student_id}, school_id: ${school_id}`,
+      );
     }
 
-    await attendance.destroy();
+    await this.repo.destroy({
+      where: {
+        group_id: group_id,
+        student_id: student_id,
+        school_id: school_id,
+      },
+    });
 
     return {
-      message: 'Attendance remove',
+      message: `${attendances.length} attendance records removed`,
     };
   }
 }
