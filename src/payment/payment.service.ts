@@ -115,6 +115,7 @@ export class PaymentService {
             group_price: user.group.price,
             method: user.method,
             price: user.price,
+            discount: user.discount,
             month: user.month,
             createdAt: user.createdAt,
           };
@@ -206,6 +207,7 @@ export class PaymentService {
             group_price: user.group.price,
             method: user.method,
             price: user.price,
+            discount: user.discount,
             month: user.month,
             createdAt: user.createdAt,
           };

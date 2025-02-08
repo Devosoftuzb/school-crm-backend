@@ -274,11 +274,11 @@ export class AttendanceService {
       },
     });
 
-    if (!attendances.length) {
-      throw new BadRequestException(
-        `Attendance not found for group_id: ${group_id}, student_id: ${student_id}, school_id: ${school_id}`,
-      );
-    }
+    // if (!attendances.length) {
+    //   throw new BadRequestException(
+    //     `Attendance not found for group_id: ${group_id}, student_id: ${student_id}, school_id: ${school_id}`,
+    //   );
+    // }
 
     await this.repo.destroy({
       where: {
