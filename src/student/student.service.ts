@@ -32,7 +32,7 @@ export class StudentService {
 
   async findBySchoolId(school_id: number) {
     return await this.repo.findAll({
-      where: { school_id },
+      where: { school_id, status: true },
       include: [
         {
           model: StudentGroup,
