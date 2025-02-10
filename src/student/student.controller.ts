@@ -17,6 +17,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { ArchiveStudentDto } from './dto/archive-student.dto';
 
 @ApiTags('Student')
 @Controller('student')
@@ -51,6 +52,23 @@ export class StudentController {
   @Get(':school_id/find')
   findBySchoolId(@Param('school_id') school_id: string) {
     return this.studentService.findBySchoolId(+school_id);
+  }
+
+  @ApiOperation({ summary: 'Student view all by school ID' })
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Get(':school_id/archive-find')
+  findByArchiveSchoolId(@Param('school_id') school_id: string) {
+    return this.studentService.findByArchiveSchoolId(+school_id);
+  }
+
+  @ApiOperation({ summary: 'Student paginate' })
+  @Roles('owner', 'administrator')
+  @Get(':school_id/archive/page')
+  paginateArchive(
+    @Query('page') page: number,
+    @Param('school_id') school_id: string
+  ) {
+    return this.studentService.paginateArchive(+school_id, page);
   }
 
   @ApiOperation({ summary: 'Student paginate' })
@@ -107,6 +125,17 @@ export class StudentController {
     @Body() updateStudentDto: UpdateStudentDto,
   ) {
     return this.studentService.update(+id, +school_id, updateStudentDto);
+  }
+
+  @ApiOperation({ summary: 'Student archive by ID by school ID' })
+  @Roles('owner', 'administrator')
+  @Put('archive/:school_id/:id')
+  archive(
+    @Param('id') id: string,
+    @Param('school_id') school_id: string,
+    @Body() archiveStudentDto: ArchiveStudentDto,
+  ) {
+    return this.studentService.archive(+id, +school_id, archiveStudentDto);
   }
 
   @ApiOperation({ summary: 'Student remove by ID by school ID' })

@@ -6,6 +6,7 @@ import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
 import { Payment } from 'src/payment/models/payment.model';
+import { ArchiveStudentDto } from './dto/archive-student.dto';
 
 @Injectable()
 export class StudentService {
@@ -39,6 +40,52 @@ export class StudentService {
         },
       ],
     });
+  }
+
+  async findByArchiveSchoolId(school_id: number) {
+    return await this.repo.findAll({
+      where: { school_id, status: false },
+      include: [
+        {
+          model: StudentGroup,
+        },
+      ],
+    });
+  }
+
+  async paginateArchive(school_id: number, page: number): Promise<object> {
+    try {
+      page = Number(page);
+      const limit = 15;
+      const offset = (page - 1) * limit;
+      const user = await this.repo.findAll({
+        where: { school_id: school_id, status: false },
+        include: [
+          {
+            model: StudentGroup,
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+        offset,
+        limit,
+      });
+      const total_count = await this.repo.count({ where: { school_id } });
+      const total_pages = Math.ceil(total_count / limit);
+      const res = {
+        status: 200,
+        data: {
+          records: user,
+          pagination: {
+            currentPage: page,
+            total_pages,
+            total_count,
+          },
+        },
+      };
+      return res;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 
   async paginate(school_id: number, page: number): Promise<object> {
@@ -181,6 +228,20 @@ export class StudentService {
   ) {
     const student = await this.findOne(id, school_id);
     await student.update(updateStudentDto);
+
+    return {
+      message: 'Student updated successfully',
+      student,
+    };
+  }
+
+  async archive(
+    id: number,
+    school_id: number,
+    archiveStudentDto: ArchiveStudentDto,
+  ) {
+    const student = await this.findOne(id, school_id);
+    await student.update(archiveStudentDto);
 
     return {
       message: 'Student updated successfully',
