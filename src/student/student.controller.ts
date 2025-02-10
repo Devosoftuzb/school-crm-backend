@@ -54,14 +54,14 @@ export class StudentController {
     return this.studentService.findBySchoolId(+school_id);
   }
 
-  @ApiOperation({ summary: 'Student view all by school ID' })
+  @ApiOperation({ summary: 'Student archive view all by school ID' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get(':school_id/archive-find')
   findByArchiveSchoolId(@Param('school_id') school_id: string) {
     return this.studentService.findByArchiveSchoolId(+school_id);
   }
 
-  @ApiOperation({ summary: 'Student paginate' })
+  @ApiOperation({ summary: 'Student paginate archive' })
   @Roles('owner', 'administrator')
   @Get(':school_id/archive/page')
   paginateArchive(

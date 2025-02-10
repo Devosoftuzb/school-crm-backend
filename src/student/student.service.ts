@@ -69,7 +69,9 @@ export class StudentService {
         offset,
         limit,
       });
-      const total_count = await this.repo.count({ where: { school_id } });
+      const total_count = await this.repo.count({
+        where: { school_id, status: false },
+      });
       const total_pages = Math.ceil(total_count / limit);
       const res = {
         status: 200,
@@ -104,7 +106,9 @@ export class StudentService {
         offset,
         limit,
       });
-      const total_count = await this.repo.count({ where: { school_id } });
+      const total_count = await this.repo.count({
+        where: { school_id, status: true },
+      });
       const total_pages = Math.ceil(total_count / limit);
       const res = {
         status: 200,
