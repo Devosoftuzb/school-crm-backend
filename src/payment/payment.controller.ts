@@ -79,6 +79,31 @@ export class PaymentController {
     return this.paymentService.findDayHistory(+school_id, +year, +month, +day, page);
   }
 
+  @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
+  @Roles('owner', 'administrator')
+  @Get('month/:school_id/:group_id/:year/:month/page')
+  findGroupHistoryDebtor(
+    @Param('school_id') school_id: string,
+    @Param('group_id') group_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+    @Query('page') page: number,
+  ) {
+    return this.paymentService.findGroupHistoryDebtor(+school_id, +group_id, year, month, page);
+  }
+
+  @ApiOperation({ summary: 'Payment history one day view by ID by school ID' })
+  @Roles('owner', 'administrator')
+  @Get('day/:school_id/:year/:month/:day/page')
+  findHistoryDebtor(
+    @Param('school_id') school_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+    @Query('page') page: number,
+  ) {
+    return this.paymentService.findHistoryDebtor(+school_id, +year, +month, page);
+  }
+
   @ApiOperation({ summary: 'Payment update by ID by school ID' })
   @Roles('owner', 'administrator')
   @Put(':school_id/:id')
