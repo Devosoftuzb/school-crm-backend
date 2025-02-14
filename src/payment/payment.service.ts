@@ -342,7 +342,7 @@ export class PaymentService {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
-  
+
       // 1. Kiritilgan yil va oyda kimlar to‘lov qilganligini olish
       const paidUsers = await this.repo.findAll({
         where: {
@@ -354,18 +354,22 @@ export class PaymentService {
         },
         attributes: ['student_id', 'group_id', 'price', 'discount'],
       });
-  
+
       // 2. To‘lov qilgan student va group ID larni olish
       const paidStudentGroupMap = new Map(); // {student_id: {group_id: totalPaid}}
-      
+
       paidUsers.forEach((payment) => {
         const key = `${payment.student_id}-${payment.group_id}`;
         if (!paidStudentGroupMap.has(key)) {
           paidStudentGroupMap.set(key, 0);
         }
-        paidStudentGroupMap.set(key, paidStudentGroupMap.get(key) + (payment.price - (payment.discount || 0)));
+        paidStudentGroupMap.set(
+          key,
+          paidStudentGroupMap.get(key) +
+            (payment.price - (payment.discount || 0)),
+        );
       });
-  
+
       // 3. Hamma studentlarni o‘z guruhlari bilan olish
       const allStudents = await this.repoStudent.findAll({
         where: { school_id },
@@ -378,30 +382,32 @@ export class PaymentService {
               {
                 model: Group,
                 attributes: ['id', 'name', 'price'],
-                include: [{ model: EmployeeGroup, attributes: ['employee_id'] }],
+                include: [
+                  { model: EmployeeGroup, attributes: ['employee_id'] },
+                ],
               },
             ],
           },
         ],
       });
-  
+
       // 4. Qarzdorlarni hisoblash
       const debtors = [];
-  
+
       for (const student of allStudents) {
         for (const groupStudent of student.group) {
           const group = groupStudent.group;
           const key = `${student.id}-${group.id}`;
           const totalPaid = paidStudentGroupMap.get(key) || 0;
           const remainingDebt = Number(group.price) - totalPaid;
-  
+
           if (remainingDebt > 0) {
             // O‘qituvchini olish
             const employee = await this.repoEmployee.findOne({
               where: { id: group?.employee[0]?.employee_id },
               attributes: ['full_name'],
             });
-  
+
             debtors.push({
               student_name: student.full_name,
               teacher_name: employee?.full_name || 'N/A',
@@ -412,11 +418,13 @@ export class PaymentService {
           }
         }
       }
-  
+
+      const paginatedDebtors = debtors.slice(offset, offset + limit);
+
       return {
         status: 200,
         data: {
-          records: debtors,
+          records: paginatedDebtors, 
           pagination: {
             currentPage: page,
             total_pages: Math.ceil(debtors.length / limit),
@@ -428,7 +436,7 @@ export class PaymentService {
       throw new BadRequestException(error.message);
     }
   }
-  
+
   async findOne(id: number, school_id: number) {
     const payment = await this.repo.findOne({
       where: {
