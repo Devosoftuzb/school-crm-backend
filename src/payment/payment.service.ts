@@ -378,7 +378,16 @@ export class PaymentService {
                 model: Group,
                 attributes: ['id', 'name', 'price'],
                 include: [
-                  { model: EmployeeGroup, attributes: ['employee_id'] },
+                  {
+                    model: EmployeeGroup,
+                    attributes: ['employee_id'],
+                    include: [
+                      {
+                        model: Employee, // O‘qituvchi modeli qo‘shildi
+                        attributes: ['full_name'],
+                      },
+                    ],
+                  },
                 ],
               },
             ],
@@ -403,7 +412,7 @@ export class PaymentService {
               return {
                 id: student.id,
                 student_name: student.full_name,
-                teacher_name: group.employee[0]?.employee_id || 'N/A',
+                teacher_name: group.employee[0]?.employee?.full_name || 'N/A', 
                 group_id: group.id,
                 group_name: group.name,
                 group_price: group.price,
