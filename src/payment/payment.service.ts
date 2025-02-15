@@ -9,7 +9,6 @@ import { Employee } from 'src/employee/models/employee.model';
 import { Op } from 'sequelize';
 import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
-import { Sequelize } from 'sequelize';
 
 @Injectable()
 export class PaymentService {
@@ -335,6 +334,112 @@ export class PaymentService {
     }
   }
 
+  // async findHistoryDebtor(
+  //   school_id: number,
+  //   year: number,
+  //   month: number,
+  //   page: number,
+  // ): Promise<object> {
+  //   try {
+  //     page = Number(page);
+  //     const limit = 15;
+  //     const offset = (page - 1) * limit;
+
+  //     // 1. Kiritilgan yil va oyda kimlar to‘lov qilganligini olish
+  //     const paidUsers = await this.repo.findAll({
+  //       where: {
+  //         school_id,
+  //         createdAt: {
+  //           [Op.gte]: new Date(year, month - 1, 1),
+  //           [Op.lt]: new Date(year, month, 1),
+  //         },
+  //       },
+  //       attributes: ['student_id', 'group_id', 'price', 'discount'],
+  //     });
+
+  //     // 2. To‘lov qilgan student va group ID larni olish
+  //     const paidStudentGroupMap = new Map(); // {student_id: {group_id: totalPaid}}
+
+  //     paidUsers.forEach((payment) => {
+  //       const key = `${payment.student_id}-${payment.group_id}`;
+  //       if (!paidStudentGroupMap.has(key)) {
+  //         paidStudentGroupMap.set(key, 0);
+  //       }
+  //       paidStudentGroupMap.set(
+  //         key,
+  //         paidStudentGroupMap.get(key) +
+  //           (payment.price - (payment.discount || 0)),
+  //       );
+  //     });
+
+  //     // 3. Hamma studentlarni o‘z guruhlari bilan olish
+  //     const allStudents = await this.repoStudent.findAll({
+  //       where: { school_id },
+  //       attributes: ['id', 'full_name'],
+  //       include: [
+  //         {
+  //           model: StudentGroup, // Middle-table
+  //           attributes: ['group_id'],
+  //           include: [
+  //             {
+  //               model: Group,
+  //               attributes: ['id', 'name', 'price'],
+  //               include: [
+  //                 { model: EmployeeGroup, attributes: ['employee_id'] },
+  //               ],
+  //             },
+  //           ],
+  //         },
+  //       ],
+  //     });
+
+  //     // 4. Qarzdorlarni hisoblash
+  //     const debtors = [];
+
+  //     for (const student of allStudents) {
+  //       for (const groupStudent of student.group) {
+  //         const group = groupStudent.group;
+  //         const key = `${student.id}-${group.id}`;
+  //         const totalPaid = paidStudentGroupMap.get(key) || 0;
+  //         const remainingDebt = Number(group.price) - totalPaid;
+
+  //         if (remainingDebt > 0) {
+  //           // O‘qituvchini olish
+  //           const employee = await this.repoEmployee.findOne({
+  //             where: { id: group?.employee[0]?.employee_id },
+  //             attributes: ['full_name'],
+  //           });
+
+  //           debtors.push({
+  //             student_name: student.full_name,
+  //             teacher_name: employee?.full_name || 'N/A',
+  //             group_id: group.id,
+  //             group_name: group.name,
+  //             group_price: group.price,
+  //             remaining_debt: remainingDebt,
+  //           });
+  //         }
+  //       }
+  //     }
+
+  //     const paginatedDebtors = debtors.slice(offset, offset + limit);
+
+  //     return {
+  //       status: 200,
+  //       data: {
+  //         records: paginatedDebtors,
+  //         pagination: {
+  //           currentPage: page,
+  //           total_pages: Math.ceil(debtors.length / limit),
+  //           total_count: debtors.length,
+  //         },
+  //       },
+  //     };
+  //   } catch (error) {
+  //     throw new BadRequestException(error.message);
+  //   }
+  // }
+
   async findHistoryDebtor(
     school_id: number,
     year: number,
@@ -345,9 +450,9 @@ export class PaymentService {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
-
-      // 1. To‘lov qilgan studentlarning jami to‘lov summasini olish
-      const paidData = await this.repo.findAll({
+  
+      // 1. Kiritilgan yil va oyda kimlar to‘lov qilganligini olish
+      const paidUsers = await this.repo.findAll({
         where: {
           school_id,
           createdAt: {
@@ -355,18 +460,22 @@ export class PaymentService {
             [Op.lt]: new Date(year, month, 1),
           },
         },
-        attributes: [
-          'student_id',
-          'group_id',
-          [Sequelize.fn('SUM', Sequelize.col('price')), 'totalPaid'],
-          [Sequelize.fn('SUM', Sequelize.col('discount')), 'totalDiscount'],
-        ],
-        group: ['student_id', 'group_id'],
-        raw: true,
+        attributes: ['student_id', 'group_id', 'price', 'discount'],
       });
-
-      // 2. Qarzdor studentlarni olish
-      const debtors = await this.repoStudent.findAll({
+  
+      // 2. To‘lov qilgan student va group ID larni Map ko‘rinishida saqlash
+      const paidStudentGroupMap = new Map<string, number>();
+  
+      for (const payment of paidUsers) {
+        const key = `${payment.student_id}-${payment.group_id}`;
+        paidStudentGroupMap.set(
+          key,
+          (paidStudentGroupMap.get(key) || 0) + (payment.price - (payment.discount || 0)),
+        );
+      }
+  
+      // 3. Hamma studentlarni o‘z guruhlari va o‘qituvchilari bilan olish
+      const allStudents = await this.repoStudent.findAll({
         where: { school_id },
         attributes: ['id', 'full_name'],
         include: [
@@ -383,8 +492,8 @@ export class PaymentService {
                     attributes: ['employee_id'],
                     include: [
                       {
-                        model: Employee, // O‘qituvchi modeli qo‘shildi
-                        attributes: ['full_name'],
+                        model: Employee,
+                        attributes: ['id', 'full_name'],
                       },
                     ],
                   },
@@ -394,48 +503,44 @@ export class PaymentService {
           },
         ],
       });
-      const formattedDebtors = debtors.map((student) => {
-        return student.group
-          .map((groupStudent) => {
-            const group = groupStudent.group;
-            const paidInfo = paidData.find(
-              (p) => p.student_id === student.id && p.group_id === group.id,
-            );
-
-            const totalPaid = paidInfo ? paidInfo.price : 0; // To‘langan summa
-            const totalDiscount = paidInfo ? paidInfo.discount : 0; // Chegirma summasi
-            const requiredPayment = Number(group.price) - totalDiscount; // Chegirma hisobga olindi
-            const remainingDebt = requiredPayment - totalPaid; // Qolgan qarz hisoblandi
-
-            if (remainingDebt > 0) {
-              return {
-                id: student.id,
-                student_name: student.full_name,
-                teacher_name: group.employee[0]?.employee?.full_name || 'N/A',
-                group_id: group.id,
-                group_name: group.name,
-                group_price: group.price,
-                discount: totalDiscount, // Chegirma summasi
-                remaining_debt: remainingDebt, // To‘g‘ri qarz hisobi
-              };
-            }
-            return null;
-          })
-          .filter(Boolean);
-      });
-
-      const paginatedDebtors = formattedDebtors
-        .flat()
-        .slice(offset, offset + limit);
-
+  
+      // 4. Qarzdorlarni hisoblash
+      const debtors = [];
+  
+      for (const student of allStudents) {
+        for (const groupStudent of student.group) {
+          const group = groupStudent.group;
+          const key = `${student.id}-${group.id}`;
+          const totalPaid = paidStudentGroupMap.get(key) || 0;
+          const remainingDebt = Number(group.price) - totalPaid;
+  
+          if (remainingDebt > 0) {
+            // O‘qituvchini olish
+            const employee = group.employee[0]?.employee || { full_name: 'N/A' };
+  
+            debtors.push({
+              student_name: student.full_name,
+              teacher_name: employee.full_name,
+              group_id: group.id,
+              group_name: group.name,
+              group_price: group.price,
+              remaining_debt: remainingDebt,
+            });
+          }
+        }
+      }
+  
+      // Pagination
+      const paginatedDebtors = debtors.slice(offset, offset + limit);
+  
       return {
         status: 200,
         data: {
           records: paginatedDebtors,
           pagination: {
             currentPage: page,
-            total_pages: Math.ceil(formattedDebtors.flat().length / limit),
-            total_count: formattedDebtors.flat().length,
+            total_pages: Math.ceil(debtors.length / limit),
+            total_count: debtors.length,
           },
         },
       };
@@ -443,6 +548,7 @@ export class PaymentService {
       throw new BadRequestException(error.message);
     }
   }
+  
 
   async findOne(id: number, school_id: number) {
     const payment = await this.repo.findOne({
