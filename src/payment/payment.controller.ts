@@ -101,7 +101,7 @@ export class PaymentController {
     @Param('month') month: string,
     @Query('page') page: number,
   ) {
-    return this.paymentService.findHistoryDebtor(+school_id, +year, +month, page);
+    return this.paymentService.findHistoryDebtor(+school_id, year, month, page);
   }
 
   @ApiOperation({ summary: 'Payment update by ID by school ID' })

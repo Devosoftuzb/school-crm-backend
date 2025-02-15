@@ -231,109 +231,6 @@ export class PaymentService {
     }
   }
 
-  // async findGroupHistoryDebtor(
-  //   school_id: number,
-  //   group_id: number,
-  //   year: string,
-  //   month: string,
-  //   page: number,
-  // ): Promise<object> {
-  //   try {
-  //     page = Number(page);
-  //     const limit = 15;
-  //     const offset = (page - 1) * limit;
-
-  //     // 1. Guruhni olish (barcha o‘quvchilar bilan)
-  //     const { count, rows: allStudents } =
-  //       await this.repoStudent.findAndCountAll({
-  //         where: { school_id },
-  //         attributes: ['id', 'full_name'],
-  //         include: [
-  //           {
-  //             model: StudentGroup,
-  //             where: { group_id }, // Faqat berilgan group_id bo‘yicha filter
-  //             attributes: ['group_id'],
-  //           },
-  //           {
-  //             model: Payment, // To‘lovlar (faqat shu guruh uchun)
-  //             required: false,
-  //             where: { year, month, group_id },
-  //             attributes: ['price', 'discount'],
-  //           },
-  //         ],
-  //         offset,
-  //         limit,
-  //       });
-
-  //     // 2. Guruhni olish
-  //     const group = await this.repoGroup.findOne({
-  //       where: { id: group_id, school_id },
-  //       attributes: ['id', 'name', 'price'],
-  //       include: [
-  //         {
-  //           model: EmployeeGroup,
-  //           attributes: ['employee_id'],
-  //         },
-  //       ],
-  //     });
-
-  //     if (!group) throw new BadRequestException('Guruh topilmadi!');
-
-  //     const groupPrice = Number(group.price) || 0;
-
-  //     // 3. Qarzdorlarni aniqlash
-  //     const debtors = [];
-
-  //     for (const student of allStudents) {
-  //       // Faqat shu studentning shu guruh bo‘yicha to‘lovlarini hisoblash
-  //       const totalPaid = student.payment.reduce(
-  //         (sum, p) => sum + (p.price || 0),
-  //         0,
-  //       );
-  //       const totalDiscount = student.payment.reduce(
-  //         (sum, p) => sum + (p.discount || 0),
-  //         0,
-  //       );
-  //       const totalRemaining = groupPrice - (totalPaid + totalDiscount); // Qarzdorlik
-
-  //       if (totalRemaining > 0) {
-  //         // O‘qituvchini olish
-  //         const teacher = await this.repoEmployee.findOne({
-  //           where: { id: group.employee[0]?.employee_id },
-  //           attributes: ['full_name'],
-  //         });
-
-  //         debtors.push({
-  //           id: student.id,
-  //           student_name: student.full_name,
-  //           teacher_name: teacher?.full_name || 'Noma’lum',
-  //           group_id: group.id,
-  //           group_name: group.name,
-  //           group_price: group.price,
-  //           remaining_debt: totalRemaining, // Qarzdorlik summasi
-  //         });
-  //       }
-  //     }
-
-  //     const total_count = debtors.length;
-  //     const total_pages = Math.ceil(total_count / limit);
-
-  //     return {
-  //       status: 200,
-  //       data: {
-  //         records: debtors,
-  //         pagination: {
-  //           currentPage: page,
-  //           total_pages,
-  //           total_count,
-  //         },
-  //       },
-  //     };
-  //   } catch (error) {
-  //     throw new BadRequestException(error.message);
-  //   }
-  // }
-
   async findGroupHistoryDebtor(
     school_id: number,
     group_id: number,
@@ -346,101 +243,98 @@ export class PaymentService {
       const limit = 15;
       const offset = (page - 1) * limit;
   
-      // 1. Guruh ma’lumotlarini olish (o‘qituvchi bilan birga)
       const group = await this.repoGroup.findOne({
         where: { id: group_id, school_id },
         attributes: ['id', 'name', 'price'],
         include: [
           {
             model: EmployeeGroup,
-            attributes: ['employee_id'],
             include: [
               {
                 model: Employee,
-                attributes: ['full_name'],
+                attributes: ['id', 'full_name'],
+              },
+            ],
+          },
+          {
+            model: StudentGroup,
+            include: [
+              {
+                model: Student,
+                attributes: ['id', 'full_name'],
+                include: [
+                  {
+                    model: Payment,
+                    where: { year, month },
+                    required: false, 
+                    attributes: ['price', 'discount', 'createdAt'],
+                  },
+                ],
               },
             ],
           },
         ],
       });
   
-      if (!group) throw new BadRequestException('Guruh topilmadi!');
-  
-      const groupPrice = Number(group.price) || 0;
-      const teacherName = group.employee?.[0]?.employee?.full_name || 'Noma’lum';
-  
-      // 2. Barcha studentlarni olish (shu guruhga tegishli bo‘lgan)
-      const { count, rows: students } = await this.repoStudent.findAndCountAll({
-        where: { school_id },
-        attributes: ['id', 'full_name'],
-        include: [
-          {
-            model: StudentGroup,
-            where: { group_id },
-            attributes: [], // Faqat filter uchun kerak, ma’lumot olishga hojat yo‘q
-          },
-        ],
-        offset,
-        limit,
-      });
-  
-      // 3. Ushbu talabalar bo‘yicha barcha to‘lovlarni olish
-      const studentIds = students.map((s) => s.id);
-  
-      const payments = await this.repo.findAll({
-        where: {
-          student_id: { [Op.in]: studentIds },
-          group_id,
-          year,
-          month,
-        },
-        attributes: ['student_id', 'price', 'discount'],
-      });
-  
-      // 4. To‘lovlarni Map ko‘rinishida saqlash
-      const paymentMap = new Map<number, { totalPaid: number; totalDiscount: number }>();
-  
-      for (const payment of payments) {
-        if (!paymentMap.has(payment.student_id)) {
-          paymentMap.set(payment.student_id, { totalPaid: 0, totalDiscount: 0 });
-        }
-        const current = paymentMap.get(payment.student_id);
-        paymentMap.set(payment.student_id, {
-          totalPaid: current!.totalPaid + (payment.price || 0),
-          totalDiscount: current!.totalDiscount + (payment.discount || 0),
-        });
+      if (!group) {
+        throw new BadRequestException('Guruh topilmadi');
       }
   
-      // 5. Qarzdorlarni aniqlash
-      const debtors = [];
+      const groupPrice = Number(group.price);
+      
+   
+      const teacherNames = group.employee.map((eg) => eg.employee.full_name);
+      const teacherName = teacherNames.length > 0 ? teacherNames.join(', ') : 'Noma’lum o‘qituvchi';
   
-      for (const student of students) {
-        const paymentInfo = paymentMap.get(student.id);
+      let debtors: object[] = [];
   
-        // Agar talaba hech qanday to‘lov qilmagan bo‘lsa yoki yetarlicha to‘lov qilmagan bo‘lsa, qarzdor deb olinadi
-        if (!paymentInfo || (paymentInfo.totalPaid + paymentInfo.totalDiscount) < groupPrice) {
-          const totalRemaining = groupPrice - (paymentInfo?.totalPaid || 0) - (paymentInfo?.totalDiscount || 0);
+      for (const studentGroup of group.student) {
+        const student = studentGroup.student;
+        const payments = student.payment || [];
   
+        let totalPaid = 0;
+        let totalDiscount = 0;
+        let paymentDetails: object[] = [];
+  
+        for (const payment of payments) {
+          const discountAmount = (groupPrice * (payment.discount || 0)) / 100;
+          totalPaid += payment.price;
+          totalDiscount += discountAmount;
+  
+          paymentDetails.push({
+            paid_amount: payment.price,
+            discount_amount: discountAmount,
+            payment_date: payment.createdAt,
+          });
+        }
+  
+        const remainingDebt = Math.max(groupPrice - (totalPaid + totalDiscount), 0);
+  
+        if (remainingDebt > 0) {
           debtors.push({
-            id: student.id,
+            student_id: student.id,
             student_name: student.full_name,
-            teacher_name: teacherName,
             group_id: group.id,
             group_name: group.name,
-            group_price: group.price,
-            remaining_debt: totalRemaining,
+            teacher_name: teacherName, 
+            group_price: groupPrice,
+            debt: remainingDebt,
+            payments: paymentDetails,
           });
         }
       }
   
+      const totalDebtors = debtors.length;
+      const paginatedDebtors = debtors.slice(offset, offset + limit);
+  
       return {
         status: 200,
         data: {
-          records: debtors,
+          records: paginatedDebtors,
           pagination: {
             currentPage: page,
-            total_pages: Math.ceil(count / limit),
-            total_count: count,
+            total_pages: Math.ceil(totalDebtors / limit),
+            total_count: totalDebtors,
           },
         },
       };
@@ -448,150 +342,18 @@ export class PaymentService {
       throw new BadRequestException(error.message);
     }
   }
-  
-  
-
-  // async findHistoryDebtor(
-  //   school_id: number,
-  //   year: number,
-  //   month: number,
-  //   page: number,
-  // ): Promise<object> {
-  //   try {
-  //     page = Number(page);
-  //     const limit = 15;
-  //     const offset = (page - 1) * limit;
-
-  //     // 1. Kiritilgan yil va oyda kimlar to‘lov qilganligini olish
-  //     const paidUsers = await this.repo.findAll({
-  //       where: {
-  //         school_id,
-  //         createdAt: {
-  //           [Op.gte]: new Date(year, month - 1, 1),
-  //           [Op.lt]: new Date(year, month, 1),
-  //         },
-  //       },
-  //       attributes: ['student_id', 'group_id', 'price', 'discount'],
-  //     });
-
-  //     // 2. To‘lov qilgan student va group ID larni olish
-  //     const paidStudentGroupMap = new Map(); // {student_id: {group_id: totalPaid}}
-
-  //     paidUsers.forEach((payment) => {
-  //       const key = `${payment.student_id}-${payment.group_id}`;
-  //       if (!paidStudentGroupMap.has(key)) {
-  //         paidStudentGroupMap.set(key, 0);
-  //       }
-  //       paidStudentGroupMap.set(
-  //         key,
-  //         paidStudentGroupMap.get(key) +
-  //           (payment.price - (payment.discount || 0)),
-  //       );
-  //     });
-
-  //     // 3. Hamma studentlarni o‘z guruhlari bilan olish
-  //     const allStudents = await this.repoStudent.findAll({
-  //       where: { school_id },
-  //       attributes: ['id', 'full_name'],
-  //       include: [
-  //         {
-  //           model: StudentGroup, // Middle-table
-  //           attributes: ['group_id'],
-  //           include: [
-  //             {
-  //               model: Group,
-  //               attributes: ['id', 'name', 'price'],
-  //               include: [
-  //                 { model: EmployeeGroup, attributes: ['employee_id'] },
-  //               ],
-  //             },
-  //           ],
-  //         },
-  //       ],
-  //     });
-
-  //     // 4. Qarzdorlarni hisoblash
-  //     const debtors = [];
-
-  //     for (const student of allStudents) {
-  //       for (const groupStudent of student.group) {
-  //         const group = groupStudent.group;
-  //         const key = `${student.id}-${group.id}`;
-  //         const totalPaid = paidStudentGroupMap.get(key) || 0;
-  //         const remainingDebt = Number(group.price) - totalPaid;
-
-  //         if (remainingDebt > 0) {
-  //           // O‘qituvchini olish
-  //           const employee = await this.repoEmployee.findOne({
-  //             where: { id: group?.employee[0]?.employee_id },
-  //             attributes: ['full_name'],
-  //           });
-
-  //           debtors.push({
-  //             student_name: student.full_name,
-  //             teacher_name: employee?.full_name || 'N/A',
-  //             group_id: group.id,
-  //             group_name: group.name,
-  //             group_price: group.price,
-  //             remaining_debt: remainingDebt,
-  //           });
-  //         }
-  //       }
-  //     }
-
-  //     const paginatedDebtors = debtors.slice(offset, offset + limit);
-
-  //     return {
-  //       status: 200,
-  //       data: {
-  //         records: paginatedDebtors,
-  //         pagination: {
-  //           currentPage: page,
-  //           total_pages: Math.ceil(debtors.length / limit),
-  //           total_count: debtors.length,
-  //         },
-  //       },
-  //     };
-  //   } catch (error) {
-  //     throw new BadRequestException(error.message);
-  //   }
-  // }
 
   async findHistoryDebtor(
     school_id: number,
-    year: number,
-    month: number,
+    year: string,
+    month: string,
     page: number,
   ): Promise<object> {
     try {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
-  
-      // 1. Kiritilgan yil va oyda kimlar to‘lov qilganligini olish
-      const paidUsers = await this.repo.findAll({
-        where: {
-          school_id,
-          createdAt: {
-            [Op.gte]: new Date(year, month - 1, 1),
-            [Op.lt]: new Date(year, month, 1),
-          },
-        },
-        attributes: ['student_id', 'group_id', 'price', 'discount'],
-      });
-  
-      // 2. To‘lov qilgan student va group ID larni Map ko‘rinishida saqlash
-      const paidStudentGroupMap = new Map<string, number>();
-  
-      for (const payment of paidUsers) {
-        const key = `${payment.student_id}-${payment.group_id}`;
-        paidStudentGroupMap.set(
-          key,
-          (paidStudentGroupMap.get(key) || 0) + (payment.price - (payment.discount || 0)),
-        );
-      }
-  
-      // 3. Hamma studentlarni o‘z guruhlari va o‘qituvchilari bilan olish
+
       const allStudents = await this.repoStudent.findAll({
         where: { school_id },
         attributes: ['id', 'full_name'],
@@ -618,47 +380,88 @@ export class PaymentService {
               },
             ],
           },
+          {
+            model: Payment,
+            where: { year, month },
+            required: false,
+            attributes: ['price', 'discount', 'group_id', 'createdAt'],
+          },
         ],
       });
-  
-      // 4. Qarzdorlarni hisoblash
-      const debtors = [];
-  
+
+      let debtors: object[] = [];
+
       for (const student of allStudents) {
-        for (const groupStudent of student.group) {
-          const group = groupStudent.group;
-          const key = `${student.id}-${group.id}`;
-          const totalPaid = paidStudentGroupMap.get(key) || 0;
-          const remainingDebt = Number(group.price) - totalPaid;
-  
+        for (const studentGroup of student.group) {
+          const group = studentGroup.group;
+          const groupId = group.id;
+          const groupPrice = Number(group.price);
+
+          
+          const teacher = group.employee?.[0]?.employee;
+          const teacherName = teacher
+            ? teacher.full_name
+            : 'Noma’lum o‘qituvchi';
+
+          
+          const payments = student.payment.filter(
+            (p) => p.group_id === groupId,
+          );
+
+          let totalPaid = 0;
+          let totalDiscount = 0;
+          let paymentDetails: object[] = [];
+
+          for (const payment of payments) {
+            const discountAmount =
+              (groupPrice * (payment.discount || 0)) / 100;
+            totalPaid += payment.price;
+            totalDiscount += discountAmount;
+
+            paymentDetails.push({
+              paid_amount: payment.price,
+              discount_amount: discountAmount,
+              payment_date: payment.createdAt,
+            });
+          }
+
+          const remainingDebt = Math.max(
+            groupPrice - (totalPaid + totalDiscount),
+            0,
+          );
+
           if (remainingDebt > 0) {
-            // O‘qituvchini olish
-            const employee = group.employee[0]?.employee || { full_name: 'N/A' };
-  
             debtors.push({
-              id:student.id,
+              id: student.id,
               student_name: student.full_name,
-              teacher_name: employee.full_name,
-              group_id: group.id,
+              group_id: groupId,
               group_name: group.name,
-              group_price: group.price,
-              remaining_debt: remainingDebt,
+              teacher_name: teacherName,
+              group_price: groupPrice,
+              debt: remainingDebt,
+              payments: paymentDetails,
             });
           }
         }
       }
-  
-      // Pagination
+
+      console.log(debtors);
+      
+     
+      const totalDebtors = debtors.length;
+
+   
       const paginatedDebtors = debtors.slice(offset, offset + limit);
-  
+
+   
       return {
         status: 200,
         data: {
           records: paginatedDebtors,
           pagination: {
             currentPage: page,
-            total_pages: Math.ceil(debtors.length / limit),
-            total_count: debtors.length,
+            total_pages: Math.ceil(totalDebtors / limit),
+            total_count: totalDebtors,
           },
         },
       };
@@ -666,7 +469,6 @@ export class PaymentService {
       throw new BadRequestException(error.message);
     }
   }
-  
 
   async findOne(id: number, school_id: number) {
     const payment = await this.repo.findOne({
