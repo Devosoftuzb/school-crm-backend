@@ -367,7 +367,7 @@ export class PaymentService {
       if (!group) throw new BadRequestException('Guruh topilmadi!');
   
       const groupPrice = Number(group.price) || 0;
-      const teacherName = group.employee[0]?.employee?.full_name || 'Noma’lum';
+      const teacherName = group.employee?.[0]?.employee?.full_name || 'Noma’lum';
   
       // 2. Barcha studentlarni olish (shu guruhga tegishli bo‘lgan)
       const { count, rows: students } = await this.repoStudent.findAndCountAll({
@@ -406,8 +406,8 @@ export class PaymentService {
         }
         const current = paymentMap.get(payment.student_id);
         paymentMap.set(payment.student_id, {
-          totalPaid: current.totalPaid + (payment.price || 0),
-          totalDiscount: current.totalDiscount + (payment.discount || 0),
+          totalPaid: current!.totalPaid + (payment.price || 0),
+          totalDiscount: current!.totalDiscount + (payment.discount || 0),
         });
       }
   
@@ -415,10 +415,12 @@ export class PaymentService {
       const debtors = [];
   
       for (const student of students) {
-        const { totalPaid = 0, totalDiscount = 0 } = paymentMap.get(student.id) || {};
-        const totalRemaining = groupPrice - (totalPaid + totalDiscount);
+        const paymentInfo = paymentMap.get(student.id);
   
-        if (totalRemaining > 0) {
+        // Agar talaba hech qanday to‘lov qilmagan bo‘lsa yoki yetarlicha to‘lov qilmagan bo‘lsa, qarzdor deb olinadi
+        if (!paymentInfo || (paymentInfo.totalPaid + paymentInfo.totalDiscount) < groupPrice) {
+          const totalRemaining = groupPrice - (paymentInfo?.totalPaid || 0) - (paymentInfo?.totalDiscount || 0);
+  
           debtors.push({
             id: student.id,
             student_name: student.full_name,
@@ -446,6 +448,7 @@ export class PaymentService {
       throw new BadRequestException(error.message);
     }
   }
+  
   
 
   // async findHistoryDebtor(
