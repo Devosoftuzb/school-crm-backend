@@ -444,8 +444,6 @@ export class PaymentService {
           }
         }
       }
-
-      console.log(debtors);
       
      
       const totalDebtors = debtors.length;
