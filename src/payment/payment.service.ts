@@ -384,8 +384,6 @@ export class PaymentService {
             ],
           },
         ],
-        raw: true,
-        nest: true,
       });
 
       const formattedDebtors = debtors.map((student) => {
