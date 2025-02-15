@@ -307,7 +307,9 @@ export class PaymentService {
             id: student.id,
             student_name: student.full_name,
             teacher_name: teacher?.full_name || 'Noma’lum',
+            group_id: group.id,
             group_name: group.name,
+            group_price: group.price,
             remaining_debt: totalRemaining, // Qarzdorlik summasi
           });
         }
@@ -425,7 +427,7 @@ export class PaymentService {
       return {
         status: 200,
         data: {
-          records: paginatedDebtors, 
+          records: paginatedDebtors,
           pagination: {
             currentPage: page,
             total_pages: Math.ceil(debtors.length / limit),
