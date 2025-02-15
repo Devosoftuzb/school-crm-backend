@@ -394,7 +394,6 @@ export class PaymentService {
           },
         ],
       });
-
       const formattedDebtors = debtors.map((student) => {
         return student.group
           .map((groupStudent) => {
@@ -403,20 +402,21 @@ export class PaymentService {
               (p) => p.student_id === student.id && p.group_id === group.id,
             );
 
-            const totalPaid = paidInfo
-              ? paidInfo.price - (paidInfo.discount || 0)
-              : 0;
-            const remainingDebt = Number(group.price) - totalPaid;
+            const totalPaid = paidInfo ? paidInfo.price : 0; // To‘langan summa
+            const totalDiscount = paidInfo ? paidInfo.discount : 0; // Chegirma summasi
+            const requiredPayment = Number(group.price) - totalDiscount; // Chegirma hisobga olindi
+            const remainingDebt = requiredPayment - totalPaid; // Qolgan qarz hisoblandi
 
             if (remainingDebt > 0) {
               return {
                 id: student.id,
                 student_name: student.full_name,
-                teacher_name: group.employee[0]?.employee?.full_name || 'N/A', 
+                teacher_name: group.employee[0]?.employee?.full_name || 'N/A',
                 group_id: group.id,
                 group_name: group.name,
                 group_price: group.price,
-                remaining_debt: remainingDebt,
+                discount: totalDiscount, // Chegirma summasi
+                remaining_debt: remainingDebt, // To‘g‘ri qarz hisobi
               };
             }
             return null;
