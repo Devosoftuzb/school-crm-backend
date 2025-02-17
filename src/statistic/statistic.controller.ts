@@ -30,20 +30,27 @@ export class StatisticController {
 
   @ApiOperation({ summary: 'School Payments' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @Get('school-payments/:school_id')
-  getSchoolPayments(@Param('school_id') school_id: string) {
-    return this.statisticService.getSchoolPayments(+school_id);
+  @Get('school-payments/:school_id/:year')
+  getYearlyPayments(@Param('school_id') school_id: string, @Param('year') year: string) {
+    return this.statisticService.getYearlyPayments(+school_id, +year);
   }
 
-  @ApiOperation({ summary: 'Teacher Moneys' })
+  @ApiOperation({ summary: 'School Student payments' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @Get('teacher-moneys/:school_id/:id')
-  getTeacherMoneys(
-    @Param('school_id') school_id: string,
-    @Param('id') id: string,
-  ) {
-    return this.statisticService.getTeacherMoneys(+school_id, +id);
+  @Get('school-studentPayments/:school_id/:month')
+  studentPayments(@Param('school_id') school_id: string, @Param('month') month: string) {
+    return this.statisticService.studentPayments(+school_id, month);
   }
+
+  // @ApiOperation({ summary: 'Teacher Moneys' })
+  // @Roles('superadmin', 'admin', 'owner', 'administrator')
+  // @Get('teacher-moneys/:school_id/:id')
+  // getTeacherMoneys(
+  //   @Param('school_id') school_id: string,
+  //   @Param('id') id: string,
+  // ) {
+  //   return this.statisticService.getTeacherMoneys(+school_id, +id);
+  // }
 
   @ApiOperation({ summary: 'School Payments' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')

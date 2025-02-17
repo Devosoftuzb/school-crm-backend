@@ -7,6 +7,7 @@ import { Student } from 'src/student/models/student.model';
 import { School } from 'src/school/models/school.model';
 import { Op, fn, col, Sequelize } from 'sequelize';
 import { PaymentMethod } from 'src/payment_method/models/payment_method.model';
+import { StudentGroup } from 'src/student_group/models/student_group.model';
 
 @Injectable()
 export class StatisticService {
@@ -66,105 +67,10 @@ export class StatisticService {
     };
   }
 
-  async getSchoolPayments(school_id: number) {
-    const school = await this.repoSchool.findOne({
-      where: { id: school_id },
-    });
-
-    if (!school) {
-      throw new BadRequestException(`School with ID ${school_id} not found`);
-    }
-
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1;
-    const currentDay = currentDate.getDate();
-
-    const yearStartDate = new Date(currentYear, 0, 1);
-    yearStartDate.setHours(yearStartDate.getHours() + 5);
-
-    const yearEndDate = new Date(currentYear, 11, 31, 23, 59, 59);
-    yearEndDate.setHours(yearEndDate.getHours() + 5);
-
-    const monthStartDate = new Date(currentYear, currentMonth - 1, 1);
-    monthStartDate.setHours(monthStartDate.getHours() + 5);
-
-    const monthEndDate = new Date(currentYear, currentMonth, 0, 23, 59, 59);
-    monthEndDate.setHours(monthEndDate.getHours() + 5);
-
-    const weekStartDate = new Date(currentDate);
-    weekStartDate.setDate(currentDate.getDate() - currentDate.getDay());
-    weekStartDate.setHours(0, 0, 0, 0);
-    weekStartDate.setHours(weekStartDate.getHours() + 5);
-
-    const weekEndDate = new Date(weekStartDate);
-    weekEndDate.setDate(weekStartDate.getDate() + 6);
-    weekEndDate.setHours(23, 59, 59, 999);
-    weekEndDate.setHours(weekEndDate.getHours() + 5);
-
-    const dayStartDate = new Date(currentYear, currentMonth - 1, currentDay);
-    dayStartDate.setHours(dayStartDate.getHours() + 5);
-
-    const dayEndDate = new Date(
-      currentYear,
-      currentMonth - 1,
-      currentDay,
-      23,
-      59,
-      59,
-    );
-    dayEndDate.setHours(dayEndDate.getHours() + 5);
-
-    const yearPaymentSum = await this.repoPayment.sum('price', {
-      where: {
-        school_id,
-        createdAt: {
-          [Op.between]: [yearStartDate, yearEndDate],
-        },
-      },
-    });
-
-    const monthPaymentSum = await this.repoPayment.sum('price', {
-      where: {
-        school_id,
-        createdAt: {
-          [Op.between]: [monthStartDate, monthEndDate],
-        },
-      },
-    });
-
-    const weekPaymentSum = await this.repoPayment.sum('price', {
-      where: {
-        school_id,
-        createdAt: {
-          [Op.between]: [weekStartDate, weekEndDate],
-        },
-      },
-    });
-
-    const dayPaymentSum = await this.repoPayment.sum('price', {
-      where: {
-        school_id,
-        createdAt: {
-          [Op.between]: [dayStartDate, dayEndDate],
-        },
-      },
-    });
-
-    return {
-      yearPayments: yearPaymentSum || 0,
-      monthPayments: monthPaymentSum || 0,
-      weekPayments: weekPaymentSum || 0,
-      dayPayments: dayPaymentSum || 0,
-    };
-  }
-
-  async getTeacherMoneys(school_id: number, id: number) {}
-
   async getDayPayments(school_id: number, date: string) {
     let startDate: Date;
     let endDate: Date;
-  
+
     const dateParts = date.split('-');
     if (dateParts.length === 3) {
       startDate = new Date(
@@ -195,17 +101,17 @@ export class StatisticService {
         "Noto'g'ri sana formati. 'YYYY-MM-DD' yoki 'YYYY-MM' formatida kiriting.",
       );
     }
-  
+
     startDate.setHours(startDate.getHours());
     endDate.setHours(endDate.getHours());
-  
+
     const allMethods = await this.repoMethod.findAll({
       where: {
         school_id,
       },
       attributes: ['name'],
     });
-  
+
     const payments = await this.repoPayment.findAll({
       where: {
         school_id,
@@ -220,7 +126,7 @@ export class StatisticService {
       ],
       group: ['method'],
     });
-  
+
     const paymentSum = await this.repoPayment.sum('price', {
       where: {
         school_id,
@@ -230,18 +136,21 @@ export class StatisticService {
       },
     });
 
-    const paymentMethods = allMethods.reduce((acc, method) => {
-      acc[method.name] = { count: 0, sum: 0 };
-      return acc;
-    }, {} as Record<string, { count: number, sum: number }>);
-  
+    const paymentMethods = allMethods.reduce(
+      (acc, method) => {
+        acc[method.name] = { count: 0, sum: 0 };
+        return acc;
+      },
+      {} as Record<string, { count: number; sum: number }>,
+    );
+
     payments.forEach((payment) => {
       const method = payment.get('method');
       const count = payment.get('count');
       const sum = payment.get('sum');
       paymentMethods[method] = { count: Number(count), sum: Number(sum) };
     });
-  
+
     let totalCount = 0;
     const statistics = Object.entries(paymentMethods).map(
       ([method, { count, sum }]) => {
@@ -253,16 +162,126 @@ export class StatisticService {
         };
       },
     );
-  
+
     statistics.push({
       method: 'Tushum',
-       count: totalCount,
+      count: totalCount,
       sum: paymentSum || 0,
     });
-  
+
     return {
       statistics,
     };
   }
-  
+
+  async getYearlyPayments(school_id: number, year: number) {
+    const currentYear = year;
+    const paymentsPerMonth = [];
+
+    for (let month = 0; month < 12; month++) {
+      const startDate = new Date(currentYear, month, 1);
+      startDate.setHours(startDate.getHours() + 5);
+
+      const endDate = new Date(currentYear, month + 1, 0, 23, 59, 59);
+      endDate.setHours(endDate.getHours() + 5);
+
+      const paymentSum = await this.repoPayment.sum('price', {
+        where: {
+          school_id,
+          createdAt: {
+            [Op.between]: [startDate, endDate],
+          },
+        },
+      });
+
+      paymentsPerMonth.push(paymentSum || 0); // Massivga qo‘shish
+    }
+
+    return {
+      year: currentYear,
+      PaymentStats: paymentsPerMonth,
+    };
+  }
+
+  async studentPayments(school_id: number, month: string) {
+    try {
+      const currentYear = new Date().getFullYear();
+
+      const allStudents = await this.repoStudent.findAll({
+        where: { school_id },
+        attributes: ['id', 'full_name'],
+        include: [
+          {
+            model: StudentGroup,
+            attributes: ['group_id'],
+            include: [
+              {
+                model: Group,
+                attributes: ['id', 'name', 'price'],
+              },
+            ],
+          },
+          {
+            model: Payment,
+            where: { year: String(currentYear), month },
+            required: false,
+            attributes: ['price', 'discount', 'group_id', 'createdAt'],
+          },
+        ],
+      });
+
+      let noPayment = 0; // 100% qarzdorlar soni
+      let halfPayment = 0; // Qisman qarzdorlar soni
+      let fullPayment = 0; // Qarzdor emaslar soni
+
+      for (const student of allStudents) {
+        for (const studentGroup of student.group) {
+          const group = studentGroup.group;
+          const groupId = group.id;
+          const groupPrice = Number(group.price);
+
+          const payments = student.payment.filter(
+            (p) => p.group_id === groupId,
+          );
+
+          let totalPaid = 0;
+          let totalDiscount = 0;
+
+          for (const payment of payments) {
+            const discountAmount = (groupPrice * (payment.discount || 0)) / 100;
+            totalPaid += payment.price;
+            totalDiscount += discountAmount;
+          }
+
+          const remainingDebt = Math.max(
+            groupPrice - (totalPaid + totalDiscount),
+            0,
+          );
+
+          // Qarzdorlik holatlarini tekshirish
+          if (remainingDebt === groupPrice) {
+            // 100% qarzdor
+            noPayment++;
+          } else if (remainingDebt > 0) {
+            // Qisman qarzdor
+            halfPayment++;
+          } else {
+            // Qarzdor emas
+            fullPayment++;
+          }
+        }
+      }
+
+      return {
+        status: 200,
+        studentPayments: {
+          noPayment,
+          halfPayment,
+          fullPayment,
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
 }
