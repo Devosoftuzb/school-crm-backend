@@ -360,7 +360,7 @@ export class PaymentService {
         include: [
           {
             model: StudentGroup,
-            attributes: ['group_id'],
+            attributes: ['group_id', 'createdAt'],
             include: [
               {
                 model: Group,
@@ -396,8 +396,11 @@ export class PaymentService {
           const group = studentGroup.group;
           const groupId = group.id;
           const groupPrice = Number(group.price);
-
+          const joinedDate = new Date(studentGroup.createdAt);
+          const checkDate = new Date(`${year}-${month}-01`);
           
+          if (checkDate < joinedDate) continue;
+
           const teacher = group.employee?.[0]?.employee;
           const teacherName = teacher
             ? teacher.full_name
