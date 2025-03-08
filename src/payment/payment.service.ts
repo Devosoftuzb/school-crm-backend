@@ -398,6 +398,9 @@ export class PaymentService {
           const groupPrice = Number(group.price);
           const joinedDate = new Date(studentGroup.createdAt);
           const checkDate = new Date(`${year}-${month}-01`);
+
+          console.log(joinedDate, checkDate);
+          
           
           if (checkDate < joinedDate) continue;
 
