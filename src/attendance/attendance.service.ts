@@ -29,7 +29,6 @@ export class AttendanceService {
       if (student) {
         const createdAttendance = await this.repo.create(item);
         attendance.push(createdAttendance);
-        console.log(item);
         if (!item.status) {
           this.smsService.sendAttendance({ student_id: item.student_id });
         }
