@@ -6,12 +6,14 @@ import { Attendance } from './models/attendance.model';
 import { Student } from 'src/student/models/student.model';
 import { Op } from 'sequelize';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
+import { SmsService } from 'src/sms/sms.service';
 
 @Injectable()
 export class AttendanceService {
   constructor(
     @InjectModel(Attendance) private repo: typeof Attendance,
     @InjectModel(Student) private repoStudent: typeof Student,
+    private smsService: SmsService,
   ) {}
 
   async create(createAttendanceDto: CreateAttendanceDto) {
@@ -27,6 +29,10 @@ export class AttendanceService {
       if (student) {
         const createdAttendance = await this.repo.create(item);
         attendance.push(createdAttendance);
+        console.log(item);
+        if (!item.status) {
+          this.smsService.sendAttendance({ student_id: item.student_id });
+        }
       }
     }
     return {

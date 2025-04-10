@@ -11,5 +11,6 @@ import { Attendance } from 'src/attendance/models/attendance.model';
   imports: [SequelizeModule.forFeature([Group, Student, Attendance]), JwtModule],
   controllers: [SmsController],
   providers: [SmsService],
+  exports: [SmsService],
 })
 export class SmsModule {}
