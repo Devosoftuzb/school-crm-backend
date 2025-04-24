@@ -10,6 +10,7 @@ import {
 import { Customer } from 'src/customer/models/customer.model';
 
 import { School } from 'src/school/models/school.model';
+import { Test } from 'src/test/model/test.model';
 
 interface SubjectAttr {
   school_id: number;
@@ -49,4 +50,10 @@ export class Subject extends Model<Subject, SubjectAttr> {
     hooks: true,
   })
   customer: Customer;
+
+  @HasMany(() => Test, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  test: Test[];
 }

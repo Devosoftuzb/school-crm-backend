@@ -44,6 +44,12 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { resolve } from 'path';
 import { FilesModule } from './common/files/files.module';
 import { StatisticModule } from './statistic/statistic.module';
+import { TestModule } from './test/test.module';
+import { Test } from './test/model/test.model';
+import { QuestionsModule } from './questions/questions.module';
+import { OptionModule } from './option/option.module';
+import { CustomerTestModule } from './customer_test/customer_test.module';
+import { StudentAnswerModule } from './student_answer/student_answer.module';
 
 @Module({
   imports: [
@@ -74,7 +80,7 @@ import { StatisticModule } from './statistic/statistic.module';
         EmployeeSubject,
         SocialMedia,
         Customer,
-       
+        Test,
       ],
       autoLoadModels: true,
       logging: false,
@@ -106,6 +112,11 @@ import { StatisticModule } from './statistic/statistic.module';
     SocialMediaModule,
     CustomerModule,
     StatisticModule,
+    TestModule,
+    QuestionsModule,
+    OptionModule,
+    CustomerTestModule,
+    StudentAnswerModule,
   ],
   controllers: [],
   providers: [],

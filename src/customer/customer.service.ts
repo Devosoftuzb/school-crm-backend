@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Customer } from './models/customer.model';
 import { SocialMedia } from 'src/social_media/models/social_media.model';
 import { Subject } from 'src/subject/models/subject.model';
+import { CreateWebCustomerDto } from './dto/create-web-customer.dto';
 
 @Injectable()
 export class CustomerService {
@@ -104,6 +105,18 @@ export class CustomerService {
 
     return {
       message: 'Customer removed successfully',
+    };
+  }
+
+  async createWeb(createWebCustomerDto: CreateWebCustomerDto) {
+    const customer = await this.repo.create({
+      school_id: 1,
+      ...createWebCustomerDto,
+      social_media_id: 2,
+    });
+    return {
+      message: 'Login successfully',
+      customer,
     };
   }
 }

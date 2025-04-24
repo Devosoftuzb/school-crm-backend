@@ -3,9 +3,11 @@ import {
   Column,
   DataType,
   ForeignKey,
+  HasMany,
   Model,
   Table,
 } from 'sequelize-typescript';
+import { CustomerTest } from 'src/customer_test/model/customer_test.model';
 import { School } from 'src/school/models/school.model';
 import { SocialMedia } from 'src/social_media/models/social_media.model';
 import { Subject } from 'src/subject/models/subject.model';
@@ -78,4 +80,10 @@ export class Customer extends Model<Customer, CustomerAttr> {
     allowNull: false,
   })
   description: string;
+
+  @HasMany(() => CustomerTest, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  customer_test: CustomerTest[];
 }
