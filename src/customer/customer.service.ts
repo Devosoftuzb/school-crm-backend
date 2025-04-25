@@ -113,6 +113,7 @@ export class CustomerService {
       school_id: 1,
       ...createWebCustomerDto,
       social_media_id: 2,
+      description: '',
     });
     return {
       message: 'Login successfully',
