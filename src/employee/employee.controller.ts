@@ -24,6 +24,12 @@ import { ChangePasswordDto } from './dto/changePassword.dto';
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
+  @ApiOperation({ summary: 'View all employees by school ID. Web' })
+  @Get('/web')
+  findAllWeb() {
+    return this.employeeService.findAllWeb();
+  }
+
   @ApiOperation({ summary: 'Create a new employee' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
@@ -157,11 +163,5 @@ export class EmployeeController {
       +id,
       changePasswordDto,
     );
-  }
-
-  @ApiOperation({ summary: 'View all employees by school ID. Web' })
-  @Get('/web')
-  findAllWeb() {
-    return this.employeeService.findAllWeb();
   }
 }
