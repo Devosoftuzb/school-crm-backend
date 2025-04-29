@@ -160,7 +160,7 @@ export class EmployeeController {
   }
 
   @ApiOperation({ summary: 'View all employees by school ID. Web' })
-  @Get()
+  @Get('/web')
   findAllWeb() {
     return this.employeeService.findAllWeb();
   }
