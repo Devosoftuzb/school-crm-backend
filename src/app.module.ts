@@ -49,10 +49,11 @@ import { Test } from './test/model/test.model';
 import { QuestionsModule } from './questions/questions.module';
 import { OptionModule } from './option/option.module';
 import { CustomerTestModule } from './customer_test/customer_test.module';
-import { StudentAnswerModule } from './student_answer/student_answer.module';
 import { Option } from './option/model/option.model';
 import { Question } from './questions/model/question.model';
 import { CustomerTest } from './customer_test/model/customer_test.model';
+import { CustomerAnswerModule } from './customer_answer/customer_answer.module';
+import { CustomerAnswer } from './customer_answer/model/customer_answer.model';
 
 @Module({
   imports: [
@@ -87,6 +88,7 @@ import { CustomerTest } from './customer_test/model/customer_test.model';
         Option,
         Question,
         CustomerTest,
+        CustomerAnswer,
       ],
       autoLoadModels: true,
       logging: false,
@@ -122,7 +124,7 @@ import { CustomerTest } from './customer_test/model/customer_test.model';
     QuestionsModule,
     OptionModule,
     CustomerTestModule,
-    StudentAnswerModule,
+    CustomerAnswerModule,
   ],
   controllers: [],
   providers: [],

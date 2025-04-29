@@ -8,6 +8,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { Customer } from 'src/customer/models/customer.model';
+import { CustomerAnswer } from 'src/customer_answer/model/customer_answer.model';
 import { Test } from 'src/test/model/test.model';
 
 interface CustomerTestAttr {
@@ -17,7 +18,7 @@ interface CustomerTestAttr {
   finished_at: string;
 }
 
-@Table({ tableName: 'student_test' })
+@Table({ tableName: 'customer_test' })
 export class CustomerTest extends Model<CustomerTest, CustomerTestAttr> {
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })
   id: number;
@@ -50,9 +51,9 @@ export class CustomerTest extends Model<CustomerTest, CustomerTestAttr> {
   @Column({ type: DataType.STRING, allowNull: false })
   finished_at: string;
 
-  // @HasMany(() => CustomerTest, {
-  //   onDelete: 'CASCADE',
-  //   hooks: true,
-  // })
-  // customer_test: CustomerTest[];
+  @HasMany(() => CustomerAnswer, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  customer_answer: CustomerAnswer[];
 }

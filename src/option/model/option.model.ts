@@ -3,9 +3,11 @@ import {
   Column,
   DataType,
   ForeignKey,
+  HasMany,
   Model,
   Table,
 } from 'sequelize-typescript';
+import { CustomerAnswer } from 'src/customer_answer/model/customer_answer.model';
 import { Question } from 'src/questions/model/question.model';
 
 interface OptionAttr {
@@ -31,4 +33,10 @@ export class Option extends Model<Option, OptionAttr> {
 
   @Column({ type: DataType.BOOLEAN, defaultValue: false })
   is_correct: boolean;
+
+  @HasMany(() => CustomerAnswer, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  customer_answer: CustomerAnswer[];
 }

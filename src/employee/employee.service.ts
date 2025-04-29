@@ -262,4 +262,11 @@ export class EmployeeService {
       message: 'Password changed successfully',
     };
   }
+
+  async findAllWeb() {
+    return await this.repo.findAll({
+      where: { school_id: 1 },
+      attributes: ['full_name'],
+    });
+  }
 }

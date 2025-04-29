@@ -7,6 +7,7 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript';
+import { CustomerAnswer } from 'src/customer_answer/model/customer_answer.model';
 import { Option } from 'src/option/model/option.model';
 import { Test } from 'src/test/model/test.model';
 
@@ -55,4 +56,10 @@ export class Question extends Model<Question, QuestionAttr> {
     hooks: true,
   })
   option: Option[];
+
+  @HasMany(() => CustomerAnswer, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  customer_answer: CustomerAnswer[];
 }

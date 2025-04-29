@@ -21,12 +21,12 @@ import { ChangePasswordDto } from './dto/changePassword.dto';
 
 @ApiTags('Employee')
 @Controller('employee')
-@UseGuards(RolesGuard, JwtAuthGuard)
-@ApiBearerAuth('access-token')
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
   @ApiOperation({ summary: 'Create a new employee' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post()
   create(@Body() createEmployeeDto: CreateEmployeeDto) {
@@ -34,6 +34,8 @@ export class EmployeeController {
   }
 
   @ApiOperation({ summary: 'View all employees by school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin')
   @Get()
   findAll() {
@@ -41,6 +43,8 @@ export class EmployeeController {
   }
 
   @ApiOperation({ summary: 'View employees by school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get(':school_id')
   findAllBySchoolId(@Param('school_id') school_id: string) {
@@ -48,6 +52,8 @@ export class EmployeeController {
   }
 
   @ApiOperation({ summary: 'View employees by school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get(':school_id/find')
   findBySchoolId(@Param('school_id') school_id: string) {
@@ -55,6 +61,8 @@ export class EmployeeController {
   }
 
   @ApiOperation({ summary: 'Paginate employees by school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @Get(':school_id/page')
   paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
@@ -62,6 +70,8 @@ export class EmployeeController {
   }
 
   @ApiOperation({ summary: 'View employee by ID and school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @Get(':school_id/:id')
   findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
@@ -69,6 +79,8 @@ export class EmployeeController {
   }
 
   @ApiOperation({ summary: 'View employee by ID and school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @Get(':school_id/:id/not')
   findOneNot(@Param('id') id: string, @Param('school_id') school_id: string) {
@@ -76,13 +88,20 @@ export class EmployeeController {
   }
 
   @ApiOperation({ summary: 'View employee by ID and school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @Get(':school_id/:id/subject')
-  findOneSubject(@Param('id') id: string, @Param('school_id') school_id: string) {
+  findOneSubject(
+    @Param('id') id: string,
+    @Param('school_id') school_id: string,
+  ) {
     return this.employeeService.findOneSubject(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'View employee by ID and school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @Get(':school_id/:id/group')
   findOneGroup(@Param('id') id: string, @Param('school_id') school_id: string) {
@@ -90,13 +109,20 @@ export class EmployeeController {
   }
 
   @ApiOperation({ summary: 'View employee by ID and school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @Get(':school_id/:id/fullname')
-  findOneFullName(@Param('id') id: string, @Param('school_id') school_id: string) {
+  findOneFullName(
+    @Param('id') id: string,
+    @Param('school_id') school_id: string,
+  ) {
     return this.employeeService.findOneFullName(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'Update employee by ID and school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @Put(':school_id/:id')
   update(
@@ -108,6 +134,8 @@ export class EmployeeController {
   }
 
   @ApiOperation({ summary: 'Remove employee by ID and school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @Delete(':school_id/:id')
   remove(@Param('id') id: string, @Param('school_id') school_id: string) {
@@ -115,6 +143,8 @@ export class EmployeeController {
   }
 
   @ApiOperation({ summary: 'Change password employee' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post('change-password/:school_id/:id')
   changePassword(
@@ -127,5 +157,11 @@ export class EmployeeController {
       +id,
       changePasswordDto,
     );
+  }
+
+  @ApiOperation({ summary: 'View all employees by school ID. Web' })
+  @Get()
+  findAllWeb() {
+    return this.employeeService.findAllWeb();
   }
 }

@@ -111,9 +111,12 @@ export class CustomerService {
   async createWeb(createWebCustomerDto: CreateWebCustomerDto) {
     const customer = await this.repo.create({
       school_id: 1,
-      ...createWebCustomerDto,
+      full_name: createWebCustomerDto.full_name,
+      phone_number: createWebCustomerDto.phone_number,
+      subject_id: createWebCustomerDto.subject_id,
       social_media_id: 2,
-      description: '',
+      description:
+        createWebCustomerDto.time + ' ' + createWebCustomerDto.teacher_name,
     });
     return {
       message: 'Login successfully',
