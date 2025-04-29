@@ -14,7 +14,9 @@ export class QuestionsService {
 
   async create(createQuestionDto: CreateQuestionDto, file: any) {
     let file_name: string;
-    file_name = await this.fileService.createFile(file);
+    if (file) {
+      file_name = await this.fileService.createFile(file);
+    }
     const question = await this.repo.create({
       file: file_name,
       ...createQuestionDto,
@@ -60,7 +62,7 @@ export class QuestionsService {
   }
 
   async findOne(id: number) {
-    const question = await this.repo.findByPk(id);
+    const question = await this.repo.findByPk(id, { include: { all: true } });
 
     if (!question) {
       throw new BadRequestException(`Question with id ${id} not found`);

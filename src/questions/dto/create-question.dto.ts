@@ -3,7 +3,6 @@ import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateQuestionDto {
   @ApiProperty({ example: 1, description: 'Test ID' })
-  @IsNumber()
   @IsNotEmpty()
   test_id: number;
 
