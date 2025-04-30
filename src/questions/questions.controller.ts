@@ -62,7 +62,7 @@ export class QuestionsController {
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('file'))
   @Put(':id')
   update(
     @Param('id') id: string,
