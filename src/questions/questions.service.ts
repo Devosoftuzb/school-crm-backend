@@ -79,10 +79,9 @@ export class QuestionsService {
         {
           model: Option,
           as: 'option',
-          separate: true, // alohida query ishlatadi va 'order' ishlaydi
-          order: [['createdAt', 'ASC']], // optionlar bo‘yicha tartib
+          separate: true, 
+          order: [['createdAt', 'ASC']], 
         },
-        // boshqa include lar ham shu yerda bo'lishi mumkin
       ],
     });
 

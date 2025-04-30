@@ -4,6 +4,7 @@ import { UpdateTestDto } from './dto/update-test.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Test } from './model/test.model';
 import { Subject } from 'src/subject/models/subject.model';
+import { Question } from 'src/questions/model/question.model';
 
 @Injectable()
 export class TestService {
@@ -52,7 +53,16 @@ export class TestService {
   }
 
   async findOne(id: number) {
-    const test = await this.repo.findByPk(id, { include: { all: true } });
+    const test = await this.repo.findByPk(id, {
+      include: [
+        {
+          model: Question,
+          as: 'options',
+          separate: true,
+          order: [['createdAt', 'ASC']],
+        },
+      ],
+    });
 
     if (!test) {
       throw new BadRequestException(`Test with id ${id} not found`);
