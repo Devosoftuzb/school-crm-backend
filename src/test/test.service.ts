@@ -57,7 +57,7 @@ export class TestService {
       include: [
         {
           model: Question,
-          as: 'options',
+          as: 'questions',
           separate: true,
           order: [['createdAt', 'ASC']],
         },
