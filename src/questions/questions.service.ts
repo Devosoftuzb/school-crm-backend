@@ -32,16 +32,17 @@ export class QuestionsService {
     return await this.repo.findAll({
       include: [
         {
-          all: true,
-          nested: true,
+          model: Option, 
+          as: 'option', 
+          order: [['createdAt', 'ASC']], 
         },
       ],
       order: [
-        ['createdAt', 'DESC'],
-        [{ model: Option, as: 'option' }, 'createdAt', 'ASC'],
+        ['createdAt', 'ASC'], 
       ],
     });
   }
+  
 
   async paginate(page: number): Promise<object> {
     try {
