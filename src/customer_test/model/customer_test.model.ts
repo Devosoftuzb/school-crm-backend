@@ -16,6 +16,7 @@ interface CustomerTestAttr {
   test_id: number;
   started_at: string;
   finished_at: string;
+  result: string;
 }
 
 @Table({ tableName: 'customer_test' })
@@ -50,6 +51,9 @@ export class CustomerTest extends Model<CustomerTest, CustomerTestAttr> {
 
   @Column({ type: DataType.STRING, allowNull: false })
   finished_at: string;
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  result: string;
 
   @HasMany(() => CustomerAnswer, {
     onDelete: 'CASCADE',

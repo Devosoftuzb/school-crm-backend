@@ -61,6 +61,9 @@ export class CustomerController {
   }
 
   @ApiOperation({ summary: 'View a customer by ID and school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @Roles('owner', 'administrator')
   @Get(':school_id/:id')
   findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.customerService.findOne(+id, +school_id);

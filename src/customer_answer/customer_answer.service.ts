@@ -4,30 +4,40 @@ import { UpdateCustomerAnswerDto } from './dto/update-customer_answer.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { CustomerAnswer } from './model/customer_answer.model';
 import { Option } from 'src/option/model/option.model';
+import { CustomerTest } from 'src/customer_test/model/customer_test.model';
 
 @Injectable()
 export class CustomerAnswerService {
   constructor(
     @InjectModel(CustomerAnswer) private repo: typeof CustomerAnswer,
     @InjectModel(Option) private repoOption: typeof Option,
+    @InjectModel(CustomerTest) private repoCustomerTest: typeof CustomerTest,
   ) {}
 
   async create(createCustomerAnswerDto: CreateCustomerAnswerDto) {
-    const createdAnswers = [];
+    const createdAnswers = []; 
+    let score = 0; 
+    let customerTestId: number | null = null; 
 
     for (const answer of createCustomerAnswerDto.list) {
       const { customer_test_id, question_id, option_id } = answer;
 
+      
       const option = await this.repoOption.findOne({
         where: { id: option_id, question_id: question_id },
       });
 
       if (!option) {
-        throw new Error('Option not found for this question');
+        throw new Error('Savol uchun mos variant topilmadi');
       }
 
-      const is_correct = option.is_correct;
+      const is_correct = option.is_correct; 
 
+      if (is_correct) {
+        score += 1; 
+      }
+
+   
       const customerAnswer = await this.repo.create({
         customer_test_id,
         question_id,
@@ -35,12 +45,36 @@ export class CustomerAnswerService {
         is_correct,
       });
 
-      createdAnswers.push(customerAnswer);
+      customerTestId = customer_test_id; 
+      createdAnswers.push(customerAnswer); 
+    }
+
+  
+    let result = '';
+    if (score <= 12) {
+      result = 'BEGINNER'; 
+    } else if (score <= 20) {
+      result = 'ELEMENTARY'; 
+    } else if (score <= 31) {
+      result = 'PRE INTER'; 
+    } else if (score <= 45) {
+      result = 'INTER'; 
+    } else {
+      result = 'IELTS'; 
+    }
+
+    if (customerTestId !== null) {
+      await this.repoCustomerTest.update(
+        { result }, 
+        { where: { id: customerTestId } }, 
+      );
     }
 
     return {
       message: 'Customer Answers created successfully',
       customerAnswers: createdAnswers,
+      score,
+      result,
     };
   }
 
