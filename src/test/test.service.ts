@@ -19,7 +19,9 @@ export class TestService {
   }
 
   async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
+    return await this.repo.findAll({
+      include: [{ model: Subject, attributes: ['name'] }],
+    });
   }
 
   async paginate(page: number): Promise<object> {
