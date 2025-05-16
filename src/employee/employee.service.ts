@@ -10,6 +10,7 @@ import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 import { Op } from 'sequelize';
 import { ChangePasswordDto } from './dto/changePassword.dto';
 import { Group } from 'src/group/models/group.model';
+import { Subject } from 'src/subject/models/subject.model';
 
 @Injectable()
 export class EmployeeService {
@@ -81,10 +82,11 @@ export class EmployeeService {
         include: [
           {
             model: EmployeeGroup,
-            include: [{ model: Group, attributes: ['id', 'name'] }], 
+            include: [{ model: Group, attributes: ['id', 'name'] }],
           },
           {
             model: EmployeeSubject,
+            include: [{ model: Subject, attributes: ['id', 'name'] }],
           },
         ],
         order: [['createdAt', 'DESC']],
@@ -123,7 +125,16 @@ export class EmployeeService {
   async findOne(id: number, school_id: number) {
     const employee = await this.repo.findOne({
       where: { id, school_id },
-      include: { all: true },
+      include: [
+        {
+          model: EmployeeGroup,
+          include: [{ model: Group, attributes: ['id', 'name'] }],
+        },
+        {
+          model: EmployeeSubject,
+          include: [{ model: Subject, attributes: ['id', 'name'] }],
+        },
+      ],
     });
 
     if (!employee) {
