@@ -9,6 +9,7 @@ import { User } from 'src/user/models/user.model';
 import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 import { Op } from 'sequelize';
 import { ChangePasswordDto } from './dto/changePassword.dto';
+import { Group } from 'src/group/models/group.model';
 
 @Injectable()
 export class EmployeeService {
@@ -80,6 +81,7 @@ export class EmployeeService {
         include: [
           {
             model: EmployeeGroup,
+            include: [{ model: Group, attributes: ['id', 'name'] }], 
           },
           {
             model: EmployeeSubject,
