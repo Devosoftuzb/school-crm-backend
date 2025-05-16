@@ -129,6 +129,9 @@ export class EmployeeService {
           model: EmployeeGroup,
           include: [{ model: Group, attributes: ['id', 'name'] }],
         },
+        {
+          model: EmployeeSubject,
+        }
       ],
     });
 
