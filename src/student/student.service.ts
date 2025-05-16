@@ -7,6 +7,7 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
 import { Payment } from 'src/payment/models/payment.model';
 import { ArchiveStudentDto } from './dto/archive-student.dto';
+import { Group } from 'src/group/models/group.model';
 
 @Injectable()
 export class StudentService {
@@ -100,6 +101,7 @@ export class StudentService {
         include: [
           {
             model: StudentGroup,
+            include: [{ model: Group, attributes: ['id', 'name'] }],
           },
         ],
         order: [['createdAt', 'DESC']],
