@@ -46,7 +46,7 @@ export class Question extends Model<Question, QuestionAttr> {
   file: string;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.TEXT,
     allowNull: false,
   })
   question: string;
