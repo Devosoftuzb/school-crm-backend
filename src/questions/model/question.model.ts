@@ -40,7 +40,7 @@ export class Question extends Model<Question, QuestionAttr> {
   test: Test;
 
   @Column({
-    type: DataType.STRING,
+    type: DataType.TEXT,
     allowNull: true,
   })
   file: string;

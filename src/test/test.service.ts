@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Test } from './model/test.model';
 import { Subject } from 'src/subject/models/subject.model';
 import { Question } from 'src/questions/model/question.model';
+import { Option } from 'src/option/model/option.model';
 
 @Injectable()
 export class TestService {
@@ -62,6 +63,12 @@ export class TestService {
           as: 'questions',
           separate: true,
           order: [['createdAt', 'ASC']],
+          include: [
+            {
+              model: Option,
+              as: 'option', 
+            },
+          ],
         },
       ],
     });
