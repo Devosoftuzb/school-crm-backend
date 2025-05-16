@@ -86,7 +86,6 @@ export class EmployeeService {
           },
           {
             model: EmployeeSubject,
-            include: [{ model: Subject, attributes: ['id', 'name'] }],
           },
         ],
         order: [['createdAt', 'DESC']],
