@@ -9,10 +9,12 @@ import {
 } from 'sequelize-typescript';
 import { CustomerAnswer } from 'src/customer_answer/model/customer_answer.model';
 import { Option } from 'src/option/model/option.model';
+import { QuestionText } from 'src/question-text/model/question-text.model';
 import { Test } from 'src/test/model/test.model';
 
 interface QuestionAttr {
   test_id: number;
+  text_id: number;
   file: string;
   question: string;
 }
@@ -38,6 +40,19 @@ export class Question extends Model<Question, QuestionAttr> {
     onDelete: 'CASCADE',
   })
   test: Test;
+
+  @ForeignKey(() => QuestionText)
+  @Column({
+    type: DataType.INTEGER,
+    onDelete: 'CASCADE',
+    allowNull: true,
+  })
+  text_id: number;
+
+  @BelongsTo(() => QuestionText, {
+    onDelete: 'CASCADE',
+  })
+  text: QuestionText;
 
   @Column({
     type: DataType.TEXT,

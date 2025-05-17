@@ -6,6 +6,7 @@ import { Test } from './model/test.model';
 import { Subject } from 'src/subject/models/subject.model';
 import { Question } from 'src/questions/model/question.model';
 import { Option } from 'src/option/model/option.model';
+import { QuestionText } from 'src/question-text/model/question-text.model';
 
 @Injectable()
 export class TestService {
@@ -66,7 +67,11 @@ export class TestService {
           include: [
             {
               model: Option,
-              as: 'option', 
+              as: 'option',
+            },
+            {
+              model: QuestionText,
+              as: 'text',
             },
           ],
         },

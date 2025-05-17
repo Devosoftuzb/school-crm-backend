@@ -54,6 +54,8 @@ import { Question } from './questions/model/question.model';
 import { CustomerTest } from './customer_test/model/customer_test.model';
 import { CustomerAnswerModule } from './customer_answer/customer_answer.module';
 import { CustomerAnswer } from './customer_answer/model/customer_answer.model';
+import { QuestionTextModule } from './question-text/question-text.module';
+import { CostModule } from './cost/cost.module';
 
 @Module({
   imports: [
@@ -125,6 +127,8 @@ import { CustomerAnswer } from './customer_answer/model/customer_answer.model';
     OptionModule,
     CustomerTestModule,
     CustomerAnswerModule,
+    QuestionTextModule,
+    CostModule,
   ],
   controllers: [],
   providers: [],

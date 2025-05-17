@@ -6,6 +6,9 @@ export class CreateQuestionDto {
   @IsNotEmpty()
   test_id: number;
 
+  @ApiProperty({ example: 1, description: 'Text ID' })
+  text_id: number;
+
   @ApiProperty({ example: 'media', description: 'Question media' })
   file: any;
 
