@@ -38,6 +38,12 @@ export class StudentService {
       include: [
         {
           model: StudentGroup,
+          include: [
+            {
+              model: Group,
+              attributes: ['id', 'name'],
+            },
+          ],
         },
       ],
     });
@@ -216,6 +222,12 @@ export class StudentService {
       include: [
         {
           model: StudentGroup,
+          include: [
+            {
+              model: Group,
+              attributes: ['id', 'name'],
+            },
+          ],
         },
       ],
     });
