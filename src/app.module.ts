@@ -56,6 +56,7 @@ import { CustomerAnswerModule } from './customer_answer/customer_answer.module';
 import { CustomerAnswer } from './customer_answer/model/customer_answer.model';
 import { QuestionTextModule } from './question-text/question-text.module';
 import { CostModule } from './cost/cost.module';
+import { QuestionText } from './question-text/model/question-text.model';
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { CostModule } from './cost/cost.module';
         Question,
         CustomerTest,
         CustomerAnswer,
+        QuestionText,
       ],
       autoLoadModels: true,
       logging: false,
