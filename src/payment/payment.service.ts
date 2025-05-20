@@ -180,30 +180,50 @@ export class PaymentService {
 
       const allProduct = await Promise.all(
         allUsers.map(async (user) => {
-          const group = await this.repoGroup.findOne({
-            where: {
-              id: user.group.id,
-              school_id: school_id,
-            },
-            include: [
-              {
-                model: EmployeeGroup,
-                attributes: ['employee_id'],
-              },
-            ],
-          });
+          if (!user.group || !user.group.id) {
+            // console.warn(`user.group mavjud emas: user_id = ${user.id}`);
+            return null;
+          }
 
-          const employee = await this.repoEmployee.findOne({
-            where: {
-              id: group.employee[0]?.employee_id,
-            },
-            attributes: ['full_name'],
-          });
+          let teacher_name = 'Nomaʼlum';
+
+          try {
+            const group = await this.repoGroup.findOne({
+              where: {
+                id: user.group.id,
+                school_id: school_id,
+              },
+              include: [
+                {
+                  model: EmployeeGroup,
+                  attributes: ['employee_id'],
+                },
+              ],
+            });
+
+            const employee_id = group?.employee?.[0]?.employee_id;
+
+            if (employee_id) {
+              const employee = await this.repoEmployee.findOne({
+                where: { id: employee_id },
+                attributes: ['full_name'],
+              });
+
+              if (employee?.full_name) {
+                teacher_name = employee.full_name;
+              }
+            }
+          } catch (err) {
+            // console.warn(
+            //   `Xatolik employee/group qismida: user_id = ${user.id}`,
+            //   err.message,
+            // );
+          }
 
           return {
             id: user.id,
             student_name: user.student.full_name,
-            teacher_name: employee.full_name,
+            teacher_name,
             group_name: user.group.name,
             group_price: user.group.price,
             method: user.method,
@@ -214,6 +234,9 @@ export class PaymentService {
           };
         }),
       );
+
+     
+      // const filteredProducts = allProduct.filter(Boolean);
 
       return {
         status: 200,
@@ -242,7 +265,7 @@ export class PaymentService {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
-  
+
       const group = await this.repoGroup.findOne({
         where: { id: group_id, school_id },
         attributes: ['id', 'name', 'price'],
@@ -266,7 +289,7 @@ export class PaymentService {
                   {
                     model: Payment,
                     where: { year, month },
-                    required: false, 
+                    required: false,
                     attributes: ['price', 'discount', 'createdAt'],
                   },
                 ],
@@ -275,58 +298,63 @@ export class PaymentService {
           },
         ],
       });
-  
+
       if (!group) {
         throw new BadRequestException('Guruh topilmadi');
       }
-  
+
       const groupPrice = Number(group.price);
-      
-   
+
       const teacherNames = group.employee.map((eg) => eg.employee.full_name);
-      const teacherName = teacherNames.length > 0 ? teacherNames.join(', ') : 'Noma’lum o‘qituvchi';
-  
+      const teacherName =
+        teacherNames.length > 0
+          ? teacherNames.join(', ')
+          : 'Noma’lum o‘qituvchi';
+
       let debtors: object[] = [];
-  
+
       for (const studentGroup of group.student) {
         const student = studentGroup.student;
         const payments = student.payment || [];
-  
+
         let totalPaid = 0;
         let totalDiscount = 0;
         let paymentDetails: object[] = [];
-  
+
         for (const payment of payments) {
           const discountAmount = (groupPrice * (payment.discount || 0)) / 100;
           totalPaid += payment.price;
           totalDiscount += discountAmount;
-  
+
           paymentDetails.push({
             paid_amount: payment.price,
             discount_amount: discountAmount,
             payment_date: payment.createdAt,
           });
         }
-  
-        const remainingDebt = Math.max(groupPrice - (totalPaid + totalDiscount), 0);
-  
+
+        const remainingDebt = Math.max(
+          groupPrice - (totalPaid + totalDiscount),
+          0,
+        );
+
         if (remainingDebt > 0) {
           debtors.push({
             student_id: student.id,
             student_name: student.full_name,
             group_id: group.id,
             group_name: group.name,
-            teacher_name: teacherName, 
+            teacher_name: teacherName,
             group_price: groupPrice,
             debt: remainingDebt,
             payments: paymentDetails,
           });
         }
       }
-  
+
       const totalDebtors = debtors.length;
       const paginatedDebtors = debtors.slice(offset, offset + limit);
-  
+
       return {
         status: 200,
         data: {
@@ -400,8 +428,7 @@ export class PaymentService {
           const checkDate = new Date(`${year}-${month}-01`);
 
           console.log(joinedDate, checkDate);
-          
-          
+
           if (checkDate < joinedDate) continue;
 
           const teacher = group.employee?.[0]?.employee;
@@ -409,7 +436,6 @@ export class PaymentService {
             ? teacher.full_name
             : 'Noma’lum o‘qituvchi';
 
-          
           const payments = student.payment.filter(
             (p) => p.group_id === groupId,
           );
@@ -419,8 +445,7 @@ export class PaymentService {
           let paymentDetails: object[] = [];
 
           for (const payment of payments) {
-            const discountAmount =
-              (groupPrice * (payment.discount || 0)) / 100;
+            const discountAmount = (groupPrice * (payment.discount || 0)) / 100;
             totalPaid += payment.price;
             totalDiscount += discountAmount;
 
@@ -450,14 +475,11 @@ export class PaymentService {
           }
         }
       }
-      
-     
+
       const totalDebtors = debtors.length;
 
-   
       const paginatedDebtors = debtors.slice(offset, offset + limit);
 
-   
       return {
         status: 200,
         data: {
