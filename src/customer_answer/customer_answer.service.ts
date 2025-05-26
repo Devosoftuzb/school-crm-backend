@@ -15,14 +15,13 @@ export class CustomerAnswerService {
   ) {}
 
   async create(createCustomerAnswerDto: CreateCustomerAnswerDto) {
-    const createdAnswers = []; 
-    let score = 0; 
-    let customerTestId: number | null = null; 
+    const createdAnswers = [];
+    let score = 0;
+    let customerTestId: number | null = null;
 
     for (const answer of createCustomerAnswerDto.list) {
       const { customer_test_id, question_id, option_id } = answer;
 
-      
       const option = await this.repoOption.findOne({
         where: { id: option_id, question_id: question_id },
       });
@@ -31,13 +30,12 @@ export class CustomerAnswerService {
         throw new Error('Savol uchun mos variant topilmadi');
       }
 
-      const is_correct = option.is_correct; 
+      const is_correct = option.is_correct;
 
       if (is_correct) {
-        score += 1; 
+        score += 1;
       }
 
-   
       const customerAnswer = await this.repo.create({
         customer_test_id,
         question_id,
@@ -45,28 +43,29 @@ export class CustomerAnswerService {
         is_correct,
       });
 
-      customerTestId = customer_test_id; 
-      createdAnswers.push(customerAnswer); 
+      customerTestId = customer_test_id;
+      createdAnswers.push(customerAnswer);
     }
 
-  
     let result = '';
     if (score <= 12) {
-      result = 'BEGINNER'; 
-    } else if (score <= 20) {
-      result = 'ELEMENTARY'; 
-    } else if (score <= 31) {
-      result = 'PRE INTER'; 
-    } else if (score <= 45) {
-      result = 'INTER'; 
+      result = 'BEGINNER';
+    } else if (score <= 25) {
+      result = 'ELEMENTARY';
+    } else if (score <= 36) {
+      result = 'PRE INTER';
+    } else if (score <= 49) {
+      result = 'INTER';
+    } else if (score <= 70) {
+      result = 'IELTS';
     } else {
-      result = 'IELTS'; 
+      result = "Noma'lum";
     }
 
     if (customerTestId !== null) {
       await this.repoCustomerTest.update(
-        { result }, 
-        { where: { id: customerTestId } }, 
+        { result },
+        { where: { id: customerTestId } },
       );
     }
 
