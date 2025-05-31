@@ -223,7 +223,7 @@ export class EmployeeService {
       where: { login: updateEmployeeDto.login },
     });
 
-    if (existingEmployee || userExists) {
+    if ((existingEmployee && existingEmployee.id != id) || (userExists && userExists.id != id)) {
       throw new BadRequestException(
         `Login "${updateEmployeeDto.login}" already exists`,
       );
