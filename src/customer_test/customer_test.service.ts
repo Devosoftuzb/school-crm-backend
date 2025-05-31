@@ -8,6 +8,7 @@ import { Option } from 'src/option/model/option.model';
 import { CustomerAnswer } from 'src/customer_answer/model/customer_answer.model';
 import { Customer } from 'src/customer/models/customer.model';
 import { Test } from 'src/test/model/test.model';
+import { QuestionText } from 'src/question-text/model/question-text.model';
 
 @Injectable()
 export class CustomerTestService {
@@ -66,6 +67,9 @@ export class CustomerTestService {
           include: [
             {
               model: Question,
+              include: [
+                { model: QuestionText }, 
+              ],
             },
             {
               model: Option,
