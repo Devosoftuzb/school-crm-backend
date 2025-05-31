@@ -3,6 +3,11 @@ import { CreateCustomerTestDto } from './dto/create-customer_test.dto';
 import { UpdateCustomerTestDto } from './dto/update-customer_test.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { CustomerTest } from './model/customer_test.model';
+import { Question } from 'src/questions/model/question.model';
+import { Option } from 'src/option/model/option.model';
+import { CustomerAnswer } from 'src/customer_answer/model/customer_answer.model';
+import { Customer } from 'src/customer/models/customer.model';
+import { Test } from 'src/test/model/test.model';
 
 @Injectable()
 export class CustomerTestService {
@@ -52,7 +57,25 @@ export class CustomerTestService {
 
   async findOne(id: number) {
     const customer_test = await this.repo.findByPk(id, {
-      include: { all: true },
+      include: [
+        {
+          model: Customer,
+        },
+        {
+          model: CustomerAnswer,
+          include: [
+            {
+              model: Question,
+            },
+            {
+              model: Option,
+            },
+          ],
+        },
+        {
+          model: Test,
+        },
+      ],
     });
 
     if (!customer_test) {
