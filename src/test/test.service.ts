@@ -22,7 +22,7 @@ export class TestService {
 
   async findAll() {
     return await this.repo.findAll({
-      include: [{ model: Subject, attributes: ['name'] }],
+      include: [{ model: Subject, attributes: ['school_id', 'name'] }],
     });
   }
 
@@ -32,7 +32,7 @@ export class TestService {
       const limit = 15;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
-        include: [{ model: Subject, attributes: ['name'] }],
+        include: [{ model: Subject, attributes: ['school_id', 'name'] }],
         order: [['createdAt', 'DESC']],
         offset,
         limit,
