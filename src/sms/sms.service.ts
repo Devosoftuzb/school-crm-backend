@@ -71,8 +71,8 @@ export class SmsService {
       const axios = require('axios');
       const FormData = require('form-data');
       const data = new FormData();
-      data.append('email', 'tolibjonubaydullayevbusiness@gmail.com');
-      data.append('password', 'YstIi7TtZE1tTCMns9VVKdKA4AArA6wrLb98cjic');
+      data.append('email', '');
+      data.append('password', '');
 
       const config = {
         method: 'post',
@@ -123,8 +123,8 @@ export class SmsService {
       const axios = require('axios');
       const FormData = require('form-data');
       const data = new FormData();
-      data.append('email', 'tolibjonubaydullayevbusiness@gmail.com');
-      data.append('password', 'YstIi7TtZE1tTCMns9VVKdKA4AArA6wrLb98cjic');
+      data.append('email', '');
+      data.append('password', '');
       const config = {
         method: 'post',
         maxBodyLength: Infinity,
@@ -163,8 +163,8 @@ export class SmsService {
       const axios = require('axios');
       const FormData = require('form-data');
       const data = new FormData();
-      data.append('email', 'tolibjonubaydullayevbusiness@gmail.com');
-      data.append('password', 'YstIi7TtZE1tTCMns9VVKdKA4AArA6wrLb98cjic');
+      data.append('email', '');
+      data.append('password', '');
       const config = {
         method: 'post',
         maxBodyLength: Infinity,
