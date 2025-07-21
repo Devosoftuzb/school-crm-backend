@@ -1,4 +1,12 @@
-import { BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table } from 'sequelize-typescript';
+import {
+  BelongsTo,
+  Column,
+  DataType,
+  ForeignKey,
+  HasMany,
+  Model,
+  Table,
+} from 'sequelize-typescript';
 import { Attendance } from 'src/attendance/models/attendance.model';
 import { Payment } from 'src/payment/models/payment.model';
 import { School } from 'src/school/models/school.model';
@@ -72,8 +80,8 @@ export class Student extends Model<Student, StudentAttr> {
   group: StudentGroup[];
 
   @HasMany(() => Payment, {
-    onDelete: 'CASCADE',
     hooks: true,
+    onDelete: 'SET NULL',
   })
   payment: Payment[];
 

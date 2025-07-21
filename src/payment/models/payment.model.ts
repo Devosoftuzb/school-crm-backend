@@ -13,7 +13,7 @@ import { Student } from 'src/student/models/student.model';
 interface PaymentAttr {
   school_id: number;
   student_id: number;
-  group_id: number
+  group_id: number;
   year: string;
   month: string;
   method: string;
@@ -46,13 +46,13 @@ export class Payment extends Model<Payment, PaymentAttr> {
   @ForeignKey(() => Student)
   @Column({
     type: DataType.INTEGER,
-    onDelete: 'CASCADE',
-    allowNull: false,
+    allowNull: true,
+    onDelete: 'SET NULL',
   })
   student_id: number;
 
   @BelongsTo(() => Student, {
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
   })
   student: Student;
 
