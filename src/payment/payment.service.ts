@@ -110,7 +110,9 @@ export class PaymentService {
 
           return {
             id: user.id,
-            student_name: user.student.full_name,
+            student_name: user.student
+              ? user.student.full_name
+              : 'O‘chirilgan o‘quvchi',
             teacher_name: employee?.full_name,
             group_name: user.group.name,
             group_price: user.group.price,
@@ -222,7 +224,9 @@ export class PaymentService {
 
           return {
             id: user.id,
-            student_name: user.student.full_name,
+            student_name: user.student
+              ? user.student.full_name
+              : 'O‘chirilgan o‘quvchi',
             teacher_name,
             group_name: user.group.name,
             group_price: user.group.price,
@@ -235,7 +239,6 @@ export class PaymentService {
         }),
       );
 
-     
       // const filteredProducts = allProduct.filter(Boolean);
 
       return {
