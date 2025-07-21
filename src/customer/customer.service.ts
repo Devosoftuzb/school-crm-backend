@@ -25,7 +25,7 @@ export class CustomerService {
 
   async findAllBySchoolId(school_id: number) {
     return await this.repo.findAll({
-      where: { school_id },
+      where: { school_id, is_student: false },
       include: [
         {
           model: SocialMedia,
@@ -43,13 +43,15 @@ export class CustomerService {
       const limit = 15;
       const offset = (page - 1) * limit;
       const customers = await this.repo.findAll({
-        where: { school_id },
+        where: { school_id, is_student: false },
         include: { all: true },
         order: [['createdAt', 'DESC']],
         offset,
         limit,
       });
-      const total_count = await this.repo.count({ where: { school_id } });
+      const total_count = await this.repo.count({
+        where: { school_id, is_student: false },
+      });
       const total_pages = Math.ceil(total_count / limit);
       return {
         status: 200,
