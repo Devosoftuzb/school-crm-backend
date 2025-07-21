@@ -56,7 +56,7 @@ export class CustomerTest extends Model<CustomerTest, CustomerTestAttr> {
   @Column({ type: DataType.STRING, allowNull: true })
   result: string;
 
-  @Column({ type: DataType.STRING, allowNull: true})
+  @Column({ type: DataType.TEXT, allowNull: true})
   description: string;
 
   @HasMany(() => CustomerAnswer, {
