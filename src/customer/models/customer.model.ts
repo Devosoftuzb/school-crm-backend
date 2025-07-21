@@ -19,6 +19,7 @@ interface CustomerAttr {
   social_media_id: number;
   subject_id: number;
   description: string;
+  is_student: boolean;
 }
 
 @Table({ tableName: 'customer' })
@@ -80,6 +81,13 @@ export class Customer extends Model<Customer, CustomerAttr> {
     allowNull: false,
   })
   description: string;
+
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: true,
+    defaultValue: false,
+  })
+  is_student: boolean
 
   @HasMany(() => CustomerTest, {
     onDelete: 'CASCADE',
