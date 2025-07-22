@@ -9,6 +9,7 @@ import {
 } from 'sequelize-typescript';
 import { Attendance } from 'src/attendance/models/attendance.model';
 import { Customer } from 'src/customer/models/customer.model';
+import { CustomerTest } from 'src/customer_test/model/customer_test.model';
 import { Employee } from 'src/employee/models/employee.model';
 import { Group } from 'src/group/models/group.model';
 import { Payment } from 'src/payment/models/payment.model';
@@ -16,6 +17,7 @@ import { PaymentMethod } from 'src/payment_method/models/payment_method.model';
 import { SocialMedia } from 'src/social_media/models/social_media.model';
 import { Student } from 'src/student/models/student.model';
 import { Subject } from 'src/subject/models/subject.model';
+import { Test } from 'src/test/model/test.model';
 import { User } from 'src/user/models/user.model';
 
 interface SchoolAttr {
@@ -119,4 +121,16 @@ export class School extends Model<School, SchoolAttr> {
     hooks: true,
   })
   customer: Customer[];
+
+  @HasMany(() => Test, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  test: Test[];
+
+  @HasMany(() => CustomerTest, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  customer_test: CustomerTest[];
 }

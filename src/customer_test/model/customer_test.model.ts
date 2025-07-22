@@ -9,9 +9,11 @@ import {
 } from 'sequelize-typescript';
 import { Customer } from 'src/customer/models/customer.model';
 import { CustomerAnswer } from 'src/customer_answer/model/customer_answer.model';
+import { School } from 'src/school/models/school.model';
 import { Test } from 'src/test/model/test.model';
 
 interface CustomerTestAttr {
+  school_id: number;
   customer_id: number;
   test_id: number;
   started_at: string;
@@ -24,6 +26,19 @@ interface CustomerTestAttr {
 export class CustomerTest extends Model<CustomerTest, CustomerTestAttr> {
   @Column({ primaryKey: true, autoIncrement: true, type: DataType.INTEGER })
   id: number;
+
+  @ForeignKey(() => School)
+  @Column({
+    type: DataType.INTEGER,
+    onDelete: 'CASCADE',
+    allowNull: false,
+  })
+  school_id: number;
+
+  @BelongsTo(() => School, {
+    onDelete: 'CASCADE',
+  })
+  school: School;
 
   @ForeignKey(() => Customer)
   @Column({ type: DataType.INTEGER, onDelete: 'CASCADE', allowNull: false })
