@@ -430,9 +430,17 @@ export class PaymentService {
           const joinedDate = new Date(studentGroup.createdAt);
           const checkDate = new Date(`${year}-${month}-01`);
 
-          console.log(joinedDate, checkDate);
+          const joinedYear = joinedDate.getFullYear();
+          const joinedMonth = joinedDate.getMonth();
+          const checkYear = checkDate.getFullYear();
+          const checkMonth = checkDate.getMonth();
 
-          if (checkDate < joinedDate) continue;
+          if (
+            joinedYear > checkYear ||
+            (joinedYear === checkYear && joinedMonth > checkMonth)
+          ) {
+            continue;
+          }
 
           const teacher = group.employee?.[0]?.employee;
           const teacherName = teacher
