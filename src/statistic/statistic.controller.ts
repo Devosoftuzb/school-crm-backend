@@ -65,7 +65,7 @@ export class StatisticController {
 
   @ApiOperation({ summary: 'Teacher Salary' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @Get('teacher-salary/:school_id/:id/:year')
+  @Get('teacher-salary/:school_id/:employee_id/:year')
   getTeacherStudentPaymentsByYear(
     @Param('school_id') school_id: string,
     @Param('employee_id') employee_id: string,
