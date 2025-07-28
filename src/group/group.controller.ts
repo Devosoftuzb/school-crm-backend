@@ -120,4 +120,11 @@ export class GroupController {
   ) {
     return this.groupService.remove(+id, +school_id);
   }
+
+  @ApiOperation({ summary: 'View a employee by ID and school ID' })
+  @Roles('owner', 'administrator')
+  @Get('getEmployeeGroup/:school_id/:employee_id')
+  getEmployeeGroup(@Param('employee_id') employee_id: string, @Param('school_id') school_id: string) {
+    return this.groupService.getEmployeeGroup(+employee_id, +school_id);
+  }
 }

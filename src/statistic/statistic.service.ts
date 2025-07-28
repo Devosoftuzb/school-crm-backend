@@ -8,6 +8,7 @@ import { School } from 'src/school/models/school.model';
 import { Op, fn, col, Sequelize } from 'sequelize';
 import { PaymentMethod } from 'src/payment_method/models/payment_method.model';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
+import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 
 @Injectable()
 export class StatisticService {
@@ -18,6 +19,8 @@ export class StatisticService {
     @InjectModel(Payment) private repoPayment: typeof Payment,
     @InjectModel(School) private repoSchool: typeof School,
     @InjectModel(PaymentMethod) private repoMethod: typeof PaymentMethod,
+    @InjectModel(EmployeeGroup) private employeeGroupRepo: typeof EmployeeGroup,
+    @InjectModel(StudentGroup) private studentGroupRepo: typeof StudentGroup,
   ) {}
 
   async getSchoolStatistics(school_id: number) {
@@ -267,6 +270,201 @@ export class StatisticService {
             halfPayment++;
           } else {
             // Qarzdor emas
+            fullPayment++;
+          }
+        }
+      }
+
+      return {
+        status: 200,
+        studentPayments: {
+          noPayment,
+          halfPayment,
+          fullPayment,
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async getTeacherStudentPaymentsByYear(
+    school_id: number,
+    employee_id: number,
+    year: number,
+  ) {
+    const paymentsPerMonth = [];
+
+    const employee = await this.repoEmployee.findOne({
+      where: { id: employee_id, school_id },
+      attributes: ['salary'],
+    });
+
+    if (!employee) {
+      throw new Error('Employee topilmadi');
+    }
+
+    const percent = employee.salary || 0;
+
+    const employeeGroups = await this.employeeGroupRepo.findAll({
+      where: { employee_id },
+      attributes: ['group_id'],
+    });
+    const groupIds = employeeGroups.map((eg) => eg.group_id);
+
+    if (groupIds.length === 0) {
+      return {
+        year,
+        PaymentStats: Array(12).fill(0),
+      };
+    }
+
+    const studentGroups = await this.studentGroupRepo.findAll({
+      where: {
+        group_id: { [Op.in]: groupIds },
+      },
+      attributes: ['student_id'],
+    });
+    const studentIds = studentGroups.map((sg) => sg.student_id);
+
+    if (studentIds.length === 0) {
+      return {
+        year,
+        PaymentStats: Array(12).fill(0),
+      };
+    }
+
+    for (let month = 0; month < 12; month++) {
+      const startDate = new Date(year, month, 1);
+      startDate.setHours(startDate.getHours() + 5);
+
+      const endDate = new Date(year, month + 1, 0, 23, 59, 59);
+      endDate.setHours(endDate.getHours() + 5);
+
+      const paymentSum = await this.repoPayment.sum('price', {
+        where: {
+          school_id,
+          student_id: { [Op.in]: studentIds },
+          createdAt: { [Op.between]: [startDate, endDate] },
+        },
+      });
+
+      const teacherShare = ((paymentSum || 0) * percent) / 100;
+      paymentsPerMonth.push(teacherShare);
+    }
+
+    return {
+      year,
+      PaymentStats: paymentsPerMonth,
+    };
+  }
+
+  async getTeacherStudentPayments(
+    school_id: number,
+    employee_id: number,
+    month: string,
+  ) {
+    try {
+      const currentYear = new Date().getFullYear();
+
+      const employeeGroups = await this.employeeGroupRepo.findAll({
+        where: { employee_id },
+        attributes: ['group_id'],
+      });
+      const groupIds = employeeGroups.map((eg) => eg.group_id);
+
+      if (groupIds.length === 0) {
+        return {
+          status: 200,
+          studentPayments: {
+            noPayment: 0,
+            halfPayment: 0,
+            fullPayment: 0,
+          },
+        };
+      }
+
+      const studentGroups = await this.studentGroupRepo.findAll({
+        where: {
+          group_id: { [Op.in]: groupIds },
+        },
+        attributes: ['student_id', 'group_id'],
+      });
+
+      const studentGroupMap = studentGroups.map((sg) => ({
+        student_id: sg.student_id,
+        group_id: sg.group_id,
+      }));
+
+      const studentIds = [...new Set(studentGroups.map((sg) => sg.student_id))];
+
+      const allStudents = await this.repoStudent.findAll({
+        where: {
+          id: { [Op.in]: studentIds },
+          school_id,
+        },
+        attributes: ['id', 'full_name'],
+        include: [
+          {
+            model: Payment,
+            where: {
+              year: String(currentYear),
+              month,
+            },
+            required: false,
+            attributes: ['price', 'discount', 'group_id'],
+          },
+        ],
+      });
+
+      const groupPrices = await this.repoGroup.findAll({
+        where: {
+          id: { [Op.in]: groupIds },
+        },
+        attributes: ['id', 'price'],
+      });
+
+      const groupPriceMap = groupPrices.reduce((acc, group) => {
+        acc[group.id] = Number(group.price);
+        return acc;
+      }, {});
+
+      let noPayment = 0;
+      let halfPayment = 0;
+      let fullPayment = 0;
+
+      for (const student of allStudents) {
+        const studentGroupsForThisStudent = studentGroupMap.filter(
+          (sg) => sg.student_id === student.id,
+        );
+
+        for (const sg of studentGroupsForThisStudent) {
+          const groupId = sg.group_id;
+          const groupPrice = groupPriceMap[groupId] || 0;
+
+          const payments = student.payment.filter(
+            (p) => p.group_id === groupId,
+          );
+
+          let totalPaid = 0;
+          let totalDiscount = 0;
+
+          for (const payment of payments) {
+            const discountAmount = (groupPrice * (payment.discount || 0)) / 100;
+            totalPaid += payment.price;
+            totalDiscount += discountAmount;
+          }
+
+          const remainingDebt = Math.max(
+            groupPrice - (totalPaid + totalDiscount),
+            0,
+          );
+
+          if (remainingDebt === groupPrice) {
+            noPayment++;
+          } else if (remainingDebt > 0) {
+            halfPayment++;
+          } else {
             fullPayment++;
           }
         }

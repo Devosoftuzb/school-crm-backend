@@ -80,13 +80,14 @@ export class GroupService {
   async findOne(id: number, school_id: number) {
     const group = await this.repo.findOne({
       where: { id, school_id },
-      include: [{
-        model: GroupSubject,
-      },
-      {
-        model: EmployeeGroup,
-      }
-    ]
+      include: [
+        {
+          model: GroupSubject,
+        },
+        {
+          model: EmployeeGroup,
+        },
+      ],
     });
 
     if (!group) {
@@ -164,7 +165,7 @@ export class GroupService {
   async findOneGroup(id: number, school_id: number) {
     const group = await this.repo.findOne({
       where: { id, school_id },
-      attributes: ['id', 'name', 'price']
+      attributes: ['id', 'name', 'price'],
     });
 
     if (!group) {
@@ -193,5 +194,29 @@ export class GroupService {
     return {
       message: 'Group removed successfully',
     };
+  }
+
+  async getEmployeeGroup(employee_id: number, school_id: number) {
+    const groups = await this.repo.findAll({
+      where: { school_id },
+      include: [
+        {
+          model: GroupSubject,
+        },
+        {
+          model: EmployeeGroup,
+          where: { employee_id },
+          required: true,
+        },
+      ],
+    });
+
+    if (!groups.length) {
+      throw new BadRequestException(
+        `No groups found for employee ${employee_id} in school ${school_id}`,
+      );
+    }
+
+    return groups;
   }
 }

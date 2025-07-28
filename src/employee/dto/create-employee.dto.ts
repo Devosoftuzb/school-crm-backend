@@ -1,5 +1,12 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsInt, IsNotEmpty, IsOptional, IsPhoneNumber, IsString, MinLength } from "class-validator";
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class CreateEmployeeDto {
   @ApiProperty({ example: 1, description: 'School ID' })
@@ -12,7 +19,10 @@ export class CreateEmployeeDto {
   @IsNotEmpty()
   full_name: string;
 
-  @ApiProperty({ example: '=998901234567', description: 'Employee phone number' })
+  @ApiProperty({
+    example: '=998901234567',
+    description: 'Employee phone number',
+  })
   @IsPhoneNumber()
   @IsNotEmpty()
   phone_number: string;
@@ -33,4 +43,7 @@ export class CreateEmployeeDto {
   @IsString()
   @IsNotEmpty()
   role: string;
+
+  @ApiProperty({ example: 20, description: 'Employee salary' })
+  salary: number;
 }

@@ -19,6 +19,7 @@ interface EmployeeAttr {
   hashed_password: string;
   hashed_refresh_token: string;
   role: string;
+  salary: number;
 }
 
 @Table({ tableName: 'employee' })
@@ -57,8 +58,8 @@ export class Employee extends Model<Employee, EmployeeAttr> {
 
   @Column({
     type: DataType.STRING,
-    allowNull: false, 
-    unique: true, 
+    allowNull: false,
+    unique: true,
   })
   login: string;
 
@@ -79,6 +80,13 @@ export class Employee extends Model<Employee, EmployeeAttr> {
     allowNull: false,
   })
   role: string;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+  })
+  salary: number;
 
   @HasMany(() => EmployeeGroup, {
     onDelete: 'CASCADE',
