@@ -20,12 +20,12 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
 @ApiTags('Subject')
 @Controller('subject')
-@UseGuards(RolesGuard, JwtAuthGuard)
-@ApiBearerAuth('access-token')
 export class SubjectController {
   constructor(private readonly subjectService: SubjectService) {}
 
   @ApiOperation({ summary: 'Subject create' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post()
   create(@Body() createSubjectDto: CreateSubjectDto) {
@@ -33,6 +33,8 @@ export class SubjectController {
   }
 
   @ApiOperation({ summary: 'Subject view all by school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin')
   @Get()
   findAll() {
@@ -40,13 +42,14 @@ export class SubjectController {
   }
 
   @ApiOperation({ summary: 'Subject view all by school ID' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get(':school_id')
   findAllBySchoolId(@Param('school_id') school_id: string) {
     return this.subjectService.findAllBySchoolId(+school_id);
   }
 
   @ApiOperation({ summary: 'Subject paginate' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @Get(':school_id/page')
   paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
@@ -54,6 +57,8 @@ export class SubjectController {
   }
 
   @ApiOperation({ summary: 'Subject view by ID by school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @Get(':school_id/:id')
   findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
@@ -61,6 +66,8 @@ export class SubjectController {
   }
 
   @ApiOperation({ summary: 'Subject update by ID by school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @Put(':school_id/:id')
   update(
@@ -72,6 +79,8 @@ export class SubjectController {
   }
 
   @ApiOperation({ summary: 'Subject remove by ID by school ID' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @Delete(':school_id/:id')
   remove(@Param('id') id: string, @Param('school_id') school_id: string) {
