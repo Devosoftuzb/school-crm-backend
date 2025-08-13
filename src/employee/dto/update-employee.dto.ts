@@ -37,4 +37,7 @@ export class UpdateEmployeeDto {
   @IsString()
   @IsNotEmpty()
   role: string;
+
+  @ApiProperty({ example: 20, description: 'Employee salary' })
+  salary: number;
 }

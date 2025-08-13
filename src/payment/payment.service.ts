@@ -110,7 +110,9 @@ export class PaymentService {
 
           return {
             id: user.id,
-            student_name: user.student.full_name,
+            student_name: user.student
+              ? user.student.full_name
+              : 'O‘chirilgan o‘quvchi',
             teacher_name: employee?.full_name,
             group_name: user.group.name,
             group_price: user.group.price,
@@ -222,7 +224,9 @@ export class PaymentService {
 
           return {
             id: user.id,
-            student_name: user.student.full_name,
+            student_name: user.student
+              ? user.student.full_name
+              : 'O‘chirilgan o‘quvchi',
             teacher_name,
             group_name: user.group.name,
             group_price: user.group.price,
@@ -427,7 +431,7 @@ export class PaymentService {
           const checkDate = new Date(`${year}-${month}-01`);
 
           const joinedYear = joinedDate.getFullYear();
-          const joinedMonth = joinedDate.getMonth(); 
+          const joinedMonth = joinedDate.getMonth();
           const checkYear = checkDate.getFullYear();
           const checkMonth = checkDate.getMonth();
 
@@ -542,5 +546,118 @@ export class PaymentService {
     return {
       message: 'Payment removed successfully',
     };
+  }
+
+  async findEmployeeDayHistory(
+    school_id: number,
+    employee_id: number,
+    year: number,
+    month: number,
+    day: number,
+    page: number,
+  ): Promise<object> {
+    try {
+      page = Number(page);
+      const limit = 15;
+      const offset = (page - 1) * limit;
+
+      // 1. employee qatnashgan group_id larni olish
+      const employeeGroups = await this.repoGroup.findAll({
+        where: { school_id },
+        include: [
+          {
+            model: EmployeeGroup,
+            where: { employee_id },
+            attributes: [],
+            required: true,
+          },
+        ],
+        attributes: ['id'],
+      });
+
+      const allowedGroupIds = employeeGroups.map((g) => g.id);
+
+      if (allowedGroupIds.length === 0) {
+        return {
+          status: 200,
+          data: {
+            records: [],
+            total_sum: 0,
+            pagination: {
+              currentPage: page,
+              total_pages: 0,
+              total_count: 0,
+            },
+          },
+        };
+      }
+
+      // 2. tolovlarni olish (faqat employee tegishli guruhlar)
+      const { count, rows: allUsers } = await this.repo.findAndCountAll({
+        where: {
+          school_id,
+          group_id: { [Op.in]: allowedGroupIds },
+          createdAt: {
+            [Op.gte]: new Date(year, month - 1, day),
+            [Op.lt]: new Date(year, month - 1, day + 1),
+          },
+        },
+        attributes: ['id', 'method', 'price', 'discount', 'month', 'createdAt'],
+        include: [
+          {
+            model: Group,
+            attributes: ['id', 'name', 'price'],
+          },
+          {
+            model: Student,
+            attributes: ['full_name'],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+        offset,
+        limit,
+      });
+
+      const total_count = count;
+      const total_pages = Math.ceil(total_count / limit);
+
+      // 3. Qayta formatlash
+      let total_sum = 0;
+
+      const allProduct = allUsers.map((user) => {
+        const record = {
+          id: user.id,
+          student_name: user.student
+            ? user.student.full_name
+            : 'O‘chirilgan o‘quvchi',
+          group_name: user.group?.name || 'Nomaʼlum guruh',
+          group_price: user.group?.price || 0,
+          method: user.method,
+          price: user.price,
+          discount: user.discount,
+          month: user.month,
+          createdAt: user.createdAt,
+        };
+
+        total_sum += Number(user.price || 0);
+
+        return record;
+      });
+
+      return {
+        status: 200,
+        data: {
+          records: allProduct,
+          total_sum,
+          pagination: {
+            currentPage: page,
+            total_pages,
+            total_count,
+          },
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 }

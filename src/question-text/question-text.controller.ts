@@ -21,9 +21,9 @@ export class QuestionTextController {
     }
   
     @ApiOperation({ summary: 'Question text view all' })
-    @Get()
-    findAll() {
-      return this.questionTextService.findAll();
+    @Get('getTestId/:test_id')
+    findAll(@Param('test_id') test_id: string) {
+      return this.questionTextService.findAll(+test_id);
     }
   
     @ApiOperation({ summary: 'Question text view by ID' })

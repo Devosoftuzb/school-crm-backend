@@ -30,15 +30,15 @@ export class CustomerTestController {
   }
 
   @ApiOperation({ summary: 'CustomerTest view all' })
-  @Get()
-  findAll() {
-    return this.customerTestService.findAll();
+  @Get('getSchoolId/:school_id')
+  findAll(@Param('school_id') school_id: string) {
+    return this.customerTestService.findAll(+school_id);
   }
 
   @ApiOperation({ summary: 'CustomerTest paginate' })
-  @Get('page')
-  paginate(@Query('page') page: number) {
-    return this.customerTestService.paginate(page);
+  @Get(':school_id/page')
+  paginate(@Param('school_id') school_id: string, @Query('page') page: number) {
+    return this.customerTestService.paginate(+school_id, page);
   }
 
   @ApiOperation({ summary: 'CustomerTest view by ID' })

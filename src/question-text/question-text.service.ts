@@ -15,8 +15,11 @@ export class QuestionTextService {
     };
   }
 
-  async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
+  async findAll(test_id: number) {
+    return await this.repo.findAll({
+      where: { test_id },
+      include: { all: true },
+    });
   }
 
   async findOne(id: number) {

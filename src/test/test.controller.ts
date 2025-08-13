@@ -33,15 +33,15 @@ export class TestController {
   }
 
   @ApiOperation({ summary: 'Test view all by school ID' })
-  @Get()
-  findAll() {
-    return this.testService.findAll();
+  @Get('getSchoolId/:school_id')
+  findAll(@Param('school_id') school_id: string) {
+    return this.testService.findAll(+school_id);
   }
 
   @ApiOperation({ summary: 'Test paginate' })
-  @Get('page')
-  paginate(@Query('page') page: number) {
-    return this.testService.paginate(page);
+  @Get(':school_id/page')
+  paginate(@Param('school_id') school_id: string, @Query('page') page: number) {
+    return this.testService.paginate(+school_id, page);
   }
 
   @ApiOperation({ summary: 'Test view by ID' })

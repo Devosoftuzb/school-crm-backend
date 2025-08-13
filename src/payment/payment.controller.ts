@@ -121,4 +121,18 @@ export class PaymentController {
   remove(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.paymentService.remove(+id, +school_id);
   }
+
+    @ApiOperation({ summary: 'Payment history one day view by ID by school ID' })
+  @Roles('owner', 'administrator')
+  @Get('employeeDay/:school_id/:employee_id/:year/:month/:day/page')
+  findEmployeeDayHistory(
+    @Param('school_id') school_id: string,
+    @Param('employee_id') employee_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+    @Param('day') day: string,
+    @Query('page') page: number,
+  ) {
+    return this.paymentService.findEmployeeDayHistory(+school_id, +employee_id, +year, +month, +day, page);
+  }
 }

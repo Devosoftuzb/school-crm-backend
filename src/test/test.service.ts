@@ -20,24 +20,26 @@ export class TestService {
     };
   }
 
-  async findAll() {
+  async findAll(school_id: number) {
     return await this.repo.findAll({
+      where: { school_id },
       include: [{ model: Subject, attributes: ['school_id', 'name'] }],
     });
   }
 
-  async paginate(page: number): Promise<object> {
+  async paginate(school_id: number, page: number): Promise<object> {
     try {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
+        where: { school_id },
         include: [{ model: Subject, attributes: ['school_id', 'name'] }],
         order: [['createdAt', 'DESC']],
         offset,
         limit,
       });
-      const total_count = await this.repo.count();
+      const total_count = await this.repo.count({ where: { school_id } });
       const total_pages = Math.ceil(total_count / limit);
       const res = {
         status: 200,
