@@ -88,10 +88,7 @@ export class SmsService {
       for (let student of students) {
         sendSMS(
           student.parents_phone_number,
-          `Assalomu alaykum ${student.full_name} ning ota-onasi! 
-          Farzandingiz ${student.full_name} ning JORIY OY uchun TO'LOV larini amalga oshirishingiz kerak! 
-          Unutmang, FARZANDINGIZNING O'QITUVCHISI o'z vaqtida MAOSH olishi sizning o'z vaqtida to'lov qilishingizga bog'liq! 
-          Hurmat bilan CAMELOT o'quv markazi.`,
+          `Hurmatli ota-ona, ${student.full_name} uchun joriy oy to'lovi kutilmoqda. Iltimos, o'z vaqtida amalga oshiring. CAMELOT LC`,
           bearerToken,
         );
       }
@@ -178,7 +175,7 @@ export class SmsService {
           bearerToken = `Bearer ${token}`;
           sendSMS(
             student.parents_phone_number,
-            `Assalomu alaykum ${student.full_name} ning ota-onasi. Farzandingiz ${student.full_name} bugun BIZNING DARSLARIMIZGA QATNASHMADI! Unutmang, farzandingiz darslardan qolib ketishi tufayli ko’zlangan natijaga yetishishi qiyinlashadi. Hurmat bilan CAMELOT o’quv markazi!`,
+            `${student.full_name} bugun darsda qatnashmadi. Doimiy qatnashish, yaxshi natija uchun muhim. Hurmat bilan CAMELOT LC`,
             bearerToken,
           );
         })
