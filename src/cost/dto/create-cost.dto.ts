@@ -12,10 +12,15 @@ export class CreateCostDto {
   @IsNotEmpty()
   price: number;
 
-  @ApiProperty({ example: 1, description: 'Payment method ID' })
+  @ApiProperty({ example: 1, description: 'Payment method name' })
   @IsString()
   @IsNotEmpty()
   method: string;
+
+  @ApiProperty({ example: 1, description: 'Payment month' })
+  @IsString()
+  @IsNotEmpty()
+  month: string;
 
   @ApiProperty({
     example: 'description',

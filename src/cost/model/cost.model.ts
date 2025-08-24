@@ -12,6 +12,7 @@ interface CostAttr {
   school_id: number;
   price: number;
   method: string;
+  month: string;
   description: string;
 }
 
@@ -48,6 +49,12 @@ export class Cost extends Model<Cost, CostAttr> {
     allowNull: false,
   })
   method: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  month: string;
 
   @Column({
     type: DataType.TEXT,
