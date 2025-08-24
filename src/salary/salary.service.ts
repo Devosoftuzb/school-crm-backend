@@ -1,18 +1,18 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateCostDto } from './dto/create-cost.dto';
-import { UpdateCostDto } from './dto/update-cost.dto';
+import { CreateSalaryDto } from './dto/create-salary.dto';
+import { UpdateSalaryDto } from './dto/update-salary.dto';
 import { InjectModel } from '@nestjs/sequelize';
-import { Cost } from './model/cost.model';
+import { Salary } from './models/salary.model';
 
 @Injectable()
-export class CostService {
-  constructor(@InjectModel(Cost) private repo: typeof Cost) {}
+export class SalaryService {
+  constructor(@InjectModel(Salary) private repo: typeof Salary) {}
 
-  async create(createCostDto: CreateCostDto) {
-    const cost = await this.repo.create(createCostDto);
+  async create(createSalaryDto: CreateSalaryDto) {
+    const salary = await this.repo.create(createSalaryDto);
     return {
-      message: 'Cost created successfully',
-      cost,
+      message: 'Salary created successfully',
+      salary,
     };
   }
 
@@ -31,7 +31,7 @@ export class CostService {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
-      const cost = await this.repo.findAll({
+      const salary = await this.repo.findAll({
         where: { school_id: school_id },
         include: { all: true },
         offset,
@@ -42,7 +42,7 @@ export class CostService {
       const res = {
         status: 200,
         data: {
-          records: cost,
+          records: salary,
           pagination: {
             currentPage: page,
             total_pages,
@@ -57,7 +57,7 @@ export class CostService {
   }
 
   async findOne(id: number, school_id: number) {
-    const cost = await this.repo.findOne({
+    const salary = await this.repo.findOne({
       where: {
         id,
         school_id,
@@ -65,33 +65,33 @@ export class CostService {
       include: { all: true },
     });
 
-    if (!cost) {
-      throw new BadRequestException(`Cost with id ${id} not found`);
+    if (!salary) {
+      throw new BadRequestException(`Salary with id ${id} not found`);
     }
 
-    return cost;
+    return salary;
   }
 
   async update(
     id: number,
     school_id: number,
-    updateCostDto: UpdateCostDto,
+    updateSalaryDto: UpdateSalaryDto,
   ) {
-    const cost = await this.findOne(id, school_id);
-    await cost.update(updateCostDto);
+    const salary = await this.findOne(id, school_id);
+    await salary.update(updateSalaryDto);
 
     return {
-      message: 'Cost updated successfully',
-      cost,
+      message: 'Salary updated successfully',
+      salary,
     };
   }
 
   async remove(id: number, school_id: number) {
-    const cost = await this.findOne(id, school_id);
-    await cost.destroy();
+    const salary = await this.findOne(id, school_id);
+    await salary.destroy();
 
     return {
-      message: 'Cost removed successfully',
+      message: 'Salary removed successfully',
     };
   }
 }

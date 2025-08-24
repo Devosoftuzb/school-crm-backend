@@ -9,6 +9,7 @@ import {
 } from 'sequelize-typescript';
 import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 import { EmployeeSubject } from 'src/employee_subject/models/employee_subject.model';
+import { Salary } from 'src/salary/models/salary.model';
 import { School } from 'src/school/models/school.model';
 
 interface EmployeeAttr {
@@ -99,4 +100,10 @@ export class Employee extends Model<Employee, EmployeeAttr> {
     hooks: true,
   })
   subject: EmployeeSubject[];
+
+  @HasMany(() => Salary, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  salary_payment: Salary[];
 }

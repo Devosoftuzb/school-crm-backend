@@ -57,6 +57,9 @@ import { CustomerAnswer } from './customer_answer/model/customer_answer.model';
 import { QuestionTextModule } from './question-text/question-text.module';
 import { CostModule } from './cost/cost.module';
 import { QuestionText } from './question-text/model/question-text.model';
+import { Cost } from './cost/model/cost.model';
+import { SalaryModule } from './salary/salary.module';
+import { Salary } from './salary/models/salary.model';
 
 @Module({
   imports: [
@@ -93,6 +96,8 @@ import { QuestionText } from './question-text/model/question-text.model';
         CustomerTest,
         CustomerAnswer,
         QuestionText,
+        Cost,
+        Salary,
       ],
       autoLoadModels: true,
       logging: false,
@@ -131,6 +136,7 @@ import { QuestionText } from './question-text/model/question-text.model';
     CustomerAnswerModule,
     QuestionTextModule,
     CostModule,
+    SalaryModule,
   ],
   controllers: [],
   providers: [],
