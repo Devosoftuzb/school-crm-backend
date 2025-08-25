@@ -6,18 +6,19 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript';
+import { Employee } from 'src/employee/models/employee.model';
 import { School } from 'src/school/models/school.model';
 
-interface CostAttr {
+interface SalartAttr {
   school_id: number;
+  teacher_id: number;
   price: number;
   method: string;
   month: string;
-  description: string;
 }
 
-@Table({ tableName: 'costs' })
-export class Cost extends Model<Cost, CostAttr> {
+@Table({ tableName: 'salary' })
+export class Salary extends Model<Salary, SalartAttr> {
   @Column({
     type: DataType.INTEGER,
     autoIncrement: true,
@@ -38,6 +39,19 @@ export class Cost extends Model<Cost, CostAttr> {
   })
   school: School;
 
+  @ForeignKey(() => Employee)
+  @Column({
+    type: DataType.INTEGER,
+    onDelete: 'CASCADE',
+    allowNull: false,
+  })
+  teacher_id: number;
+
+  @BelongsTo(() => Employee, {
+    onDelete: 'CASCADE',
+  })
+  teacher: Employee;
+
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
@@ -55,10 +69,4 @@ export class Cost extends Model<Cost, CostAttr> {
     allowNull: false,
   })
   month: string;
-
-  @Column({
-    type: DataType.TEXT,
-    allowNull: true,
-  })
-  description: string;
 }

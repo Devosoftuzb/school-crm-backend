@@ -10,75 +10,71 @@ import {
   Query,
   Put,
 } from '@nestjs/common';
-import { CostService } from './cost.service';
-import { CreateCostDto } from './dto/create-cost.dto';
-import { UpdateCostDto } from './dto/update-cost.dto';
+import { SalaryService } from './salary.service';
+import { CreateSalaryDto } from './dto/create-salary.dto';
+import { UpdateSalaryDto } from './dto/update-salary.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
 
-@ApiTags('Cost')
-@Controller('cost')
+@ApiTags('Salary')
+@Controller('salary')
 @UseGuards(RolesGuard, JwtAuthGuard)
 @ApiBearerAuth('access-token')
-export class CostController {
-  constructor(private readonly costService: CostService) {}
+export class SalaryController {
+  constructor(private readonly salaryService: SalaryService) {}
 
-  @ApiOperation({ summary: 'Cost create' })
+  @ApiOperation({ summary: 'Salary create' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post()
-  create(@Body() createCostDto: CreateCostDto) {
-    return this.costService.create(createCostDto);
+  create(@Body() createSalaryDto: CreateSalaryDto) {
+    return this.salaryService.create(createSalaryDto);
   }
 
-  @ApiOperation({ summary: 'Cost view all by school ID' })
+  @ApiOperation({ summary: 'Salary view all by school ID' })
   @Roles('superadmin', 'admin')
   @Get()
   findAll() {
-    return this.costService.findAll();
+    return this.salaryService.findAll();
   }
 
-  @ApiOperation({ summary: 'Cost view all by school ID' })
+  @ApiOperation({ summary: 'Salary view all by school ID' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get(':school_id')
   findAllBySchoolId(@Param('school_id') school_id: string) {
-    return this.costService.findAllBySchoolId(+school_id);
+    return this.salaryService.findAllBySchoolId(+school_id);
   }
 
-  @ApiOperation({ summary: 'Cost paginate' })
+  @ApiOperation({ summary: 'Salary paginate' })
   @Roles('owner', 'administrator')
   @Get(':school_id/page')
   paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
-    return this.costService.paginate(+school_id, page);
+    return this.salaryService.paginate(+school_id, page);
   }
 
-  @ApiOperation({ summary: 'Cost view by ID by school ID' })
+  @ApiOperation({ summary: 'Salary view by ID by school ID' })
   @Roles('owner', 'administrator')
   @Get(':school_id/:id')
   findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
-    return this.costService.findOne(+id, +school_id);
+    return this.salaryService.findOne(+id, +school_id);
   }
 
-  @ApiOperation({ summary: 'Cost update by ID by school ID' })
+  @ApiOperation({ summary: 'Salary update by ID by school ID' })
   @Roles('owner', 'administrator')
   @Put(':school_id/:id')
   update(
     @Param('id') id: string,
     @Param('school_id') school_id: string,
-    @Body() updateCostDto: UpdateCostDto,
+    @Body() updateSalaryDto: UpdateSalaryDto,
   ) {
-    return this.costService.update(
-      +id,
-      +school_id,
-      updateCostDto,
-    );
+    return this.salaryService.update(+id, +school_id, updateSalaryDto);
   }
 
-  @ApiOperation({ summary: 'Cost remove by ID by school ID' })
+  @ApiOperation({ summary: 'Salary remove by ID by school ID' })
   @Roles('owner', 'administrator')
   @Delete(':school_id/:id')
   remove(@Param('id') id: string, @Param('school_id') school_id: string) {
-    return this.costService.remove(+id, +school_id);
+    return this.salaryService.remove(+id, +school_id);
   }
 }
