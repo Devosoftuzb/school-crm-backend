@@ -3,9 +3,11 @@ import {
   Column,
   DataType,
   ForeignKey,
+  HasMany,
   Model,
   Table,
 } from 'sequelize-typescript';
+import { Cost } from 'src/cost/model/cost.model';
 import { School } from 'src/school/models/school.model';
 
 @Table({ tableName: 'cost_category' })
@@ -35,4 +37,10 @@ export class CostCategory extends Model<CostCategory> {
     allowNull: false,
   })
   name: string;
+
+  @HasMany(() => Cost, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  cost: Cost[];
 }

@@ -7,6 +7,11 @@ export class CreateCostDto {
   @IsNotEmpty()
   school_id: number;
 
+  @ApiProperty({ example: 1, description: 'Category ID' })
+  @IsInt()
+  @IsNotEmpty()
+  category_id: number;
+
   @ApiProperty({ example: 100000, description: 'Price of the cost' })
   @IsInt()
   @IsNotEmpty()
