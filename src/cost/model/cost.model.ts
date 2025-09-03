@@ -6,10 +6,12 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript';
+import { CostCategory } from 'src/cost-category/models/cost-category.model';
 import { School } from 'src/school/models/school.model';
 
 interface CostAttr {
   school_id: number;
+  category_id: number;
   price: number;
   method: string;
   month: string;
@@ -37,6 +39,19 @@ export class Cost extends Model<Cost, CostAttr> {
     onDelete: 'CASCADE',
   })
   school: School;
+
+  @ForeignKey(() => CostCategory)
+  @Column({
+    type: DataType.INTEGER,
+    onDelete: 'CASCADE',
+    allowNull: false,
+  })
+  category_id: number;
+
+  @BelongsTo(() => CostCategory, {
+    onDelete: 'CASCADE',
+  })
+  costCategory: CostCategory;
 
   @Column({
     type: DataType.INTEGER,
