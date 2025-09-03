@@ -8,7 +8,7 @@ import {
 } from 'sequelize-typescript';
 import { School } from 'src/school/models/school.model';
 
-@Table({ tableName: 'cost_category' });
+@Table({ tableName: 'cost_category' })
 export class CostCategory extends Model<CostCategory> {
   @Column({
     type: DataType.INTEGER,
