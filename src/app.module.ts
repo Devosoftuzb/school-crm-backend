@@ -60,6 +60,8 @@ import { QuestionText } from './question-text/model/question-text.model';
 import { Cost } from './cost/model/cost.model';
 import { SalaryModule } from './salary/salary.module';
 import { Salary } from './salary/models/salary.model';
+import { CostCategoryModule } from './cost-category/cost-category.module';
+import { CostCategory } from './cost-category/models/cost-category.model';
 
 @Module({
   imports: [
@@ -98,6 +100,7 @@ import { Salary } from './salary/models/salary.model';
         QuestionText,
         Cost,
         Salary,
+        CostCategory,
       ],
       autoLoadModels: true,
       logging: false,
@@ -137,6 +140,7 @@ import { Salary } from './salary/models/salary.model';
     QuestionTextModule,
     CostModule,
     SalaryModule,
+    CostCategoryModule,
   ],
   controllers: [],
   providers: [],
