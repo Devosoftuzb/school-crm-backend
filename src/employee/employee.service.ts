@@ -11,6 +11,7 @@ import { Op } from 'sequelize';
 import { ChangePasswordDto } from './dto/changePassword.dto';
 import { Group } from 'src/group/models/group.model';
 import { Subject } from 'src/subject/models/subject.model';
+import { ResetPasswordDto } from './dto/resertPassword.dto';
 
 @Injectable()
 export class EmployeeService {
@@ -61,7 +62,7 @@ export class EmployeeService {
       include: [
         {
           model: EmployeeGroup,
-           include: [{ model: Group, attributes: ['id', 'name'] }],
+          include: [{ model: Group, attributes: ['id', 'name'] }],
         },
         {
           model: EmployeeSubject,
@@ -132,7 +133,7 @@ export class EmployeeService {
         },
         {
           model: EmployeeSubject,
-        }
+        },
       ],
     });
 
@@ -223,7 +224,10 @@ export class EmployeeService {
       where: { login: updateEmployeeDto.login },
     });
 
-    if ((existingEmployee && existingEmployee.id != id) || (userExists && userExists.id != id)) {
+    if (
+      (existingEmployee && existingEmployee.id != id) ||
+      (userExists && userExists.id != id)
+    ) {
       throw new BadRequestException(
         `Login "${updateEmployeeDto.login}" already exists`,
       );
@@ -260,7 +264,7 @@ export class EmployeeService {
       employee.hashed_password,
     );
     if (!isOldPasswordValid) {
-      throw new BadRequestException('The current password did not match!');
+      throw new BadRequestException('Kiritilgan eski parol noto‘g‘ri!');
     }
 
     const hashedPassword = await bcrypt.hash(new_password, 7);
@@ -268,6 +272,25 @@ export class EmployeeService {
     await this.repo.update(
       { hashed_password: hashedPassword },
       { where: { id } },
+    );
+
+    return {
+      message: 'Password changed successfully',
+    };
+  }
+
+  async resetPassword(
+    school_id: number,
+    id: number,
+    resetPasswordDto: ResetPasswordDto,
+  ) {
+    const { new_password } = resetPasswordDto;
+
+    const hashedPassword = await bcrypt.hash(new_password, 7);
+
+    await this.repo.update(
+      { hashed_password: hashedPassword },
+      { where: { id, school_id } },
     );
 
     return {

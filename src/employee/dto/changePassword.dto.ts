@@ -10,6 +10,8 @@ export class ChangePasswordDto {
   @ApiProperty({ example: 'New password', description: 'Employee password' })
   @IsString()
   @IsNotEmpty()
-  @MinLength(6)
+  @MinLength(6, {
+    message: 'Parol kamida 6 ta belgidan iborat bo‘lishi kerak!',
+  })
   new_password: string;
 }
