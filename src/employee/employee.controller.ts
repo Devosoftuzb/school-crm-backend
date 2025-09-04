@@ -18,6 +18,7 @@ import { Roles } from 'src/common/decorators/roles-auth-decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { ChangePasswordDto } from './dto/changePassword.dto';
+import { ResetPasswordDto } from './dto/resertPassword.dto';
 
 @ApiTags('Employee')
 @Controller('employee')
@@ -151,7 +152,7 @@ export class EmployeeController {
   @ApiOperation({ summary: 'Change password employee' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Post('change-password/:school_id/:id')
   changePassword(
     @Param('school_id') school_id: string,
@@ -162,6 +163,23 @@ export class EmployeeController {
       +school_id,
       +id,
       changePasswordDto,
+    );
+  }
+
+  @ApiOperation({ summary: 'Reset password employee' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Post('reset-password/:school_id/:id')
+  resetPassword(
+    @Param('school_id') school_id: string,
+    @Param('id') id: string,
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ) {
+    return this.employeeService.resetPassword(
+      +school_id,
+      +id,
+      resetPasswordDto,
     );
   }
 }
