@@ -25,7 +25,7 @@ export class AttendanceController {
 
   @ApiOperation({ summary: 'Attendance create' })
   @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Post()
   create(@Body() createAttendanceDto: CreateAttendanceDto) {
@@ -43,7 +43,7 @@ export class AttendanceController {
 
   @ApiOperation({ summary: 'Attendance view all by school ID' })
   @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':school_id')
   findAllByAttendanceId(@Param('school_id') school_id: string) {
@@ -52,7 +52,7 @@ export class AttendanceController {
 
   @ApiOperation({ summary: 'Attendance paginate' })
   @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':school_id/page')
   paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
@@ -60,7 +60,7 @@ export class AttendanceController {
   }
 
   @ApiOperation({ summary: 'Attendance group history view by ID by school ID' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:group_id/:year/:month/page')
   findGroupHistory(
     @Param('school_id') school_id: string,
@@ -74,7 +74,7 @@ export class AttendanceController {
 
   @ApiOperation({ summary: 'Attendance view by ID by school ID' })
   @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Get(':school_id/:id')
   findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
@@ -83,7 +83,7 @@ export class AttendanceController {
 
   @ApiOperation({ summary: 'Attendance update by ID by school ID' })
   @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Put(':school_id')
   update(
@@ -95,7 +95,7 @@ export class AttendanceController {
 
   @ApiOperation({ summary: 'Attendance remove by ID by school ID' })
   @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Delete(':school_id/:group_id/:student_id')
   remove(@Param('group_id') group_id: string, @Param('student_id') student_id: string, @Param('school_id') school_id: string) {

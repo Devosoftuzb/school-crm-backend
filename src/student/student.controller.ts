@@ -27,7 +27,7 @@ export class StudentController {
   constructor(private readonly studentService: StudentService) {}
 
   @ApiOperation({ summary: 'Student create' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Post()
   create(@Body() createStudentDto: CreateStudentDto) {
     return this.studentService.create(createStudentDto);
@@ -41,28 +41,28 @@ export class StudentController {
   }
 
   @ApiOperation({ summary: 'Student view all by school ID' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get(':school_id')
   findAllBySchoolId(@Param('school_id') school_id: string) {
     return this.studentService.findAllBySchoolId(+school_id);
   }
 
   @ApiOperation({ summary: 'Student view all by school ID' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get(':school_id/find')
   findBySchoolId(@Param('school_id') school_id: string) {
     return this.studentService.findBySchoolId(+school_id);
   }
 
   @ApiOperation({ summary: 'Student archive view all by school ID' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get(':school_id/archive-find')
   findByArchiveSchoolId(@Param('school_id') school_id: string) {
     return this.studentService.findByArchiveSchoolId(+school_id);
   }
 
   @ApiOperation({ summary: 'Student paginate archive' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/archive/page')
   paginateArchive(
     @Query('page') page: number,
@@ -72,7 +72,7 @@ export class StudentController {
   }
 
   @ApiOperation({ summary: 'Student paginate' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/page')
   paginate(
     @Query('page') page: number,
@@ -82,42 +82,42 @@ export class StudentController {
   }
 
   @ApiOperation({ summary: 'Student view by ID by school ID' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id')
   findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.studentService.findOne(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'Student view by ID by school ID' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/not')
   findOneNot(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.studentService.findOneNot(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'Student view by ID by school ID' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/payment')
   findOnePayment(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.studentService.findOnePayment(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'Student view by ID by school ID' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/group')
   findOnePaymentGroup(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.studentService.findOnePaymentGroup(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'Student view by ID by school ID' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/studentGroup')
   findOneGroup(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.studentService.findOneGroup(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'Student update by ID by school ID' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Put(':school_id/:id')
   update(
     @Param('id') id: string,
@@ -128,7 +128,7 @@ export class StudentController {
   }
 
   @ApiOperation({ summary: 'Student archive by ID by school ID' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Put('archive/:school_id/:id')
   archive(
     @Param('id') id: string,
@@ -139,7 +139,7 @@ export class StudentController {
   }
 
   @ApiOperation({ summary: 'Student remove by ID by school ID' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Delete(':school_id/:id')
   remove(
     @Param('id') id: string, 
