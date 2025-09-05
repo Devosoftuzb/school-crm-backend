@@ -79,7 +79,7 @@ export class EmployeeController {
   @ApiOperation({ summary: 'View employee by ID and school ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id')
   findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.employeeService.findOne(+id, +school_id);
@@ -88,7 +88,7 @@ export class EmployeeController {
   @ApiOperation({ summary: 'View employee by ID and school ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/not')
   findOneNot(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.employeeService.findOneNot(+id, +school_id);
@@ -97,7 +97,7 @@ export class EmployeeController {
   @ApiOperation({ summary: 'View employee by ID and school ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/subject')
   findOneSubject(
     @Param('id') id: string,
@@ -109,7 +109,7 @@ export class EmployeeController {
   @ApiOperation({ summary: 'View employee by ID and school ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/group')
   findOneGroup(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.employeeService.findOneGroup(+id, +school_id);

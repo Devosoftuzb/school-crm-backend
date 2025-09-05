@@ -49,7 +49,7 @@ export class StatisticController {
   }
 
   @ApiOperation({ summary: 'Teacher Student payments' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get('teacher-studentPayments/:school_id/:employee_id/:month')
   getTeacherStudentPayments(
     @Param('school_id') school_id: string,
@@ -64,7 +64,7 @@ export class StatisticController {
   }
 
   @ApiOperation({ summary: 'Teacher Salary' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get('teacher-salary/:school_id/:employee_id/:year')
   getTeacherStudentPaymentsByYear(
     @Param('school_id') school_id: string,
