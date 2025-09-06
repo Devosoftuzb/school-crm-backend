@@ -23,7 +23,7 @@ export class StudentGroupController {
   constructor(private readonly studentGroupService: StudentGroupService) {}
 
   @ApiOperation({ summary: 'Student Group create' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Post()
   create(@Body() createStudentGroupDto: CreateStudentGroupDto) {
     return this.studentGroupService.create(createStudentGroupDto);
@@ -37,14 +37,14 @@ export class StudentGroupController {
   }
 
   @ApiOperation({ summary: 'Student Group view by ID' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.studentGroupService.findOne(+id);
   }
 
   @ApiOperation({ summary: 'Student Group remove by ID' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.studentGroupService.remove(+id);

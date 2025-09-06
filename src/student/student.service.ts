@@ -8,10 +8,14 @@ import { StudentGroup } from 'src/student_group/models/student_group.model';
 import { Payment } from 'src/payment/models/payment.model';
 import { ArchiveStudentDto } from './dto/archive-student.dto';
 import { Group } from 'src/group/models/group.model';
+import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 
 @Injectable()
 export class StudentService {
-  constructor(@InjectModel(Student) private repo: typeof Student) {}
+  constructor(
+    @InjectModel(Student) private repo: typeof Student,
+    @InjectModel(EmployeeGroup) private repoEmployeeGroup: typeof EmployeeGroup,
+  ) {}
 
   async create(createStudentDto: CreateStudentDto) {
     const student = await this.repo.create(createStudentDto);
@@ -47,6 +51,43 @@ export class StudentService {
         },
       ],
     });
+  }
+
+  async findByTeacherId(school_id: number, teacher_id: number) {
+    try {
+      const teacherGroups = await this.repoEmployeeGroup.findAll({
+        where: { employee_id: teacher_id },
+        attributes: ['group_id'],
+      });
+
+      const groupIds = teacherGroups.map((g) => g.group_id);
+
+      if (groupIds.length === 0) {
+        return [];
+      }
+
+      const students = await this.repo.findAll({
+        where: { school_id, status: true },
+        include: [
+          {
+            model: StudentGroup,
+            where: {
+              group_id: groupIds,
+            },
+            include: [
+              {
+                model: Group,
+                attributes: ['id', 'name'],
+              },
+            ],
+          },
+        ],
+      });
+
+      return students;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 
   async findByArchiveSchoolId(school_id: number) {
@@ -130,6 +171,82 @@ export class StudentService {
         },
       };
       return res;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async paginateTeacher(
+    school_id: number,
+    teacher_id: number,
+    page: number,
+  ): Promise<object> {
+    try {
+      page = Number(page);
+      const limit = 15;
+      const offset = (page - 1) * limit;
+      const teacherGroups = await this.repoEmployeeGroup.findAll({
+        where: { employee_id: teacher_id },
+        attributes: ['group_id'],
+      });
+
+      const groupIds = teacherGroups.map((g) => g.group_id);
+
+      if (groupIds.length === 0) {
+        return {
+          status: 200,
+          data: {
+            records: [],
+            pagination: {
+              currentPage: page,
+              total_pages: 0,
+              total_count: 0,
+            },
+          },
+        };
+      }
+
+      const students = await this.repo.findAll({
+        where: { school_id, status: true },
+        include: [
+          {
+            model: StudentGroup,
+            where: {
+              group_id: groupIds,
+            },
+            include: [{ model: Group, attributes: ['id', 'name'] }],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+        offset,
+        limit,
+      });
+
+      const total_count = await this.repo.count({
+        where: { school_id, status: true },
+        include: [
+          {
+            model: StudentGroup,
+            where: {
+              group_id: groupIds,
+            },
+          },
+        ],
+      });
+
+      const total_pages = Math.ceil(total_count / limit);
+
+      return {
+        status: 200,
+        data: {
+          records: students,
+          pagination: {
+            currentPage: page,
+            total_pages,
+            total_count,
+          },
+        },
+      };
     } catch (error) {
       throw new BadRequestException(error.message);
     }

@@ -54,6 +54,13 @@ export class StudentController {
     return this.studentService.findBySchoolId(+school_id);
   }
 
+  @ApiOperation({ summary: 'Student view all by school ID' })
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
+  @Get(':school_id/find')
+  findByTeacherId(@Param('school_id') school_id: string) {
+    return this.studentService.findBySchoolId(+school_id);
+  }
+
   @ApiOperation({ summary: 'Student archive view all by school ID' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get(':school_id/archive-find')
@@ -66,7 +73,7 @@ export class StudentController {
   @Get(':school_id/archive/page')
   paginateArchive(
     @Query('page') page: number,
-    @Param('school_id') school_id: string
+    @Param('school_id') school_id: string,
   ) {
     return this.studentService.paginateArchive(+school_id, page);
   }
@@ -74,11 +81,19 @@ export class StudentController {
   @ApiOperation({ summary: 'Student paginate' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/page')
-  paginate(
-    @Query('page') page: number,
-    @Param('school_id') school_id: string
-  ) {
+  paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
     return this.studentService.paginate(+school_id, page);
+  }
+
+  @ApiOperation({ summary: 'Student paginate on teacher' })
+  @Roles('teacher')
+  @Get(':school_id/teacher-student/:teacher_id/page')
+  paginateTeacher(
+    @Query('page') page: number,
+    @Param('school_id') school_id: string,
+    @Param('teacher_id') teacher_id: string,
+  ) {
+    return this.studentService.paginateTeacher(+school_id, +teacher_id, page);
   }
 
   @ApiOperation({ summary: 'Student view by ID by school ID' })
@@ -98,14 +113,20 @@ export class StudentController {
   @ApiOperation({ summary: 'Student view by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/payment')
-  findOnePayment(@Param('id') id: string, @Param('school_id') school_id: string) {
+  findOnePayment(
+    @Param('id') id: string,
+    @Param('school_id') school_id: string,
+  ) {
     return this.studentService.findOnePayment(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'Student view by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/group')
-  findOnePaymentGroup(@Param('id') id: string, @Param('school_id') school_id: string) {
+  findOnePaymentGroup(
+    @Param('id') id: string,
+    @Param('school_id') school_id: string,
+  ) {
     return this.studentService.findOnePaymentGroup(+id, +school_id);
   }
 
@@ -141,10 +162,7 @@ export class StudentController {
   @ApiOperation({ summary: 'Student remove by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Delete(':school_id/:id')
-  remove(
-    @Param('id') id: string, 
-    @Param('school_id') school_id: string
-  ) {
+  remove(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.studentService.remove(+id, +school_id);
   }
 }
