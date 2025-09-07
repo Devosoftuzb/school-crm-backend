@@ -78,9 +78,9 @@ export class StatisticController {
     );
   }
 
-  @ApiOperation({ summary: 'Teacher Student payments' })
+  @ApiOperation({ summary: 'Teacher stats' })
   @Roles('teacher')
-  @Get('teacher-studentPayments/:school_id/:employee_id')
+  @Get('teacher-stats/:school_id/:employee_id')
   getEmployeeStats(
     @Param('school_id') school_id: string,
     @Param('employee_id') employee_id: string,
