@@ -484,7 +484,17 @@ export class StatisticService {
   }
 
   async getEmployeeStats(school_id: number, employee_id: number) {
-    
+    const employee = await this.repoEmployee.findOne({
+      where: { id: employee_id, school_id },
+      attributes: ['salary'],
+    });
+
+    if (!employee) {
+      throw new Error('Employee topilmadi');
+    }
+
+    const salaryPercent = employee.salary || 0;
+
     const employeeGroups = await this.employeeGroupRepo.findAll({
       where: { employee_id },
       attributes: ['group_id'],
@@ -492,7 +502,6 @@ export class StatisticService {
     const groupIds = employeeGroups.map((eg) => eg.group_id);
     const groupCount = groupIds.length;
 
-    
     const studentGroups = await this.studentGroupRepo.findAll({
       where: {
         group_id: { [Op.in]: groupIds },
@@ -502,7 +511,6 @@ export class StatisticService {
     const studentIds = [...new Set(studentGroups.map((sg) => sg.student_id))];
     const studentCount = studentIds.length;
 
-   
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(
@@ -514,7 +522,7 @@ export class StatisticService {
       59,
     );
 
-    startOfMonth.setHours(startOfMonth.getHours() + 5); // UTC+5 (agar kerak bo'lsa)
+    startOfMonth.setHours(startOfMonth.getHours() + 5);
     endOfMonth.setHours(endOfMonth.getHours() + 5);
 
     const totalPayment = await this.repoPayment.sum('price', {
@@ -527,10 +535,13 @@ export class StatisticService {
       },
     });
 
+    const teacherShare = ((totalPayment || 0) * salaryPercent) / 100;
+
     return {
       group_number: groupCount,
       student_number: studentCount,
       payment_sum: totalPayment || 0,
+      teacher_share: teacherShare,
     };
   }
 }
