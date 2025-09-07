@@ -482,4 +482,38 @@ export class StatisticService {
       throw new BadRequestException(error.message);
     }
   }
+
+  async getEmployeeStats(school_id: number, employee_id: number) {
+    // 1. Guruhlar
+    const employeeGroups = await this.employeeGroupRepo.findAll({
+      where: { employee_id },
+      attributes: ['group_id'],
+    });
+    const groupIds = employeeGroups.map((eg) => eg.group_id);
+    const groupCount = groupIds.length;
+
+    // 2. Studentlar
+    const studentGroups = await this.studentGroupRepo.findAll({
+      where: {
+        group_id: { [Op.in]: groupIds },
+      },
+      attributes: ['student_id'],
+    });
+    const studentIds = [...new Set(studentGroups.map((sg) => sg.student_id))];
+    const studentCount = studentIds.length;
+
+    // 3. Jami payment summasi
+    const totalPayment = await this.repoPayment.sum('price', {
+      where: {
+        school_id,
+        student_id: { [Op.in]: studentIds },
+      },
+    });
+
+    return {
+      groupCount,
+      studentCount,
+      totalPayment: totalPayment || 0,
+    };
+  }
 }
