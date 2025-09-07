@@ -484,7 +484,7 @@ export class StatisticService {
   }
 
   async getEmployeeStats(school_id: number, employee_id: number) {
-    // 1. Guruhlar
+    
     const employeeGroups = await this.employeeGroupRepo.findAll({
       where: { employee_id },
       attributes: ['group_id'],
@@ -492,7 +492,7 @@ export class StatisticService {
     const groupIds = employeeGroups.map((eg) => eg.group_id);
     const groupCount = groupIds.length;
 
-    // 2. Studentlar
+    
     const studentGroups = await this.studentGroupRepo.findAll({
       where: {
         group_id: { [Op.in]: groupIds },
@@ -502,11 +502,28 @@ export class StatisticService {
     const studentIds = [...new Set(studentGroups.map((sg) => sg.student_id))];
     const studentCount = studentIds.length;
 
-    // 3. Jami payment summasi
+   
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
+
+    startOfMonth.setHours(startOfMonth.getHours() + 5); // UTC+5 (agar kerak bo'lsa)
+    endOfMonth.setHours(endOfMonth.getHours() + 5);
+
     const totalPayment = await this.repoPayment.sum('price', {
       where: {
         school_id,
         student_id: { [Op.in]: studentIds },
+        createdAt: {
+          [Op.between]: [startOfMonth, endOfMonth],
+        },
       },
     });
 
