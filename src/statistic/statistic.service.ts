@@ -540,8 +540,7 @@ export class StatisticService {
     return {
       group_number: groupCount,
       student_number: studentCount,
-      payment_sum: totalPayment || 0,
-      teacher_share: teacherShare,
+      payment_sum: teacherShare || 0,
     };
   }
 }
