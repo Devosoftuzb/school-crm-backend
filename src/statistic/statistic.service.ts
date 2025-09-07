@@ -511,9 +511,9 @@ export class StatisticService {
     });
 
     return {
-      groupCount,
-      studentCount,
-      totalPayment: totalPayment || 0,
+      group_number: groupCount,
+      student_number: studentCount,
+      payment_sum: totalPayment || 0,
     };
   }
 }
