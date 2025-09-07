@@ -54,7 +54,7 @@ export class PaymentController {
   }
 
   @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get('month/:school_id/:group_id/:year/:month/page')
   findMonthHistory(
     @Param('school_id') school_id: string,
@@ -123,7 +123,7 @@ export class PaymentController {
   }
 
     @ApiOperation({ summary: 'Payment history one day view by ID by school ID' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get('employeeDay/:school_id/:employee_id/:year/:month/:day/page')
   findEmployeeDayHistory(
     @Param('school_id') school_id: string,

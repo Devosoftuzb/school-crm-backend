@@ -349,7 +349,9 @@ export class StatisticService {
         },
       });
 
-      const teacherShare = ((paymentSum || 0) * percent) / 100;
+      // Agar percent 0 bo'lsa paymentSumni o'zi, aks holda foiz hisoblash
+      const teacherShare =
+        percent === 0 ? paymentSum || 0 : ((paymentSum || 0) * percent) / 100;
       paymentsPerMonth.push(teacherShare);
     }
 

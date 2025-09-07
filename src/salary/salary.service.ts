@@ -37,7 +37,9 @@ export class SalaryService {
         offset,
         limit,
       });
-      const total_count = await this.repo.count();
+      const total_count = await this.repo.count({
+        where: { school_id: school_id },
+      });
       const total_pages = Math.ceil(total_count / limit);
       const res = {
         status: 200,
