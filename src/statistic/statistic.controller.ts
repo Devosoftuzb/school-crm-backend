@@ -78,6 +78,16 @@ export class StatisticController {
     );
   }
 
+  @ApiOperation({ summary: 'Teacher stats' })
+  @Roles('teacher')
+  @Get('teacher-stats/:school_id/:employee_id')
+  getEmployeeStats(
+    @Param('school_id') school_id: string,
+    @Param('employee_id') employee_id: string,
+  ) {
+    return this.statisticService.getEmployeeStats(+school_id, +employee_id);
+  }
+
   @ApiOperation({ summary: 'School Payments' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get('payment-day/:school_id/:date')
