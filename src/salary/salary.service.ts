@@ -3,7 +3,7 @@ import { CreateSalaryDto } from './dto/create-salary.dto';
 import { UpdateSalaryDto } from './dto/update-salary.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Salary } from './models/salary.model';
-import { Op, fn, col, where } from 'sequelize';
+import { Op, literal, where } from 'sequelize';
 
 @Injectable()
 export class SalaryService {
@@ -37,13 +37,13 @@ export class SalaryService {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
-      
+
       const salary = await this.repo.findAll({
         where: {
           school_id,
           [Op.and]: [
-            where(fn('MONTH', col('Salary.createdAt')), Number(month)),
-            where(fn('YEAR', col('Salary.createdAt')), Number(year)),
+            where(literal(`EXTRACT(MONTH FROM "salary"."createdAt")`), month),
+            where(literal(`EXTRACT(YEAR FROM "salary"."createdAt")`), year),
           ],
         },
         include: { all: true },
@@ -53,9 +53,9 @@ export class SalaryService {
       const total_count = await this.repo.count({
         where: {
           school_id,
-          [Op.and]: [
-            where(fn('MONTH', col('Salary.createdAt')), Number(month)),
-            where(fn('YEAR', col('Salary.createdAt')), Number(year)),
+           [Op.and]: [
+            where(literal(`EXTRACT(MONTH FROM "salary"."createdAt")`), month),
+            where(literal(`EXTRACT(YEAR FROM "salary"."createdAt")`), year),
           ],
         },
       });
