@@ -48,9 +48,14 @@ export class CostController {
 
   @ApiOperation({ summary: 'Cost paginate' })
   @Roles('owner', 'administrator')
-  @Get(':school_id/page')
-  paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
-    return this.costService.paginate(+school_id, page);
+  @Get(':school_id/:year/:month/page')
+  paginate(
+    @Query('page') page: number,
+    @Param('school_id') school_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+  ) {
+    return this.costService.paginate(+school_id, +year, +month, page);
   }
 
   @ApiOperation({ summary: 'Cost view by ID by school ID' })
@@ -68,11 +73,7 @@ export class CostController {
     @Param('school_id') school_id: string,
     @Body() updateCostDto: UpdateCostDto,
   ) {
-    return this.costService.update(
-      +id,
-      +school_id,
-      updateCostDto,
-    );
+    return this.costService.update(+id, +school_id, updateCostDto);
   }
 
   @ApiOperation({ summary: 'Cost remove by ID by school ID' })
