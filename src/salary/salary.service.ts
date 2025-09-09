@@ -3,7 +3,7 @@ import { CreateSalaryDto } from './dto/create-salary.dto';
 import { UpdateSalaryDto } from './dto/update-salary.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Salary } from './models/salary.model';
-import { Op, literal, where } from 'sequelize';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class SalaryService {
@@ -35,32 +35,33 @@ export class SalaryService {
   ): Promise<object> {
     try {
       page = Number(page);
+      if (page < 1) page = 1;
+
       const limit = 15;
       const offset = (page - 1) * limit;
 
-      const salary = await this.repo.findAll({
-        where: {
-          school_id,
-          [Op.and]: [
-            where(literal(`EXTRACT(MONTH FROM "salary"."createdAt")`), month),
-            where(literal(`EXTRACT(YEAR FROM "salary"."createdAt")`), year),
-          ],
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 1);
+
+      const condition = {
+        school_id,
+        createdAt: {
+          [Op.gte]: startDate,
+          [Op.lt]: endDate,
         },
+      };
+
+      const salary = await this.repo.findAll({
+        where: condition,
         include: { all: true },
         offset,
         limit,
       });
-      const total_count = await this.repo.count({
-        where: {
-          school_id,
-           [Op.and]: [
-            where(literal(`EXTRACT(MONTH FROM "salary"."createdAt")`), month),
-            where(literal(`EXTRACT(YEAR FROM "salary"."createdAt")`), year),
-          ],
-        },
-      });
+
+      const total_count = await this.repo.count({ where: condition });
       const total_pages = Math.ceil(total_count / limit);
-      const res = {
+
+      return {
         status: 200,
         data: {
           records: salary,
@@ -71,7 +72,6 @@ export class SalaryService {
           },
         },
       };
-      return res;
     } catch (error) {
       throw new BadRequestException(error.message);
     }
