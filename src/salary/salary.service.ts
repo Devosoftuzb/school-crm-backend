@@ -42,8 +42,8 @@ export class SalaryService {
         where: {
           school_id,
           [Op.and]: [
-            where(fn('MONTH', col('createdAt')), Number(month)),
-            where(fn('YEAR', col('createdAt')), Number(year)),
+            where(fn('MONTH', col('Salary.createdAt')), Number(month)),
+            where(fn('YEAR', col('Salary.createdAt')), Number(year)),
           ],
         },
         include: { all: true },
@@ -54,8 +54,8 @@ export class SalaryService {
         where: {
           school_id,
           [Op.and]: [
-            where(fn('MONTH', col('createdAt')), Number(month)),
-            where(fn('YEAR', col('createdAt')), Number(year)),
+            where(fn('MONTH', col('Salary.createdAt')), Number(month)),
+            where(fn('YEAR', col('Salary.createdAt')), Number(year)),
           ],
         },
       });
