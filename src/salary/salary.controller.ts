@@ -49,7 +49,12 @@ export class SalaryController {
   @ApiOperation({ summary: 'Salary paginate' })
   @Roles('owner', 'administrator')
   @Get(':school_id/:year/:month/page')
-  paginate(@Query('page') page: number, @Param('school_id') school_id: string, @Param('year') year: string, @Param('month') month: string) {
+  paginate(
+    @Query('page') page: number,
+    @Param('school_id') school_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+  ) {
     return this.salaryService.paginate(+school_id, +year, +month, page);
   }
 

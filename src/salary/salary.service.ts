@@ -3,6 +3,7 @@ import { CreateSalaryDto } from './dto/create-salary.dto';
 import { UpdateSalaryDto } from './dto/update-salary.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Salary } from './models/salary.model';
+import { Op, fn, col, where } from 'sequelize';
 
 @Injectable()
 export class SalaryService {
@@ -36,7 +37,6 @@ export class SalaryService {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
-      const { Op, fn, col, where } = this.repo.sequelize as any;
       
       const salary = await this.repo.findAll({
         where: {
