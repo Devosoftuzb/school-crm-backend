@@ -48,9 +48,14 @@ export class SalaryController {
 
   @ApiOperation({ summary: 'Salary paginate' })
   @Roles('owner', 'administrator')
-  @Get(':school_id/page')
-  paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
-    return this.salaryService.paginate(+school_id, page);
+  @Get(':school_id/:year/:month/page')
+  paginate(
+    @Query('page') page: number,
+    @Param('school_id') school_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+  ) {
+    return this.salaryService.paginate(+school_id, +year, +month, page);
   }
 
   @ApiOperation({ summary: 'Salary view by ID by school ID' })
@@ -77,4 +82,11 @@ export class SalaryController {
   remove(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.salaryService.remove(+id, +school_id);
   }
+
+  // @ApiOperation({ summary: 'Salary paginate' })
+  // @Roles('teacher')
+  // @Get(':school_id/:teacher_id/page')
+  // getHistorySalary(@Query('page') page: number, @Param('school_id') school_id: string, @Param('teacher_id') teacher_id: string) {
+  //   return this.salaryService.getHistorySalary(+school_id, +teacher_id, page);
+  // }
 }

@@ -31,6 +31,5 @@ export class CreateCostDto {
     example: 'description',
     description: 'Description of the cost',
   })
-  @IsNotEmpty()
   description: string;
 }

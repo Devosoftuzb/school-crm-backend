@@ -130,7 +130,7 @@ export class EmployeeController {
   @ApiOperation({ summary: 'Update employee by ID and school ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Put(':school_id/:id')
   update(
     @Param('id') id: string,

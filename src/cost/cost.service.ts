@@ -3,6 +3,7 @@ import { CreateCostDto } from './dto/create-cost.dto';
 import { UpdateCostDto } from './dto/update-cost.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Cost } from './model/cost.model';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class CostService {
@@ -26,19 +27,36 @@ export class CostService {
     });
   }
 
-  async paginate(school_id: number, page: number): Promise<object> {
+  async paginate(
+    school_id: number,
+    year: number,
+    month: number,
+    page: number,
+  ): Promise<object> {
     try {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
+
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 1);
+
+      const condition = {
+        school_id,
+        createdAt: {
+          [Op.gte]: startDate,
+          [Op.lt]: endDate,
+        },
+      };
+
       const cost = await this.repo.findAll({
-        where: { school_id: school_id },
+        where: condition,
         include: { all: true },
         offset,
         limit,
       });
       const total_count = await this.repo.count({
-        where: { school_id: school_id },
+        where: condition,
       });
       const total_pages = Math.ceil(total_count / limit);
       const res = {
