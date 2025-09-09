@@ -26,19 +26,38 @@ export class SalaryService {
     });
   }
 
-  async paginate(school_id: number, page: number): Promise<object> {
+  async paginate(
+    school_id: number,
+    year: number,
+    month: number,
+    page: number,
+  ): Promise<object> {
     try {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
+      const { Op, fn, col, where } = this.repo.sequelize as any;
+      
       const salary = await this.repo.findAll({
-        where: { school_id: school_id },
+        where: {
+          school_id,
+          [Op.and]: [
+            where(fn('MONTH', col('createdAt')), Number(month)),
+            where(fn('YEAR', col('createdAt')), Number(year)),
+          ],
+        },
         include: { all: true },
         offset,
         limit,
       });
       const total_count = await this.repo.count({
-        where: { school_id: school_id },
+        where: {
+          school_id,
+          [Op.and]: [
+            where(fn('MONTH', col('createdAt')), Number(month)),
+            where(fn('YEAR', col('createdAt')), Number(year)),
+          ],
+        },
       });
       const total_pages = Math.ceil(total_count / limit);
       const res = {
