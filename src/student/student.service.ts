@@ -284,6 +284,23 @@ export class StudentService {
     return student;
   }
 
+  async findFullName(school_id: number) {
+    const student = await this.repo.findAll({
+      where: {
+        school_id,
+      },
+      attributes: ['id', 'full_name'],
+    });
+
+    if (!student) {
+      throw new BadRequestException(
+        `Student with school id ${school_id} not found`,
+      );
+    }
+
+    return student;
+  }
+
   async findOnePayment(id: number, school_id: number) {
     const student = await this.repo.findOne({
       where: {

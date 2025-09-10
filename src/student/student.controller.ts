@@ -112,6 +112,13 @@ export class StudentController {
 
   @ApiOperation({ summary: 'Student view by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
+  @Get(':school_id/fullName')
+  findFullName(@Param('school_id') school_id: string) {
+    return this.studentService.findFullName(+school_id);
+  }
+
+  @ApiOperation({ summary: 'Student view by ID by school ID' })
+  @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/payment')
   findOnePayment(
     @Param('id') id: string,
