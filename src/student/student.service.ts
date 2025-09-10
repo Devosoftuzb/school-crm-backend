@@ -286,9 +286,7 @@ export class StudentService {
 
   async findFullName(school_id: number) {
     const student = await this.repo.findAll({
-      where: {
-        school_id,
-      },
+      where: { school_id },
       attributes: ['id', 'full_name'],
     });
 
