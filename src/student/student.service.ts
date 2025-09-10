@@ -284,22 +284,22 @@ export class StudentService {
     return student;
   }
 
-  async findAllNot(school_id: number) {
-    console.log(school_id)
-    const student = await this.repo.findAll({
-      where: { school_id },
-      attributes: ['id', 'full_name'],
-    });
+  // async findAllNot(school_id: number) {
+  //   console.log(school_id)
+  //   const student = await this.repo.findAll({
+  //     where: { school_id },
+  //     attributes: ['id', 'full_name'],
+  //   });
 
-    console.log(student)
-    if (!student) {
-      throw new BadRequestException(
-        `Student with school id ${school_id} not found`,
-      );
-    }
+  //   console.log(student)
+  //   if (!student) {
+  //     throw new BadRequestException(
+  //       `Student with school id ${school_id} not found`,
+  //     );
+  //   }
 
-    return student;
-  }
+  //   return student;
+  // }
 
   async findOnePayment(id: number, school_id: number) {
     const student = await this.repo.findOne({

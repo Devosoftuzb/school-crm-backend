@@ -113,12 +113,12 @@ export class StudentController {
     return this.studentService.findOneNot(+id, +school_id);
   }
 
-  @ApiOperation({ summary: 'Student view by ID by school all not' })
-  @Roles('owner', 'administrator', 'teacher')
-  @Get(':school_id/all')
-  findAllNot(@Param('school_id') school_id: string) {
-    return this.studentService.findAllNot(+school_id);
-  }
+  // @ApiOperation({ summary: 'Student view by ID by school all not' })
+  // @Roles('owner', 'administrator', 'teacher')
+  // @Get(':school_id/all')
+  // findAllNot(@Param('school_id') school_id: string) {
+  //   return this.studentService.findAllNot(+school_id);
+  // }
 
   @ApiOperation({ summary: 'Student view by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
