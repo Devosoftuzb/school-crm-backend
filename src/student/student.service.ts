@@ -285,11 +285,13 @@ export class StudentService {
   }
 
   async findFullName(school_id: number) {
+    console.log(school_id)
     const student = await this.repo.findAll({
       where: { school_id },
       attributes: ['id', 'full_name'],
     });
 
+    console.log(student)
     if (!student) {
       throw new BadRequestException(
         `Student with school id ${school_id} not found`,
