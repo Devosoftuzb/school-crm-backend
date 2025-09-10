@@ -9,6 +9,9 @@ import { Op, fn, col, Sequelize } from 'sequelize';
 import { PaymentMethod } from 'src/payment_method/models/payment_method.model';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
 import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
+import { Cost } from 'src/cost/model/cost.model';
+import { Salary } from 'src/salary/models/salary.model';
+import { CostCategory } from 'src/cost-category/models/cost-category.model';
 
 @Injectable()
 export class StatisticService {
@@ -21,6 +24,9 @@ export class StatisticService {
     @InjectModel(PaymentMethod) private repoMethod: typeof PaymentMethod,
     @InjectModel(EmployeeGroup) private employeeGroupRepo: typeof EmployeeGroup,
     @InjectModel(StudentGroup) private studentGroupRepo: typeof StudentGroup,
+    @InjectModel(Cost) private costRepo: typeof Cost,
+    @InjectModel(Salary) private salaryRepo: typeof Salary,
+    @InjectModel(CostCategory) private categoryRepo: typeof CostCategory,
   ) {}
 
   async getSchoolStatistics(school_id: number) {
@@ -543,6 +549,92 @@ export class StatisticService {
       group_number: groupCount,
       student_number: studentCount,
       payment_sum: teacherShare || 0,
+    };
+  }
+
+  async getFinanceStatistics(school_id: number) {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    const startDate = new Date(currentYear, currentMonth - 1, 1);
+    startDate.setHours(startDate.getHours() + 5);
+
+    const endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59);
+    endDate.setHours(endDate.getHours() + 5);
+
+    const costSum = await this.costRepo.sum('price', {
+      where: {
+        school_id,
+        createdAt: {
+          [Op.between]: [startDate, endDate],
+        },
+      },
+    });
+
+    const salarySum = await this.salaryRepo.sum('price', {
+      where: {
+        school_id,
+        createdAt: {
+          [Op.between]: [startDate, endDate],
+        },
+      },
+    });
+
+    const allCategories = await this.categoryRepo.findAll({
+      where: {
+        school_id,
+      },
+      attributes: ['id', 'name'],
+    });
+
+    const costGrouped = await this.costRepo.findAll({
+      where: {
+        school_id,
+        createdAt: {
+          [Op.between]: [startDate, endDate],
+        },
+      },
+      attributes: [
+        'category_id',
+        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count'],
+        [Sequelize.fn('SUM', Sequelize.col('price')), 'sum'],
+      ],
+      group: ['category_id'],
+    });
+
+    const costCategories = allCategories.reduce(
+      (acc, cat) => {
+        acc[cat.id] = {
+          category_id: cat.id,
+          name: cat.name,
+          count: 0,
+          sum: 0,
+        };
+        return acc;
+      },
+      {} as Record<
+        number,
+        { category_id: number; name: string; count: number; sum: number }
+      >,
+    );
+
+    costGrouped.forEach((row) => {
+      const category_id = row.get('category_id') as number;
+      const count = Number(row.get('count'));
+      const sum = Number(row.get('sum'));
+
+      if (costCategories[category_id]) {
+        costCategories[category_id].count = count;
+        costCategories[category_id].sum = sum;
+      }
+    });
+
+    const cost_by_category = Object.values(costCategories);
+
+    return {
+      cost_sum: costSum || 0,
+      salary_sum: salarySum || 0,
+      cost_by_category,
     };
   }
 }
