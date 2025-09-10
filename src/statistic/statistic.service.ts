@@ -631,10 +631,23 @@ export class StatisticService {
 
     const cost_by_category = Object.values(costCategories);
 
+    cost_by_category.push(
+      {
+        category_id: null,
+        name: 'Chiqimlar',
+        count: null,
+        sum: costSum,
+      },
+      {
+        category_id: null,
+        name: 'Maoshlar',
+        count: null,
+        sum: salarySum,
+      },
+    );
+
     return {
-      cost_sum: costSum || 0,
-      salary_sum: salarySum || 0,
-      cost_by_category,
+      statistic: cost_by_category,
     };
   }
 }
