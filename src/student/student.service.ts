@@ -284,7 +284,7 @@ export class StudentService {
     return student;
   }
 
-  async findFullName(school_id: number) {
+  async findAllNot(school_id: number) {
     console.log(school_id)
     const student = await this.repo.findAll({
       where: { school_id },
