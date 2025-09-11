@@ -548,7 +548,7 @@ export class StatisticService {
     return {
       group_number: groupCount,
       student_number: studentCount,
-      payment_sum: teacherShare || 0,
+      payment_sum: teacherShare || totalPayment,
     };
   }
 
@@ -636,13 +636,13 @@ export class StatisticService {
         category_id: null,
         name: 'Chiqimlar',
         count: null,
-        sum: costSum,
+        sum: costSum || 0,
       },
       {
         category_id: null,
         name: 'Maoshlar',
         count: null,
-        sum: salarySum,
+        sum: salarySum || 0,
       },
     );
 
