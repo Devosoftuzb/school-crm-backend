@@ -53,6 +53,13 @@ export class StudentService {
     });
   }
 
+  async findBySchoolIdNot(school_id: number) {
+    return await this.repo.findAll({
+      where: { school_id },
+      attributes: ['id', 'full_name'],
+    });
+  }
+
   async findByTeacherId(school_id: number, teacher_id: number) {
     try {
       const teacherGroups = await this.repoEmployeeGroup.findAll({
@@ -283,6 +290,23 @@ export class StudentService {
 
     return student;
   }
+
+  // async findAllNot(school_id: number) {
+  //   console.log(school_id)
+  //   const student = await this.repo.findAll({
+  //     where: { school_id },
+  //     attributes: ['id', 'full_name'],
+  //   });
+
+  //   console.log(student)
+  //   if (!student) {
+  //     throw new BadRequestException(
+  //       `Student with school id ${school_id} not found`,
+  //     );
+  //   }
+
+  //   return student;
+  // }
 
   async findOnePayment(id: number, school_id: number) {
     const student = await this.repo.findOne({
