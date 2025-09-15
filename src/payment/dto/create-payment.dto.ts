@@ -39,4 +39,7 @@ export class CreatePaymentDto {
   @IsNotEmpty()
   @IsInt()
   price: number;
+
+  @ApiProperty({ example: "Description", description: 'Payment description' })
+  description: string;
 }

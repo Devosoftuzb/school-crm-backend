@@ -6,7 +6,7 @@ import { Payment } from './models/payment.model';
 import { Student } from 'src/student/models/student.model';
 import { Group } from 'src/group/models/group.model';
 import { Employee } from 'src/employee/models/employee.model';
-import { Op } from 'sequelize';
+import { Op, literal } from 'sequelize';
 import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
 
@@ -146,6 +146,7 @@ export class PaymentService {
     year: number,
     month: number,
     day: number,
+    // status: string,
     page: number,
   ): Promise<object> {
     try {
@@ -156,6 +157,8 @@ export class PaymentService {
       const { count, rows: allUsers } = await this.repo.findAndCountAll({
         where: {
           school_id,
+          // status,
+          // discount: 0,
           createdAt: {
             [Op.gte]: new Date(year, month - 1, day),
             [Op.lt]: new Date(year, month - 1, day + 1),
@@ -166,6 +169,10 @@ export class PaymentService {
           {
             model: Group,
             attributes: ['id', 'name', 'price'],
+            // required: true,
+            // on: literal(
+            //   `"Payment"."group_id" = "Group"."id" AND "Payment"."price" = "Group"."price"`,
+            // ),
           },
           {
             model: Student,
@@ -253,6 +260,8 @@ export class PaymentService {
         },
       };
     } catch (error) {
+      console.log(error);
+
       throw new BadRequestException(error.message);
     }
   }

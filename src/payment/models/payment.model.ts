@@ -19,6 +19,8 @@ interface PaymentAttr {
   method: string;
   discount: number;
   price: number;
+  status: string;
+  description: string;
 }
 
 @Table({ tableName: 'payment' })
@@ -98,4 +100,17 @@ export class Payment extends Model<Payment, PaymentAttr> {
     allowNull: false,
   })
   price: number;
+
+   @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    defaultValue: 'create'
+  })
+  status: string;
+
+     @Column({
+    type: DataType.TEXT,
+    allowNull: true,
+  })
+  description: string;
 }
