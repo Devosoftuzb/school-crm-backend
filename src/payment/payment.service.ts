@@ -89,7 +89,7 @@ export class PaymentService {
               attributes: ['id', 'name', 'price'],
               required: true,
               on: literal(
-                `"Payment"."group_id" = "Group"."id" AND "Payment"."price" = "Group"."price"`,
+                `"Payment"."group_id" = "group"."id" AND "Payment"."price" = "group"."price"`,
               ),
             },
             {
@@ -126,7 +126,7 @@ export class PaymentService {
               attributes: ['id', 'name', 'price'],
               required: true,
               on: literal(
-                `"Payment"."group_id" = "Group"."id" AND "Payment"."price" != "Group"."price"`,
+                `"Payment"."group_id" = "group"."id" AND "Payment"."price" != "group"."price"`,
               ),
             },
             {
@@ -275,7 +275,7 @@ export class PaymentService {
               attributes: ['id', 'name', 'price'],
               required: true,
               on: literal(
-                `"Payment"."group_id" = "Group"."id" AND "Payment"."price" = "Group"."price"`,
+                `"Payment"."group_id" = "group"."id" AND "Payment"."price" = "group"."price"`,
               ),
             },
             {
@@ -313,7 +313,7 @@ export class PaymentService {
               attributes: ['id', 'name', 'price'],
               required: true,
               on: literal(
-                `"Payment"."group_id" = "Group"."id" AND "Payment"."price" != "Group"."price"`,
+                `"Payment"."group_id" = "group"."id" AND "Payment"."price" != "group"."price"`,
               ),
             },
             {
@@ -627,7 +627,7 @@ export class PaymentService {
             joinedYear > checkYear ||
             (joinedYear === checkYear && joinedMonth > checkMonth)
           ) {
-            continue;
+            continue; 
           }
 
           const teacher = group.employee?.[0]?.employee;
