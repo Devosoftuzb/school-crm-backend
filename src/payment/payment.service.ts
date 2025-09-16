@@ -6,7 +6,7 @@ import { Payment } from './models/payment.model';
 import { Student } from 'src/student/models/student.model';
 import { Group } from 'src/group/models/group.model';
 import { Employee } from 'src/employee/models/employee.model';
-import { Op } from 'sequelize';
+import { Op, literal } from 'sequelize';
 import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
 
@@ -53,6 +53,7 @@ export class PaymentService {
     group_id: number,
     year: string,
     month: string,
+    status: string,
     page: number,
   ): Promise<object> {
     try {
@@ -60,28 +61,119 @@ export class PaymentService {
       const limit = 15;
       const offset = (page - 1) * limit;
 
-      const { count, rows: allUsers } = await this.repo.findAndCountAll({
-        where: {
-          school_id,
-          group_id,
-          year,
-          month,
-        },
-        attributes: ['id', 'method', 'price', 'discount', 'month', 'createdAt'],
-        include: [
-          {
-            model: Group,
-            attributes: ['id', 'name', 'price'],
+      let count = 0;
+      let allUsers: any[] = [];
+
+      if (status === 'payment') {
+        ({ count, rows: allUsers } = await this.repo.findAndCountAll({
+          where: {
+            school_id,
+            group_id,
+            discount: 0,
+            year,
+            month,
           },
-          {
-            model: Student,
-            attributes: ['full_name'],
+          attributes: [
+            'id',
+            'method',
+            'price',
+            'discount',
+            'month',
+            'status',
+            'description',
+            'createdAt',
+          ],
+          include: [
+            {
+              model: Group,
+              attributes: ['id', 'name', 'price'],
+              required: true,
+              on: literal(
+                `"Payment"."group_id" = "Group"."id" AND "Payment"."price" = "Group"."price"`,
+              ),
+            },
+            {
+              model: Student,
+              attributes: ['full_name'],
+            },
+          ],
+          order: [['createdAt', 'DESC']],
+          offset,
+          limit,
+        }));
+      } else if (status === 'halfPayment') {
+        ({ count, rows: allUsers } = await this.repo.findAndCountAll({
+          where: {
+            school_id,
+            group_id,
+            discount: 0,
+            year,
+            month,
           },
-        ],
-        order: [['createdAt', 'DESC']],
-        offset,
-        limit,
-      });
+          attributes: [
+            'id',
+            'method',
+            'price',
+            'discount',
+            'month',
+            'status',
+            'description',
+            'createdAt',
+          ],
+          include: [
+            {
+              model: Group,
+              attributes: ['id', 'name', 'price'],
+              required: true,
+              on: literal(
+                `"Payment"."group_id" = "Group"."id" AND "Payment"."price" != "Group"."price"`,
+              ),
+            },
+            {
+              model: Student,
+              attributes: ['full_name'],
+            },
+          ],
+          order: [['createdAt', 'DESC']],
+          offset,
+          limit,
+        }));
+      } else if (status === 'discount') {
+        ({ count, rows: allUsers } = await this.repo.findAndCountAll({
+          where: {
+            school_id,
+            group_id,
+            discount: {
+              [Op.ne]: 0,
+            },
+            year,
+            month,
+          },
+          attributes: [
+            'id',
+            'method',
+            'price',
+            'discount',
+            'month',
+            'status',
+            'description',
+            'createdAt',
+          ],
+          include: [
+            {
+              model: Group,
+              attributes: ['id', 'name', 'price'],
+            },
+            {
+              model: Student,
+              attributes: ['full_name'],
+            },
+          ],
+          order: [['createdAt', 'DESC']],
+          offset,
+          limit,
+        }));
+      }
 
       const total_count = count;
       const total_pages = Math.ceil(total_count / limit);
@@ -146,6 +238,7 @@ export class PaymentService {
     year: number,
     month: number,
     day: number,
+    status: string,
     page: number,
   ): Promise<object> {
     try {
@@ -153,29 +246,122 @@ export class PaymentService {
       const limit = 15;
       const offset = (page - 1) * limit;
 
-      const { count, rows: allUsers } = await this.repo.findAndCountAll({
-        where: {
-          school_id,
-          createdAt: {
-            [Op.gte]: new Date(year, month - 1, day),
-            [Op.lt]: new Date(year, month - 1, day + 1),
+      let count = 0;
+      let allUsers: any[] = [];
+
+      if (status === 'payment') {
+        ({ count, rows: allUsers } = await this.repo.findAndCountAll({
+          where: {
+            school_id,
+            discount: 0,
+            createdAt: {
+              [Op.gte]: new Date(year, month - 1, day),
+              [Op.lt]: new Date(year, month - 1, day + 1),
+            },
           },
-        },
-        attributes: ['id', 'method', 'price', 'discount', 'month', 'createdAt'],
-        include: [
-          {
-            model: Group,
-            attributes: ['id', 'name', 'price'],
+          attributes: [
+            'id',
+            'method',
+            'price',
+            'discount',
+            'month',
+            'status',
+            'description',
+            'createdAt',
+          ],
+          include: [
+            {
+              model: Group,
+              attributes: ['id', 'name', 'price'],
+              required: true,
+              on: literal(
+                `"Payment"."group_id" = "Group"."id" AND "Payment"."price" = "Group"."price"`,
+              ),
+            },
+            {
+              model: Student,
+              attributes: ['full_name'],
+            },
+          ],
+          order: [['createdAt', 'DESC']],
+          offset,
+          limit,
+        }));
+      } else if (status === 'halfPayment') {
+        ({ count, rows: allUsers } = await this.repo.findAndCountAll({
+          where: {
+            school_id,
+            discount: 0,
+            createdAt: {
+              [Op.gte]: new Date(year, month - 1, day),
+              [Op.lt]: new Date(year, month - 1, day + 1),
+            },
           },
-          {
-            model: Student,
-            attributes: ['full_name'],
+          attributes: [
+            'id',
+            'method',
+            'price',
+            'discount',
+            'month',
+            'status',
+            'description',
+            'createdAt',
+          ],
+          include: [
+            {
+              model: Group,
+              attributes: ['id', 'name', 'price'],
+              required: true,
+              on: literal(
+                `"Payment"."group_id" = "Group"."id" AND "Payment"."price" != "Group"."price"`,
+              ),
+            },
+            {
+              model: Student,
+              attributes: ['full_name'],
+            },
+          ],
+          order: [['createdAt', 'DESC']],
+          offset,
+          limit,
+        }));
+      } else if (status === 'discount') {
+        ({ count, rows: allUsers } = await this.repo.findAndCountAll({
+          where: {
+            school_id,
+            discount: {
+              [Op.ne]: 0,
+            },
+            createdAt: {
+              [Op.gte]: new Date(year, month - 1, day),
+              [Op.lt]: new Date(year, month - 1, day + 1),
+            },
           },
-        ],
-        order: [['createdAt', 'DESC']],
-        offset,
-        limit,
-      });
+          attributes: [
+            'id',
+            'method',
+            'price',
+            'discount',
+            'month',
+            'status',
+            'description',
+            'createdAt',
+          ],
+          include: [
+            {
+              model: Group,
+              attributes: ['id', 'name', 'price'],
+            },
+            {
+              model: Student,
+              attributes: ['full_name'],
+            },
+          ],
+          order: [['createdAt', 'DESC']],
+          offset,
+          limit,
+        }));
+      }
 
       const total_count = count;
       const total_pages = Math.ceil(total_count / limit);
@@ -239,12 +425,12 @@ export class PaymentService {
         }),
       );
 
-      // const filteredProducts = allProduct.filter(Boolean);
+      const filteredProducts = allProduct.filter(Boolean);
 
       return {
         status: 200,
         data: {
-          records: allProduct,
+          records: filteredProducts,
           pagination: {
             currentPage: page,
             total_pages,
@@ -253,6 +439,8 @@ export class PaymentService {
         },
       };
     } catch (error) {
+      console.log(error);
+
       throw new BadRequestException(error.message);
     }
   }
