@@ -62,6 +62,9 @@ export class StatisticService {
     const paymentSum = await this.repoPayment.sum('price', {
       where: {
         school_id,
+        status: {
+          [Op.ne]: 'delete',
+        },
         createdAt: {
           [Op.between]: [startDate, endDate],
         },
@@ -124,6 +127,9 @@ export class StatisticService {
     const payments = await this.repoPayment.findAll({
       where: {
         school_id,
+        status: {
+          [Op.ne]: 'delete',
+        },
         createdAt: {
           [Op.between]: [startDate, endDate],
         },
@@ -139,6 +145,9 @@ export class StatisticService {
     const paymentSum = await this.repoPayment.sum('price', {
       where: {
         school_id,
+        status: {
+          [Op.ne]: 'delete',
+        },
         createdAt: {
           [Op.between]: [startDate, endDate],
         },
@@ -197,6 +206,9 @@ export class StatisticService {
       const paymentSum = await this.repoPayment.sum('price', {
         where: {
           school_id,
+          status: {
+            [Op.ne]: 'delete',
+          },
           createdAt: {
             [Op.between]: [startDate, endDate],
           },
@@ -232,7 +244,13 @@ export class StatisticService {
           },
           {
             model: Payment,
-            where: { year: String(currentYear), month },
+            where: {
+              year: String(currentYear),
+              month,
+              status: {
+                [Op.ne]: 'delete',
+              },
+            },
             required: false,
             attributes: ['price', 'discount', 'group_id', 'createdAt'],
           },
@@ -350,6 +368,9 @@ export class StatisticService {
       const paymentSum = await this.repoPayment.sum('price', {
         where: {
           school_id,
+          status: {
+            [Op.ne]: 'delete',
+          },
           student_id: { [Op.in]: studentIds },
           createdAt: { [Op.between]: [startDate, endDate] },
         },
@@ -418,6 +439,9 @@ export class StatisticService {
             where: {
               year: String(currentYear),
               month,
+              status: {
+                [Op.ne]: 'delete',
+              },
             },
             required: false,
             attributes: ['price', 'discount', 'group_id'],
@@ -536,6 +560,9 @@ export class StatisticService {
     const totalPayment = await this.repoPayment.sum('price', {
       where: {
         school_id,
+        status: {
+          [Op.ne]: 'delete',
+        },
         student_id: { [Op.in]: studentIds },
         createdAt: {
           [Op.between]: [startOfMonth, endOfMonth],
