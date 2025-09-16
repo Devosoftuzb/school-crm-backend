@@ -89,7 +89,7 @@ export class PaymentService {
               attributes: ['id', 'name', 'price'],
               required: true,
               on: literal(
-                `"Payment"."group_id" = "Group"."id" AND "Payment"."price" = "Group"."price"`,
+                `"Payment"."group_id" = "group"."id" AND "Payment"."price" = CAST("group"."price" AS INTEGER)`,
               ),
             },
             {
@@ -126,7 +126,7 @@ export class PaymentService {
               attributes: ['id', 'name', 'price'],
               required: true,
               on: literal(
-                `"Payment"."group_id" = "Group"."id" AND "Payment"."price" != "Group"."price"`,
+                `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
               ),
             },
             {
@@ -275,7 +275,7 @@ export class PaymentService {
               attributes: ['id', 'name', 'price'],
               required: true,
               on: literal(
-                `"Payment"."group_id" = "Group"."id" AND "Payment"."price" = "Group"."price"`,
+                `"Payment"."group_id" = "group"."id" AND "Payment"."price" = CAST("group"."price" AS INTEGER)`,
               ),
             },
             {
@@ -313,7 +313,7 @@ export class PaymentService {
               attributes: ['id', 'name', 'price'],
               required: true,
               on: literal(
-                `"Payment"."group_id" = "Group"."id" AND "Payment"."price" != "Group"."price"`,
+                `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
               ),
             },
             {
