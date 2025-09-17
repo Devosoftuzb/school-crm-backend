@@ -676,6 +676,8 @@ export class PaymentService {
             price: user.price,
             discount: user.discount,
             month: user.month,
+            status: user.status,
+            description: user.description,
             createdAt: user.createdAt,
           };
         }),
@@ -864,6 +866,8 @@ export class PaymentService {
             price: user.price,
             discount: user.discount,
             month: user.month,
+            status: user.status,
+            description: user.description,
             createdAt: user.createdAt,
           };
         }),
