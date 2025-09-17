@@ -523,7 +523,6 @@ export class PaymentService {
       const limit = 15;
       const offset = (page - 1) * limit;
 
-      
       const [paymentCount, halfPaymentCount, discountCount] = await Promise.all(
         [
           this.repo.count({
@@ -574,7 +573,6 @@ export class PaymentService {
         ],
       );
 
-      
       let whereClause: any = {
         school_id,
         group_id,
@@ -1169,7 +1167,11 @@ export class PaymentService {
     updatePaymentDto: UpdatePaymentDto,
   ) {
     const payment = await this.findOne(id, school_id);
-    await payment.update(updatePaymentDto);
+
+    await payment.update({
+      ...updatePaymentDto,
+      status: 'update',
+    });
 
     return {
       message: 'Payment updated successfully',
@@ -1179,10 +1181,11 @@ export class PaymentService {
 
   async remove(id: number, school_id: number) {
     const payment = await this.findOne(id, school_id);
-    await payment.destroy();
+
+    await payment.update({ status: 'delete' });
 
     return {
-      message: 'Payment removed successfully',
+      message: 'Payment marked as deleted successfully',
     };
   }
 
