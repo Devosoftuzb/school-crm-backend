@@ -8,6 +8,18 @@ import { UpdateRoomDto } from './dto/update-room.dto';
 export class RoomService {
   constructor(@InjectModel(Room) private repo: typeof Room) {}
 
+  async onModuleInit() {
+    const count = await this.repo.count();
+
+    if (count === 0) {
+      await this.repo.create({
+        name: 'Default Room',
+        status: 'status',
+      });
+      console.log('✅ Default room created automatically');
+    }
+  }
+
   async create(createRoomDto: CreateRoomDto) {
     const school = await this.repo.create(createRoomDto);
     return {
