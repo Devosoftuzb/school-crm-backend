@@ -98,6 +98,17 @@ export class StatisticController {
     return this.statisticService.getDayPayments(+school_id, date);
   }
 
+  @ApiOperation({ summary: 'School Payments' })
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
+  @Get('payment-day-employee/:school_id/:date')
+  getEmployeeDayPayments(
+    @Param('school_id') school_id: string,
+    @Param('employee_id') employee_id: string,
+    @Param('date') date: string,
+  ) {
+    return this.statisticService.getEmployeeDayPayments(+school_id, +employee_id, date);
+  }
+
   @ApiOperation({ summary: 'School Statistics' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get('finance/:school_id')

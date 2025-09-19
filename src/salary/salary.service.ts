@@ -115,4 +115,56 @@ export class SalaryService {
       message: 'Salary removed successfully',
     };
   }
+
+  async getHistorySalary(
+    school_id: number,
+    teacher_id: number,
+    year: number,
+    month: number,
+    page: number,
+  ): Promise<object> {
+    try {
+      page = Number(page);
+      if (page < 1) page = 1;
+
+      const limit = 15;
+      const offset = (page - 1) * limit;
+
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 1);
+
+      const condition = {
+        school_id,
+        teacher_id,
+        createdAt: {
+          [Op.gte]: startDate,
+          [Op.lt]: endDate,
+        },
+      };
+
+      const salary = await this.repo.findAll({
+        where: condition,
+        include: { all: true },
+        offset,
+        limit,
+      });
+
+      const total_count = await this.repo.count({ where: condition });
+      const total_pages = Math.ceil(total_count / limit);
+
+      return {
+        status: 200,
+        data: {
+          records: salary,
+          pagination: {
+            currentPage: page,
+            total_pages,
+            total_count,
+          },
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
 }

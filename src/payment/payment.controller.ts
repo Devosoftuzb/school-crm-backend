@@ -164,4 +164,23 @@ export class PaymentController {
       page,
     );
   }
+
+  @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
+  @Roles('owner', 'administrator', 'teacher')
+  @Get('employeeMonth/:school_id/:employee_id/:year/:month/page')
+  findEmployeeMonthHistory(
+    @Param('school_id') school_id: string,
+    @Param('employee_id') employee_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+    @Query('page') page: number,
+  ) {
+    return this.paymentService.findEmployeeMonthHistory(
+      +school_id,
+      +employee_id,
+      +year,
+      +month,
+      page,
+    );
+  }
 }
