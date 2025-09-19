@@ -58,7 +58,6 @@ export class PaymentController {
   @Get('month/:school_id/:group_id/:year/:month/:status/page')
   findMonthHistory(
     @Param('school_id') school_id: string,
-    @Param('group_id') group_id: string,
     @Param('year') year: string,
     @Param('month') month: string,
     @Param('status') status: string,
@@ -66,9 +65,8 @@ export class PaymentController {
   ) {
     return this.paymentService.findMonthHistory(
       +school_id,
-      +group_id,
-      year,
-      month,
+      +year,
+      +month,
       status,
       page,
     );

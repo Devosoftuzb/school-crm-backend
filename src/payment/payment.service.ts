@@ -512,9 +512,8 @@ export class PaymentService {
 
   async findMonthHistory(
     school_id: number,
-    group_id: number,
-    year: string,
-    month: string,
+    year: number,
+    month: number,
     status: string,
     page: number,
   ): Promise<object> {
@@ -523,12 +522,14 @@ export class PaymentService {
       const limit = 15;
       const offset = (page - 1) * limit;
 
+      const startDate = new Date(year, month - 1, 1); 
+      const endDate = new Date(year, month, 0); 
+
       const [paymentCount, halfPaymentCount, discountCount] = await Promise.all(
         [
           this.repo.count({
             where: {
               school_id,
-              group_id,
               discount: 0,
               year,
               month,
@@ -546,7 +547,6 @@ export class PaymentService {
           this.repo.count({
             where: {
               school_id,
-              group_id,
               discount: 0,
               year,
               month,
@@ -564,7 +564,6 @@ export class PaymentService {
           this.repo.count({
             where: {
               school_id,
-              group_id,
               discount: { [Op.ne]: 0 },
               year,
               month,
@@ -575,7 +574,6 @@ export class PaymentService {
 
       let whereClause: any = {
         school_id,
-        group_id,
         year,
         month,
       };
