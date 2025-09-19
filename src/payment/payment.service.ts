@@ -523,7 +523,7 @@ export class PaymentService {
       const offset = (page - 1) * limit;
 
       const startDate = new Date(year, month - 1, 1); 
-      const endDate = new Date(year, month, 0); 
+      const endDate = new Date(year, month, 1); 
 
       const [paymentCount, halfPaymentCount, discountCount] = await Promise.all(
         [
