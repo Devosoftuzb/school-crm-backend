@@ -531,8 +531,7 @@ export class PaymentService {
             where: {
               school_id,
               discount: 0,
-              year,
-              month,
+              createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
             include: [
               {
@@ -548,8 +547,7 @@ export class PaymentService {
             where: {
               school_id,
               discount: 0,
-              year,
-              month,
+              createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
             include: [
               {
@@ -565,8 +563,7 @@ export class PaymentService {
             where: {
               school_id,
               discount: { [Op.ne]: 0 },
-              year,
-              month,
+              createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
           }),
         ],
@@ -574,8 +571,7 @@ export class PaymentService {
 
       let whereClause: any = {
         school_id,
-        year,
-        month,
+        createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
       };
 
       let groupInclude: any = {
