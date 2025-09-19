@@ -48,13 +48,13 @@ export class CustomerAnswerService {
     }
 
     let result = '';
-    if (score <= 12) {
+    if (score <= 15) {
       result = 'BEGINNER';
-    } else if (score <= 25) {
+    } else if (score <= 27) {
       result = 'ELEMENTARY';
-    } else if (score <= 36) {
+    } else if (score <= 38) {
       result = 'PRE INTER';
-    } else if (score <= 49) {
+    } else if (score <= 50) {
       result = 'INTER';
     } else if (score <= 70) {
       result = 'IELTS';
