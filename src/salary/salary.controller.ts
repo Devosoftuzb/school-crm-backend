@@ -83,10 +83,16 @@ export class SalaryController {
     return this.salaryService.remove(+id, +school_id);
   }
 
-  // @ApiOperation({ summary: 'Salary paginate' })
-  // @Roles('teacher')
-  // @Get(':school_id/:teacher_id/page')
-  // getHistorySalary(@Query('page') page: number, @Param('school_id') school_id: string, @Param('teacher_id') teacher_id: string) {
-  //   return this.salaryService.getHistorySalary(+school_id, +teacher_id, page);
-  // }
+  @ApiOperation({ summary: 'Salary paginate' })
+  @Roles('teacher')
+  @Get('teacherSalary/:school_id/:teacher_id/:year/:month/page')
+  getHistorySalary(
+    @Query('page') page: number,
+    @Param('school_id') school_id: string,
+    @Param('teacher_id') teacher_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+  ) {
+    return this.salaryService.getHistorySalary(+school_id, +teacher_id, +year, +month, page);
+  }
 }

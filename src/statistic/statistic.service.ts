@@ -192,6 +192,140 @@ export class StatisticService {
     };
   }
 
+  async getEmployeeDayPayments(
+    school_id: number,
+    employee_id: number,
+    date: string,
+  ) {
+    let startDate: Date;
+    let endDate: Date;
+
+    const employeeGroups = await this.repoGroup.findAll({
+      where: { school_id },
+      include: [
+        {
+          model: EmployeeGroup,
+          where: { employee_id },
+          attributes: [],
+          required: true,
+        },
+      ],
+      attributes: ['id'],
+    });
+
+    const allowedGroupIds = employeeGroups.map((g) => g.id);
+
+    const dateParts = date.split('-');
+    if (dateParts.length === 3) {
+      startDate = new Date(
+        Number(dateParts[0]),
+        Number(dateParts[1]) - 1,
+        Number(dateParts[2]),
+      );
+      endDate = new Date(
+        Number(dateParts[0]),
+        Number(dateParts[1]) - 1,
+        Number(dateParts[2]),
+        23,
+        59,
+        59,
+      );
+    } else if (dateParts.length === 2) {
+      startDate = new Date(Number(dateParts[0]), Number(dateParts[1]) - 1, 1);
+      endDate = new Date(
+        Number(dateParts[0]),
+        Number(dateParts[1]),
+        0,
+        23,
+        59,
+        59,
+      );
+    } else {
+      throw new Error(
+        "Noto'g'ri sana formati. 'YYYY-MM-DD' yoki 'YYYY-MM' formatida kiriting.",
+      );
+    }
+
+    startDate.setHours(startDate.getHours());
+    endDate.setHours(endDate.getHours());
+
+    const allMethods = await this.repoMethod.findAll({
+      where: {
+        school_id,
+      },
+      attributes: ['name'],
+    });
+
+    const payments = await this.repoPayment.findAll({
+      where: {
+        school_id,
+        group_id: { [Op.in]: allowedGroupIds },
+        status: {
+          [Op.ne]: 'delete',
+        },
+        createdAt: {
+          [Op.between]: [startDate, endDate],
+        },
+      },
+      attributes: [
+        'method',
+        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count'],
+        [Sequelize.fn('SUM', Sequelize.col('price')), 'sum'],
+      ],
+      group: ['method'],
+    });
+
+    const paymentSum = await this.repoPayment.sum('price', {
+      where: {
+        school_id,
+        group_id: { [Op.in]: allowedGroupIds },
+        status: {
+          [Op.ne]: 'delete',
+        },
+        createdAt: {
+          [Op.between]: [startDate, endDate],
+        },
+      },
+    });
+
+    const paymentMethods = allMethods.reduce(
+      (acc, method) => {
+        acc[method.name] = { count: 0, sum: 0 };
+        return acc;
+      },
+      {} as Record<string, { count: number; sum: number }>,
+    );
+
+    payments.forEach((payment) => {
+      const method = payment.get('method');
+      const count = payment.get('count');
+      const sum = payment.get('sum');
+      paymentMethods[method] = { count: Number(count), sum: Number(sum) };
+    });
+
+    let totalCount = 0;
+    const statistics = Object.entries(paymentMethods).map(
+      ([method, { count, sum }]) => {
+        totalCount += count;
+        return {
+          method,
+          count,
+          sum,
+        };
+      },
+    );
+
+    statistics.push({
+      method: 'Tushum',
+      count: totalCount,
+      sum: paymentSum || 0,
+    });
+
+    return {
+      statistics,
+    };
+  }
+
   async getYearlyPayments(school_id: number, year: number) {
     const currentYear = year;
     const paymentsPerMonth = [];
