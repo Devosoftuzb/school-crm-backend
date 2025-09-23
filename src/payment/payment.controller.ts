@@ -72,6 +72,27 @@ export class PaymentController {
     );
   }
 
+  @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
+  @Roles('owner', 'administrator', 'teacher')
+  @Get('groupMonth/:school_id/:group_id/:year/:month/:status/page')
+  findGroupMonthHistory(
+    @Param('school_id') school_id: string,
+    @Param('group_id') group_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+    @Param('status') status: string,
+    @Query('page') page: number,
+  ) {
+    return this.paymentService.findGroupMonthHistory(
+      +school_id,
+      +group_id,
+      year,
+      month,
+      status,
+      page,
+    );
+  }
+
   @ApiOperation({ summary: 'Payment history one day view by ID by school ID' })
   @Roles('owner', 'administrator')
   @Get('day/:school_id/:year/:month/:day/:status/page')
