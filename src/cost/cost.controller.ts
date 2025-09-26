@@ -58,6 +58,19 @@ export class CostController {
     return this.costService.paginate(+school_id, +year, +month, page);
   }
 
+  @ApiOperation({ summary: 'Cost paginate' })
+  @Roles('owner', 'administrator')
+  @Get(':school_id/:year/:month/:cost_category_id/page')
+  paginateCategory(
+    @Query('page') page: number,
+    @Param('school_id') school_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+    @Param('cost_category_id') cost_category_id: string,
+  ) {
+    return this.costService.paginateCategory(+school_id, +year, +month, +cost_category_id, page);
+  }
+
   @ApiOperation({ summary: 'Cost view by ID by school ID' })
   @Roles('owner', 'administrator')
   @Get(':school_id/:id')
