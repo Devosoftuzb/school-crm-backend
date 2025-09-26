@@ -320,7 +320,7 @@ export class StatisticService {
       attributes: ['group_id'],
     });
 
-    const allowedGroupIds = employeeGroups.map((g) => g.id);
+    const groupIds = employeeGroups.map((eg) => eg.group_id);
 
     const dateParts = date.split('-');
     if (dateParts.length === 3) {
@@ -363,7 +363,7 @@ export class StatisticService {
       attributes: ['name'],
     });
 
-    if (allowedGroupIds.length === 0) {
+    if (groupIds.length === 0) {
       return {
         statistics: allMethods
           .map((method) => ({
@@ -378,7 +378,7 @@ export class StatisticService {
     const payments = await this.repoPayment.findAll({
       where: {
         school_id,
-        group_id: { [Op.in]: allowedGroupIds },
+        group_id: { [Op.in]: groupIds },
         status: {
           [Op.ne]: 'delete',
         },
@@ -397,7 +397,7 @@ export class StatisticService {
     const paymentSum = await this.repoPayment.sum('price', {
       where: {
         school_id,
-        group_id: { [Op.in]: allowedGroupIds },
+        group_id: { [Op.in]: groupIds },
         status: {
           [Op.ne]: 'delete',
         },
