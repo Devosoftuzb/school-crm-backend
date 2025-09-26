@@ -115,7 +115,7 @@ export class StatisticController {
 
   @ApiOperation({ summary: 'School Payments' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
-  @Get('payment-day-employee/:school_id/:date')
+  @Get('payment-day-employee/:school_id/:employee_id/:date')
   getEmployeeDayPayments(
     @Param('school_id') school_id: string,
     @Param('employee_id') employee_id: string,
