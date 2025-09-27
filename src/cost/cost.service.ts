@@ -80,7 +80,7 @@ export class CostService {
     school_id: number,
     year: number,
     month: number,
-    cost_category_id: number,
+    category_id: number,
     page: number,
   ): Promise<object> {
     try {
@@ -93,7 +93,7 @@ export class CostService {
 
       const condition = {
         school_id,
-        cost_category_id,
+        category_id,
         createdAt: {
           [Op.gte]: startDate,
           [Op.lt]: endDate,
