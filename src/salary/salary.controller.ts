@@ -84,7 +84,7 @@ export class SalaryController {
   }
 
   @ApiOperation({ summary: 'Salary paginate' })
-  @Roles('teacher')
+  @Roles('owner', 'administrator', 'teacher')
   @Get('teacherSalary/:school_id/:teacher_id/:year/:month/page')
   getHistorySalary(
     @Query('page') page: number,
