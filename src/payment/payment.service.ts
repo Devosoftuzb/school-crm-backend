@@ -1437,7 +1437,16 @@ export class PaymentService {
             [Op.lt]: new Date(year, month - 1, day + 1),
           },
         },
-        attributes: ['id', 'method', 'price', 'discount', 'month', 'createdAt'],
+        attributes: [
+          'id',
+          'method',
+          'price',
+          'discount',
+          'month',
+          'createdAt',
+          'status',
+          'description',
+        ],
         include: [
           {
             model: Group,
@@ -1471,6 +1480,8 @@ export class PaymentService {
           price: user.price,
           discount: user.discount,
           month: user.month,
+          status: user.status,
+          description: user.description,
           createdAt: user.createdAt,
         };
 
@@ -1549,7 +1560,16 @@ export class PaymentService {
             [Op.lt]: new Date(year, month, 1),
           },
         },
-        attributes: ['id', 'method', 'price', 'discount', 'month', 'createdAt'],
+        attributes: [
+          'id',
+          'method',
+          'price',
+          'discount',
+          'month',
+          'createdAt',
+          'status',
+          'description',
+        ],
         include: [
           {
             model: Group,
@@ -1583,6 +1603,8 @@ export class PaymentService {
           price: user.price,
           discount: user.discount,
           month: user.month,
+          status: user.status,
+          description: user.description,
           createdAt: user.createdAt,
         };
 
