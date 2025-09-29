@@ -621,6 +621,7 @@ export class StatisticService {
       const paymentSum = await this.repoPayment.sum('price', {
         where: {
           school_id,
+          group_id: { [Op.in]: groupIds },
           status: {
             [Op.ne]: 'delete',
           },
@@ -816,6 +817,7 @@ export class StatisticService {
         status: {
           [Op.ne]: 'delete',
         },
+        group_id: { [Op.in]: groupIds },
         student_id: { [Op.in]: studentIds },
         createdAt: {
           [Op.between]: [startOfMonth, endOfMonth],
