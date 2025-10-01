@@ -15,6 +15,7 @@ interface SalartAttr {
   price: number;
   method: string;
   month: string;
+  description: string;
 }
 
 @Table({ tableName: 'salary' })
@@ -69,4 +70,10 @@ export class Salary extends Model<Salary, SalartAttr> {
     allowNull: false,
   })
   month: string;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: true,
+  })
+  description: string;
 }

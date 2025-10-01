@@ -54,7 +54,19 @@ export class PaymentController {
   }
 
   @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
-  @Roles('owner', 'administrator', 'teacher')
+  @Roles('owner', 'administrator')
+  @Get('year/:school_id/:year/:status/page')
+  findYearHistory(
+    @Param('school_id') school_id: string,
+    @Param('year') year: string,
+    @Param('status') status: string,
+    @Query('page') page: number,
+  ) {
+    return this.paymentService.findYearHistory(+school_id, +year, status, page);
+  }
+
+  @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
+  @Roles('owner', 'administrator')
   @Get('month/:school_id/:year/:month/:status/page')
   findMonthHistory(
     @Param('school_id') school_id: string,
@@ -201,6 +213,23 @@ export class PaymentController {
       +employee_id,
       +year,
       +month,
+      page,
+    );
+  }
+
+    @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
+  @Roles('owner', 'administrator', 'teacher')
+  @Get('employeeYear/:school_id/:employee_id/:year/page')
+  findEmployeeYearHistory(
+    @Param('school_id') school_id: string,
+    @Param('employee_id') employee_id: string,
+    @Param('year') year: string,
+    @Query('page') page: number,
+  ) {
+    return this.paymentService.findEmployeeYearHistory(
+      +school_id,
+      +employee_id,
+      +year,
       page,
     );
   }

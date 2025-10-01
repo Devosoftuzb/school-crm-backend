@@ -48,468 +48,6 @@ export class PaymentService {
     return this.repo.findAll({ where: { school_id } });
   }
 
-  // async findMonthHistory(
-  //   school_id: number,
-  //   group_id: number,
-  //   year: string,
-  //   month: string,
-  //   status: string,
-  //   page: number,
-  // ): Promise<object> {
-  //   try {
-  //     page = Number(page);
-  //     const limit = 15;
-  //     const offset = (page - 1) * limit;
-
-  //     let count = 0;
-  //     let allUsers: any[] = [];
-
-  //     if (status === 'payment') {
-  //       ({ count, rows: allUsers } = await this.repo.findAndCountAll({
-  //         where: {
-  //           school_id,
-  //           group_id,
-  //           discount: 0,
-  //           year,
-  //           month,
-  //         },
-  //         attributes: [
-  //           'id',
-  //           'method',
-  //           'price',
-  //           'discount',
-  //           'month',
-  //           'status',
-  //           'description',
-  //           'createdAt',
-  //         ],
-  //         include: [
-  //           {
-  //             model: Group,
-  //             attributes: ['id', 'name', 'price'],
-  //             required: true,
-  //             on: literal(
-  //               `"Payment"."group_id" = "group"."id" AND "Payment"."price" = CAST("group"."price" AS INTEGER)`,
-  //             ),
-  //           },
-  //           {
-  //             model: Student,
-  //             attributes: ['full_name'],
-  //           },
-  //         ],
-  //         order: [['createdAt', 'DESC']],
-  //         offset,
-  //         limit,
-  //       }));
-  //     } else if (status === 'halfPayment') {
-  //       ({ count, rows: allUsers } = await this.repo.findAndCountAll({
-  //         where: {
-  //           school_id,
-  //           group_id,
-  //           discount: 0,
-  //           year,
-  //           month,
-  //         },
-  //         attributes: [
-  //           'id',
-  //           'method',
-  //           'price',
-  //           'discount',
-  //           'month',
-  //           'status',
-  //           'description',
-  //           'createdAt',
-  //         ],
-  //         include: [
-  //           {
-  //             model: Group,
-  //             attributes: ['id', 'name', 'price'],
-  //             required: true,
-  //             on: literal(
-  //               `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
-  //             ),
-  //           },
-  //           {
-  //             model: Student,
-  //             attributes: ['full_name'],
-  //           },
-  //         ],
-  //         order: [['createdAt', 'DESC']],
-  //         offset,
-  //         limit,
-  //       }));
-  //     } else if (status === 'discount') {
-  //       ({ count, rows: allUsers } = await this.repo.findAndCountAll({
-  //         where: {
-  //           school_id,
-  //           group_id,
-  //           discount: {
-  //             [Op.ne]: 0,
-  //           },
-  //           year,
-  //           month,
-  //         },
-  //         attributes: [
-  //           'id',
-  //           'method',
-  //           'price',
-  //           'discount',
-  //           'month',
-  //           'status',
-  //           'description',
-  //           'createdAt',
-  //         ],
-  //         include: [
-  //           {
-  //             model: Group,
-  //             attributes: ['id', 'name', 'price'],
-  //           },
-  //           {
-  //             model: Student,
-  //             attributes: ['full_name'],
-  //           },
-  //         ],
-  //         order: [['createdAt', 'DESC']],
-  //         offset,
-  //         limit,
-  //       }));
-  //     } else if (status === 'all') {
-  //       ({ count, rows: allUsers } = await this.repo.findAndCountAll({
-  //         where: {
-  //           school_id,
-  //           group_id,
-  //           year,
-  //           month,
-  //         },
-  //         attributes: [
-  //           'id',
-  //           'method',
-  //           'price',
-  //           'discount',
-  //           'month',
-  //           'status',
-  //           'description',
-  //           'createdAt',
-  //         ],
-  //         include: [
-  //           {
-  //             model: Group,
-  //             attributes: ['id', 'name', 'price'],
-  //           },
-  //           {
-  //             model: Student,
-  //             attributes: ['full_name'],
-  //           },
-  //         ],
-  //         order: [['createdAt', 'DESC']],
-  //         offset,
-  //         limit,
-  //       }));
-  //     }
-
-  //     const total_count = count;
-  //     const total_pages = Math.ceil(total_count / limit);
-
-  //     const allProduct = await Promise.all(
-  //       allUsers.map(async (user) => {
-  //         const group = await this.repoGroup.findOne({
-  //           where: {
-  //             id: user.group.id,
-  //             school_id: school_id,
-  //           },
-  //           include: [
-  //             {
-  //               model: EmployeeGroup,
-  //               attributes: ['employee_id'],
-  //             },
-  //           ],
-  //         });
-
-  //         const employee = await this.repoEmployee.findOne({
-  //           where: {
-  //             id: group.employee[0]?.employee_id,
-  //           },
-  //           attributes: ['full_name'],
-  //         });
-
-  //         return {
-  //           id: user.id,
-  //           student_name: user.student
-  //             ? user.student.full_name
-  //             : 'O‘chirilgan o‘quvchi',
-  //           teacher_name: employee?.full_name,
-  //           group_name: user.group.name,
-  //           group_price: user.group.price,
-  //           method: user.method,
-  //           price: user.price,
-  //           discount: user.discount,
-  //           month: user.month,
-  //           createdAt: user.createdAt,
-  //         };
-  //       }),
-  //     );
-
-  //     return {
-  //       status: 200,
-  //       data: {
-  //         records: allProduct,
-  //         pagination: {
-  //           currentPage: page,
-  //           total_pages,
-  //           total_count,
-  //         },
-  //       },
-  //     };
-  //   } catch (error) {
-  //     throw new BadRequestException(error.message);
-  //   }
-  // }
-
-  // async findDayHistory(
-  //   school_id: number,
-  //   year: number,
-  //   month: number,
-  //   day: number,
-  //   status: string,
-  //   page: number,
-  // ): Promise<object> {
-  //   try {
-  //     page = Number(page);
-  //     const limit = 15;
-  //     const offset = (page - 1) * limit;
-
-  //     let count = 0;
-  //     let allUsers: any[] = [];
-
-  //     if (status === 'payment') {
-  //       ({ count, rows: allUsers } = await this.repo.findAndCountAll({
-  //         where: {
-  //           school_id,
-  //           discount: 0,
-  //           createdAt: {
-  //             [Op.gte]: new Date(year, month - 1, day),
-  //             [Op.lt]: new Date(year, month - 1, day + 1),
-  //           },
-  //         },
-  //         attributes: [
-  //           'id',
-  //           'method',
-  //           'price',
-  //           'discount',
-  //           'month',
-  //           'status',
-  //           'description',
-  //           'createdAt',
-  //         ],
-  //         include: [
-  //           {
-  //             model: Group,
-  //             attributes: ['id', 'name', 'price'],
-  //             required: true,
-  //             on: literal(
-  //               `"Payment"."group_id" = "group"."id" AND "Payment"."price" = CAST("group"."price" AS INTEGER)`,
-  //             ),
-  //           },
-  //           {
-  //             model: Student,
-  //             attributes: ['full_name'],
-  //           },
-  //         ],
-  //         order: [['createdAt', 'DESC']],
-  //         offset,
-  //         limit,
-  //       }));
-  //     } else if (status === 'halfPayment') {
-  //       ({ count, rows: allUsers } = await this.repo.findAndCountAll({
-  //         where: {
-  //           school_id,
-  //           discount: 0,
-  //           createdAt: {
-  //             [Op.gte]: new Date(year, month - 1, day),
-  //             [Op.lt]: new Date(year, month - 1, day + 1),
-  //           },
-  //         },
-  //         attributes: [
-  //           'id',
-  //           'method',
-  //           'price',
-  //           'discount',
-  //           'month',
-  //           'status',
-  //           'description',
-  //           'createdAt',
-  //         ],
-  //         include: [
-  //           {
-  //             model: Group,
-  //             attributes: ['id', 'name', 'price'],
-  //             required: true,
-  //             on: literal(
-  //               `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
-  //             ),
-  //           },
-  //           {
-  //             model: Student,
-  //             attributes: ['full_name'],
-  //           },
-  //         ],
-  //         order: [['createdAt', 'DESC']],
-  //         offset,
-  //         limit,
-  //       }));
-  //     } else if (status === 'discount') {
-  //       ({ count, rows: allUsers } = await this.repo.findAndCountAll({
-  //         where: {
-  //           school_id,
-  //           discount: {
-  //             [Op.ne]: 0,
-  //           },
-  //           createdAt: {
-  //             [Op.gte]: new Date(year, month - 1, day),
-  //             [Op.lt]: new Date(year, month - 1, day + 1),
-  //           },
-  //         },
-  //         attributes: [
-  //           'id',
-  //           'method',
-  //           'price',
-  //           'discount',
-  //           'month',
-  //           'status',
-  //           'description',
-  //           'createdAt',
-  //         ],
-  //         include: [
-  //           {
-  //             model: Group,
-  //             attributes: ['id', 'name', 'price'],
-  //           },
-  //           {
-  //             model: Student,
-  //             attributes: ['full_name'],
-  //           },
-  //         ],
-  //         order: [['createdAt', 'DESC']],
-  //         offset,
-  //         limit,
-  //       }));
-  //     } else if (status === 'all') {
-  //       ({ count, rows: allUsers } = await this.repo.findAndCountAll({
-  //         where: {
-  //           school_id,
-  //           createdAt: {
-  //             [Op.gte]: new Date(year, month - 1, day),
-  //             [Op.lt]: new Date(year, month - 1, day + 1),
-  //           },
-  //         },
-  //         attributes: [
-  //           'id',
-  //           'method',
-  //           'price',
-  //           'discount',
-  //           'month',
-  //           'status',
-  //           'description',
-  //           'createdAt',
-  //         ],
-  //         include: [
-  //           {
-  //             model: Group,
-  //             attributes: ['id', 'name', 'price'],
-  //           },
-  //           {
-  //             model: Student,
-  //             attributes: ['full_name'],
-  //           },
-  //         ],
-  //         order: [['createdAt', 'DESC']],
-  //         offset,
-  //         limit,
-  //       }));
-  //     }
-
-  //     const total_count = count;
-  //     const total_pages = Math.ceil(total_count / limit);
-
-  //     const allProduct = await Promise.all(
-  //       allUsers.map(async (user) => {
-  //         if (!user.group || !user.group.id) {
-  //           // console.warn(`user.group mavjud emas: user_id = ${user.id}`);
-  //           return null;
-  //         }
-
-  //         let teacher_name = 'Nomaʼlum';
-
-  //         try {
-  //           const group = await this.repoGroup.findOne({
-  //             where: {
-  //               id: user.group.id,
-  //               school_id: school_id,
-  //             },
-  //             include: [
-  //               {
-  //                 model: EmployeeGroup,
-  //                 attributes: ['employee_id'],
-  //               },
-  //             ],
-  //           });
-
-  //           const employee_id = group?.employee?.[0]?.employee_id;
-
-  //           if (employee_id) {
-  //             const employee = await this.repoEmployee.findOne({
-  //               where: { id: employee_id },
-  //               attributes: ['full_name'],
-  //             });
-
-  //             if (employee?.full_name) {
-  //               teacher_name = employee.full_name;
-  //             }
-  //           }
-  //         } catch (err) {
-  //           // console.warn(
-  //           //   `Xatolik employee/group qismida: user_id = ${user.id}`,
-  //           //   err.message,
-  //           // );
-  //         }
-
-  //         return {
-  //           id: user.id,
-  //           student_name: user.student
-  //             ? user.student.full_name
-  //             : 'O‘chirilgan o‘quvchi',
-  //           teacher_name,
-  //           group_name: user.group.name,
-  //           group_price: user.group.price,
-  //           method: user.method,
-  //           price: user.price,
-  //           discount: user.discount,
-  //           month: user.month,
-  //           createdAt: user.createdAt,
-  //         };
-  //       }),
-  //     );
-
-  //     const filteredProducts = allProduct.filter(Boolean);
-
-  //     return {
-  //       status: 200,
-  //       data: {
-  //         records: filteredProducts,
-  //         pagination: {
-  //           currentPage: page,
-  //           total_pages,
-  //           total_count,
-  //         },
-  //       },
-  //     };
-  //   } catch (error) {
-  //     console.log(error);
-
-  //     throw new BadRequestException(error.message);
-  //   }
-  // }
-
   async findMonthHistory(
     school_id: number,
     year: number,
@@ -524,6 +62,195 @@ export class PaymentService {
 
       const startDate = new Date(year, month - 1, 1);
       const endDate = new Date(year, month, 1);
+
+      const [paymentCount, halfPaymentCount, discountCount] = await Promise.all(
+        [
+          this.repo.count({
+            where: {
+              school_id,
+              discount: 0,
+              createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
+            },
+            include: [
+              {
+                model: Group,
+                required: true,
+                on: literal(
+                  `"Payment"."group_id" = "group"."id" AND "Payment"."price" = CAST("group"."price" AS INTEGER)`,
+                ),
+              },
+            ],
+          }),
+          this.repo.count({
+            where: {
+              school_id,
+              discount: 0,
+              createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
+            },
+            include: [
+              {
+                model: Group,
+                required: true,
+                on: literal(
+                  `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
+                ),
+              },
+            ],
+          }),
+          this.repo.count({
+            where: {
+              school_id,
+              discount: { [Op.ne]: 0 },
+              createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
+            },
+          }),
+        ],
+      );
+
+      let whereClause: any = {
+        school_id,
+        createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
+      };
+
+      let groupInclude: any = {
+        model: Group,
+        attributes: ['id', 'name', 'price'],
+      };
+
+      if (status === 'payment') {
+        whereClause.discount = 0;
+        groupInclude.required = true;
+        groupInclude.on = literal(
+          `"Payment"."group_id" = "group"."id" AND "Payment"."price" = CAST("group"."price" AS INTEGER)`,
+        );
+      } else if (status === 'halfPayment') {
+        whereClause.discount = 0;
+        groupInclude.required = true;
+        groupInclude.on = literal(
+          `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
+        );
+      } else if (status === 'discount') {
+        whereClause.discount = { [Op.ne]: 0 };
+      }
+
+      const { count, rows: allUsers } = await this.repo.findAndCountAll({
+        where: whereClause,
+        attributes: [
+          'id',
+          'method',
+          'price',
+          'discount',
+          'month',
+          'status',
+          'description',
+          'createdAt',
+        ],
+        include: [
+          groupInclude,
+          {
+            model: Student,
+            attributes: ['full_name'],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+        offset,
+        limit,
+      });
+
+      const total_count = count;
+      const total_pages = Math.ceil(total_count / limit);
+
+      const allProduct = await Promise.all(
+        allUsers.map(async (user) => {
+          if (!user.group || !user.group.id) return null;
+
+          let teacher_name = 'Nomaʼlum';
+
+          try {
+            const group = await this.repoGroup.findOne({
+              where: {
+                id: user.group.id,
+                school_id,
+              },
+              include: [
+                {
+                  model: EmployeeGroup,
+                  attributes: ['employee_id'],
+                },
+              ],
+            });
+
+            const employee_id = group?.employee?.[0]?.employee_id;
+
+            if (employee_id) {
+              const employee = await this.repoEmployee.findOne({
+                where: { id: employee_id },
+                attributes: ['full_name'],
+              });
+
+              if (employee?.full_name) {
+                teacher_name = employee.full_name;
+              }
+            }
+          } catch (err) {
+            // Quietly ignore error
+          }
+
+          return {
+            id: user.id,
+            student_name: user.student
+              ? user.student.full_name
+              : 'O‘chirilgan o‘quvchi',
+            teacher_name,
+            group_name: user.group.name,
+            group_price: user.group.price,
+            method: user.method,
+            price: user.price,
+            discount: user.discount,
+            month: user.month,
+            status: user.status,
+            description: user.description,
+            createdAt: user.createdAt,
+          };
+        }),
+      );
+
+      const filteredProducts = allProduct.filter(Boolean);
+
+      return {
+        status: 200,
+        data: {
+          records: filteredProducts,
+          pagination: {
+            currentPage: page,
+            total_pages,
+            total_count,
+          },
+          summary: {
+            paymentCount,
+            halfPaymentCount,
+            discountCount,
+          },
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async findYearHistory(
+    school_id: number,
+    year: number,
+    status: string,
+    page: number,
+  ): Promise<object> {
+    try {
+      page = Number(page);
+      const limit = 15;
+      const offset = (page - 1) * limit;
+
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year + 1, 0, 1);
 
       const [paymentCount, halfPaymentCount, discountCount] = await Promise.all(
         [
@@ -1558,6 +1285,128 @@ export class PaymentService {
           createdAt: {
             [Op.gte]: new Date(year, month - 1, 1),
             [Op.lt]: new Date(year, month, 1),
+          },
+        },
+        attributes: [
+          'id',
+          'method',
+          'price',
+          'discount',
+          'month',
+          'createdAt',
+          'status',
+          'description',
+        ],
+        include: [
+          {
+            model: Group,
+            attributes: ['id', 'name', 'price'],
+          },
+          {
+            model: Student,
+            attributes: ['full_name'],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+        offset,
+        limit,
+      });
+
+      const total_count = count;
+      const total_pages = Math.ceil(total_count / limit);
+
+      // 3. Qayta formatlash
+      let total_sum = 0;
+
+      const allProduct = allUsers.map((user) => {
+        const record = {
+          id: user.id,
+          student_name: user.student
+            ? user.student.full_name
+            : 'O‘chirilgan o‘quvchi',
+          group_name: user.group?.name || 'Nomaʼlum guruh',
+          group_price: user.group?.price || 0,
+          method: user.method,
+          price: user.price,
+          discount: user.discount,
+          month: user.month,
+          status: user.status,
+          description: user.description,
+          createdAt: user.createdAt,
+        };
+
+        total_sum += Number(user.price || 0);
+
+        return record;
+      });
+
+      return {
+        status: 200,
+        data: {
+          records: allProduct,
+          total_sum,
+          pagination: {
+            currentPage: page,
+            total_pages,
+            total_count,
+          },
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async findEmployeeYearHistory(
+    school_id: number,
+    employee_id: number,
+    year: number,
+    page: number,
+  ): Promise<object> {
+    try {
+      page = Number(page);
+      const limit = 15;
+      const offset = (page - 1) * limit;
+
+      // 1. employee qatnashgan group_id larni olish
+      const employeeGroups = await this.repoGroup.findAll({
+        where: { school_id },
+        include: [
+          {
+            model: EmployeeGroup,
+            where: { employee_id },
+            attributes: [],
+            required: true,
+          },
+        ],
+        attributes: ['id'],
+      });
+
+      const allowedGroupIds = employeeGroups.map((g) => g.id);
+
+      if (allowedGroupIds.length === 0) {
+        return {
+          status: 200,
+          data: {
+            records: [],
+            total_sum: 0,
+            pagination: {
+              currentPage: page,
+              total_pages: 0,
+              total_count: 0,
+            },
+          },
+        };
+      }
+
+      // 2. tolovlarni olish (faqat employee tegishli guruhlar)
+      const { count, rows: allUsers } = await this.repo.findAndCountAll({
+        where: {
+          school_id,
+          group_id: { [Op.in]: allowedGroupIds },
+          createdAt: {
+            [Op.gte]: new Date(year, 0, 1),
+            [Op.lt]: new Date(year + 1, 0, 1),
           },
         },
         attributes: [
