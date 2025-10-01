@@ -26,4 +26,10 @@ export class CreateSalaryDto {
   @IsString()
   @IsNotEmpty()
   month: string;
+
+  @ApiProperty({
+    example: 'description',
+    description: 'Description of the salary',
+  })
+  description: string;
 }
