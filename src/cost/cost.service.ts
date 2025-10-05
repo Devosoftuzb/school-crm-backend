@@ -76,6 +76,54 @@ export class CostService {
     }
   }
 
+  async paginateYear(
+    school_id: number,
+    year: number,
+    page: number,
+  ): Promise<object> {
+    try {
+      page = Number(page);
+      const limit = 15;
+      const offset = (page - 1) * limit;
+
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year + 1, 0, 1);
+
+      const condition = {
+        school_id,
+        createdAt: {
+          [Op.gte]: startDate,
+          [Op.lt]: endDate,
+        },
+      };
+
+      const cost = await this.repo.findAll({
+        where: condition,
+        include: { all: true },
+        offset,
+        limit,
+      });
+      const total_count = await this.repo.count({
+        where: condition,
+      });
+      const total_pages = Math.ceil(total_count / limit);
+      const res = {
+        status: 200,
+        data: {
+          records: cost,
+          pagination: {
+            currentPage: page,
+            total_pages,
+            total_count,
+          },
+        },
+      };
+      return res;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
   async paginateCategory(
     school_id: number,
     year: number,
