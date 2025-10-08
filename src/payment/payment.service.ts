@@ -848,7 +848,7 @@ export class PaymentService {
                 include: [
                   {
                     model: Payment,
-                    where: { year, month },
+                    where: { year, month, group_id },
                     required: false,
                     attributes: ['price', 'discount', 'createdAt'],
                   },
