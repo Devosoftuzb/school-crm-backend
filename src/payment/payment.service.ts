@@ -107,25 +107,26 @@ export class PaymentService {
         ],
       );
 
-      let whereClause: any = {
+      const whereClause: any = {
         school_id,
         createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
       };
 
-      let groupInclude: any = {
+      const groupInclude: any = {
         model: Group,
         attributes: ['id', 'name', 'price'],
+        required: false,
       };
 
       if (status === 'payment') {
         whereClause.discount = 0;
-        groupInclude.required = true;
+        groupInclude.required = false;
         groupInclude.on = literal(
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" = CAST("group"."price" AS INTEGER)`,
         );
       } else if (status === 'halfPayment') {
         whereClause.discount = 0;
-        groupInclude.required = true;
+        groupInclude.required = false;
         groupInclude.on = literal(
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
         );
@@ -133,7 +134,7 @@ export class PaymentService {
         whereClause.discount = { [Op.ne]: 0 };
       }
 
-      const { count, rows: allUsers } = await this.repo.findAndCountAll({
+      const { count, rows: allPayments } = await this.repo.findAndCountAll({
         where: whereClause,
         attributes: [
           'id',
@@ -160,73 +161,66 @@ export class PaymentService {
       const total_count = count;
       const total_pages = Math.ceil(total_count / limit);
 
-      const allProduct = await Promise.all(
-        allUsers.map(async (user) => {
-          if (!user.group || !user.group.id) return null;
+      const allRecords = await Promise.all(
+        allPayments.map(async (payment) => {
+          const group = payment.group;
+          const student = payment.student;
 
           let teacher_name = 'Nomaʼlum';
+          let group_name = group ? group.name : 'O‘chirilgan guruh';
+          let group_price = group ? group.price : 0;
 
-          try {
-            const group = await this.repoGroup.findOne({
-              where: {
-                id: user.group.id,
-                school_id,
-              },
-              include: [
-                {
-                  model: EmployeeGroup,
-                  attributes: ['employee_id'],
-                },
-              ],
-            });
-
-            const employee_id = group?.employee?.[0]?.employee_id;
-
-            if (employee_id) {
-              const employee = await this.repoEmployee.findOne({
-                where: { id: employee_id },
-                attributes: ['full_name'],
+          if (group?.id) {
+            try {
+              const groupData = await this.repoGroup.findOne({
+                where: { id: group.id, school_id },
+                include: [
+                  {
+                    model: EmployeeGroup,
+                    attributes: ['employee_id'],
+                  },
+                ],
               });
 
-              if (employee?.full_name) {
-                teacher_name = employee.full_name;
+              const employee_id = groupData?.employee?.[0]?.employee_id;
+              if (employee_id) {
+                const employee = await this.repoEmployee.findOne({
+                  where: { id: employee_id },
+                  attributes: ['full_name'],
+                });
+                if (employee?.full_name) teacher_name = employee.full_name;
               }
-            }
-          } catch (err) {
-            // Quietly ignore error
+            } catch (err) {}
           }
 
           return {
-            id: user.id,
-            student_name: user.student
-              ? user.student.full_name
-              : 'O‘chirilgan o‘quvchi',
+            id: payment.id,
+            student_name: student ? student.full_name : 'O‘chirilgan o‘quvchi',
             teacher_name,
-            group_name: user.group.name,
-            group_price: user.group.price,
-            method: user.method,
-            price: user.price,
-            discount: user.discount,
-            month: user.month,
-            status: user.status,
-            description: user.description,
-            createdAt: user.createdAt,
+            group_name,
+            group_price,
+            method: payment.method,
+            price: payment.price,
+            discount: payment.discount,
+            month: payment.month,
+            status: payment.status,
+            description: payment.description,
+            createdAt: payment.createdAt,
           };
         }),
       );
 
-      const filteredProducts = allProduct.filter(Boolean);
-
       return {
         status: 200,
         data: {
-          records: filteredProducts,
+          records: allRecords,
           pagination: {
             currentPage: page,
             total_pages,
             total_count,
           },
           summary: {
+            allPayment: count,
             paymentCount,
             halfPaymentCount,
             discountCount,
@@ -296,25 +290,26 @@ export class PaymentService {
         ],
       );
 
-      let whereClause: any = {
+      const whereClause: any = {
         school_id,
         createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
       };
 
-      let groupInclude: any = {
+      const groupInclude: any = {
         model: Group,
         attributes: ['id', 'name', 'price'],
+        required: false,
       };
 
       if (status === 'payment') {
         whereClause.discount = 0;
-        groupInclude.required = true;
+        groupInclude.required = false;
         groupInclude.on = literal(
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" = CAST("group"."price" AS INTEGER)`,
         );
       } else if (status === 'halfPayment') {
         whereClause.discount = 0;
-        groupInclude.required = true;
+        groupInclude.required = false;
         groupInclude.on = literal(
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
         );
@@ -322,7 +317,7 @@ export class PaymentService {
         whereClause.discount = { [Op.ne]: 0 };
       }
 
-      const { count, rows: allUsers } = await this.repo.findAndCountAll({
+      const { count, rows: allPayments } = await this.repo.findAndCountAll({
         where: whereClause,
         attributes: [
           'id',
@@ -349,18 +344,18 @@ export class PaymentService {
       const total_count = count;
       const total_pages = Math.ceil(total_count / limit);
 
-      const allProduct = await Promise.all(
-        allUsers.map(async (user) => {
-          if (!user.group || !user.group.id) return null;
+      const allRecords = await Promise.all(
+        allPayments.map(async (payment) => {
+          const group = payment.group;
+          const student = payment.student;
 
           let teacher_name = 'Nomaʼlum';
+          let group_name = group ? group.name : 'O‘chirilgan guruh';
+          let group_price = group ? group.price : 0;
 
-          try {
-            const group = await this.repoGroup.findOne({
-              where: {
-                id: user.group.id,
-                school_id,
-              },
+          if (group?.id) {
+            const groupData = await this.repoGroup.findOne({
+              where: { id: group.id, school_id },
               include: [
                 {
                   model: EmployeeGroup,
@@ -369,53 +364,46 @@ export class PaymentService {
               ],
             });
 
-            const employee_id = group?.employee?.[0]?.employee_id;
-
+            const employee_id = groupData?.employee?.[0]?.employee_id;
             if (employee_id) {
               const employee = await this.repoEmployee.findOne({
                 where: { id: employee_id },
                 attributes: ['full_name'],
               });
-
               if (employee?.full_name) {
                 teacher_name = employee.full_name;
               }
             }
-          } catch (err) {
-            // Quietly ignore error
           }
 
           return {
-            id: user.id,
-            student_name: user.student
-              ? user.student.full_name
-              : 'O‘chirilgan o‘quvchi',
+            id: payment.id,
+            student_name: student ? student.full_name : 'O‘chirilgan o‘quvchi',
             teacher_name,
-            group_name: user.group.name,
-            group_price: user.group.price,
-            method: user.method,
-            price: user.price,
-            discount: user.discount,
-            month: user.month,
-            status: user.status,
-            description: user.description,
-            createdAt: user.createdAt,
+            group_name,
+            group_price,
+            method: payment.method,
+            price: payment.price,
+            discount: payment.discount,
+            month: payment.month,
+            status: payment.status,
+            description: payment.description,
+            createdAt: payment.createdAt,
           };
         }),
       );
 
-      const filteredProducts = allProduct.filter(Boolean);
-
       return {
         status: 200,
         data: {
-          records: filteredProducts,
+          records: allRecords,
           pagination: {
             currentPage: page,
             total_pages,
             total_count,
           },
           summary: {
+            allPayment: count,
             paymentCount,
             halfPaymentCount,
             discountCount,
@@ -809,6 +797,7 @@ export class PaymentService {
             total_count: count,
           },
           summary: {
+            allPayment: count,
             paymentCount,
             halfPaymentCount,
             discountCount,
