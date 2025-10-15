@@ -1100,15 +1100,15 @@ export class PaymentService {
     };
   }
 
-  async remove(id: number, school_id: number) {
-    const payment = await this.findOne(id, school_id);
+  // async remove(id: number, school_id: number) {
+  //   const payment = await this.findOne(id, school_id);
 
-    await payment.update({ status: 'delete' });
+  //   await payment.update({ status: 'delete' });
 
-    return {
-      message: 'Payment marked as deleted successfully',
-    };
-  }
+  //   return {
+  //     message: 'Payment marked as deleted successfully',
+  //   };
+  // }
 
   async findEmployeeDayHistory(
     school_id: number,
@@ -1471,6 +1471,158 @@ export class PaymentService {
             currentPage: page,
             total_pages,
             total_count,
+          },
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async findEmployeeHistoryDebtor(
+    school_id: number,
+    employee_id: number,
+    year: string,
+    month: string,
+    page: number,
+  ): Promise<object> {
+    try {
+      page = Number(page);
+      const limit = 15;
+      const offset = (page - 1) * limit;
+
+      const employeeGroups = await this.repoGroup.findAll({
+        where: { school_id },
+        include: [
+          {
+            model: EmployeeGroup,
+            where: { employee_id },
+            attributes: [],
+            required: true,
+          },
+        ],
+        attributes: ['id'],
+      });
+
+      const allowedGroupIds = employeeGroups.map((g) => g.id);
+
+      const allStudents = await this.repoStudent.findAll({
+        where: { school_id },
+        attributes: ['id', 'full_name'],
+        include: [
+          {
+            model: StudentGroup,
+            where: {
+              group_id: { [Op.in]: allowedGroupIds },
+            },
+            attributes: ['group_id', 'createdAt'],
+            include: [
+              {
+                model: Group,
+                attributes: ['id', 'name', 'price'],
+                include: [
+                  {
+                    model: EmployeeGroup,
+                    attributes: ['employee_id'],
+                    include: [
+                      {
+                        model: Employee,
+                        attributes: ['id', 'full_name'],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: Payment,
+            where: { year, month },
+            required: false,
+            attributes: ['price', 'discount', 'group_id', 'createdAt'],
+          },
+        ],
+      });
+
+      let debtors: object[] = [];
+
+      for (const student of allStudents) {
+        for (const studentGroup of student.group) {
+          const group = studentGroup.group;
+          const groupId = group.id;
+          const groupPrice = Number(group.price);
+          const joinedDate = new Date(studentGroup.createdAt);
+          const checkDate = new Date(`${year}-${month}-01`);
+
+          const joinedYear = joinedDate.getFullYear();
+          const joinedMonth = joinedDate.getMonth();
+          const checkYear = checkDate.getFullYear();
+          const checkMonth = checkDate.getMonth();
+
+          if (
+            joinedYear > checkYear ||
+            (joinedYear === checkYear && joinedMonth > checkMonth)
+          ) {
+            continue;
+          }
+
+          const teacher = group.employee?.[0]?.employee;
+          const teacherName = teacher
+            ? teacher.full_name
+            : 'Noma’lum o‘qituvchi';
+
+          const payments = student.payment.filter(
+            (p) => p.group_id === groupId,
+          );
+
+          let totalPaid = 0;
+          let totalDiscount = 0;
+          let paymentDetails: object[] = [];
+
+          for (const payment of payments) {
+            const discountAmount = (groupPrice * (payment.discount || 0)) / 100;
+            totalPaid += payment.price;
+            totalDiscount += discountAmount;
+
+            paymentDetails.push({
+              paid_amount: payment.price,
+              discount_amount: discountAmount,
+              payment_date: payment.createdAt,
+            });
+          }
+
+          const remainingDebt = Math.max(
+            groupPrice - (totalPaid + totalDiscount),
+            0,
+          );
+
+          if (remainingDebt > 0) {
+            debtors.push({
+              id: student.id,
+              student_name: student.full_name,
+              group_id: groupId,
+              group_name: group.name,
+              teacher_name: teacherName,
+              group_price: groupPrice,
+              debt: remainingDebt,
+              payments: paymentDetails,
+            });
+          }
+        }
+      }
+
+      const totalDebtors = debtors.length;
+
+      const paginatedDebtors = debtors.slice(offset, offset + limit);
+
+      return {
+        status: 200,
+        data: {
+          records: paginatedDebtors,
+          pagination: {
+            currentPage: page,
+            total_pages: Math.ceil(totalDebtors / limit),
+            total_count: totalDebtors,
           },
         },
       };

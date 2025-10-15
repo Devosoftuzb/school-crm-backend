@@ -170,12 +170,12 @@ export class PaymentController {
     return this.paymentService.update(+id, +school_id, updatePaymentDto);
   }
 
-  @ApiOperation({ summary: 'Payment remove by ID by school ID' })
-  @Roles('owner', 'administrator')
-  @Delete(':school_id/:id')
-  remove(@Param('id') id: string, @Param('school_id') school_id: string) {
-    return this.paymentService.remove(+id, +school_id);
-  }
+  // @ApiOperation({ summary: 'Payment remove by ID by school ID' })
+  // @Roles('owner', 'administrator')
+  // @Delete(':school_id/:id')
+  // remove(@Param('id') id: string, @Param('school_id') school_id: string) {
+  //   return this.paymentService.remove(+id, +school_id);
+  // }
 
   @ApiOperation({ summary: 'Payment history one day view by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
@@ -217,7 +217,7 @@ export class PaymentController {
     );
   }
 
-    @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
+  @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get('employeeYear/:school_id/:employee_id/:year/page')
   findEmployeeYearHistory(
@@ -230,6 +230,25 @@ export class PaymentController {
       +school_id,
       +employee_id,
       +year,
+      page,
+    );
+  }
+
+  @ApiOperation({ summary: 'Payment debtor month view by school ID and employee ID' })
+  @Roles('owner', 'administrator')
+  @Get('employee-debtor/:school_id/:employee_id/:year/:month/page')
+  findEmployeeHistoryDebtor(
+    @Param('school_id') school_id: string,
+    @Param('employee_id') employee_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+    @Query('page') page: number,
+  ) {
+    return this.paymentService.findEmployeeHistoryDebtor(
+      +school_id,
+      +employee_id,
+      year,
+      month,
       page,
     );
   }
