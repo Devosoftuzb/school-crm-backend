@@ -61,13 +61,12 @@ export class Payment extends Model<Payment, PaymentAttr> {
   @ForeignKey(() => Group)
   @Column({
     type: DataType.INTEGER,
-    onDelete: 'CASCADE',
-    allowNull: false,
+    allowNull: true,
   })
   group_id: number;
 
   @BelongsTo(() => Group, {
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
   })
   group: Group;
 
@@ -101,14 +100,14 @@ export class Payment extends Model<Payment, PaymentAttr> {
   })
   price: number;
 
-   @Column({
+  @Column({
     type: DataType.STRING,
     allowNull: true,
-    defaultValue: 'create'
+    defaultValue: 'create',
   })
   status: string;
 
-     @Column({
+  @Column({
     type: DataType.TEXT,
     allowNull: true,
   })
