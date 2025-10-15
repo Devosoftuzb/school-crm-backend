@@ -1100,15 +1100,15 @@ export class PaymentService {
     };
   }
 
-  // async remove(id: number, school_id: number) {
-  //   const payment = await this.findOne(id, school_id);
+  async remove(id: number, school_id: number) {
+    const payment = await this.findOne(id, school_id);
 
-  //   await payment.update({ status: 'delete' });
+    await payment.update({ status: 'delete' });
 
-  //   return {
-  //     message: 'Payment marked as deleted successfully',
-  //   };
-  // }
+    return {
+      message: 'Payment marked as deleted successfully',
+    };
+  }
 
   async findEmployeeDayHistory(
     school_id: number,
