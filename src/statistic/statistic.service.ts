@@ -47,7 +47,7 @@ export class StatisticService {
     });
 
     const groupCount = await this.repoGroup.count({
-      where: { school_id },
+      where: { school_id, status: true },
     });
 
     const currentYear = new Date().getFullYear();
@@ -492,6 +492,7 @@ export class StatisticService {
               {
                 model: Group,
                 attributes: ['id', 'name', 'price'],
+                where: { status: true },
               },
             ],
           },
