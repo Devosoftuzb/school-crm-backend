@@ -129,7 +129,7 @@ export class PaymentController {
   @ApiOperation({
     summary: 'Payment debtor month group view by ID by school ID',
   })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get('debtor-group/:school_id/:group_id/:year/:month/page')
   findGroupHistoryDebtor(
     @Param('school_id') school_id: string,
@@ -235,7 +235,7 @@ export class PaymentController {
   }
 
   @ApiOperation({ summary: 'Payment debtor month view by school ID and employee ID' })
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'teacher')
   @Get('employee-debtor/:school_id/:employee_id/:year/:month/page')
   findEmployeeHistoryDebtor(
     @Param('school_id') school_id: string,
