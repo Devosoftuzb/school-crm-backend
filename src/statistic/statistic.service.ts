@@ -616,16 +616,20 @@ export class StatisticService {
       };
     }
 
-    // 4️⃣ Har oy uchun to‘lovlarni hisoblash
+    // 4️⃣ Har oy uchun to‘lovlarni olish va loglash
     for (let month = 0; month < 12; month++) {
       const startDate = new Date(year, month, 1);
       startDate.setHours(startDate.getHours() + 5);
 
       const endDate = new Date(year, month + 1, 0, 23, 59, 59);
       endDate.setHours(endDate.getHours() + 5);
-      console.log(startDate, endDate)
 
-      let paymentSum = await this.repoPayment.sum('price', {
+      console.log(
+        `StartDate: ${startDate.toISOString()} EndDate: ${endDate.toISOString()}`,
+      );
+
+      // To‘lovlarni alohida olish
+      const payments = await this.repoPayment.findAll({
         where: {
           school_id,
           group_id: { [Op.in]: groupIds },
@@ -633,16 +637,23 @@ export class StatisticService {
           student_id: { [Op.in]: studentIds },
           createdAt: { [Op.between]: [startDate, endDate] },
         },
+        attributes: ['price', 'createdAt'],
       });
 
-      // Null yoki undefined bo'lsa 0 qilamiz va Numberga o'tkazamiz
-      paymentSum = Number(paymentSum || 0);
+      // Paymentlarni log qilish
+      payments.forEach((p) => {
+        console.log(`Payment: price=${p.price}, createdAt=${p.createdAt}`);
+      });
+
+      // Summani hisoblash
+      const paymentSum = Number(
+        payments.reduce((sum, p) => sum + Number(p.price || 0), 0),
+      );
 
       // Foiz hisoblash
       const teacherShare =
         percent === 0 ? paymentSum : (paymentSum * percent) / 100;
 
-      // Loglar bilan tekshirish
       console.log(`Month: ${month + 1}`);
       console.log('paymentSum:', paymentSum);
       console.log('percent:', percent);
