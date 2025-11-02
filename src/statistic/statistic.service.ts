@@ -573,7 +573,6 @@ export class StatisticService {
   ) {
     const paymentsPerMonth = [];
 
-    // 1️⃣ Xodimni olish
     const employee = await this.repoEmployee.findOne({
       where: { id: employee_id, school_id },
       attributes: ['salary'],
@@ -583,10 +582,8 @@ export class StatisticService {
       throw new Error('Employee topilmadi');
     }
 
-    const percent = Number(employee.salary || 0); // Foizni Number qilamiz
-    console.log('Employee percent:', percent);
+    const percent = employee.salary || 0;
 
-    // 2️⃣ Xodim guruhlarini olish
     const employeeGroups = await this.employeeGroupRepo.findAll({
       where: { employee_id },
       attributes: ['group_id'],
@@ -600,7 +597,6 @@ export class StatisticService {
       };
     }
 
-    // 3️⃣ Guruhdagi o‘quvchilarni olish
     const studentGroups = await this.studentGroupRepo.findAll({
       where: {
         group_id: { [Op.in]: groupIds },
@@ -616,7 +612,6 @@ export class StatisticService {
       };
     }
 
-    // 4️⃣ Har oy uchun to‘lovlarni olish va loglash
     for (let month = 0; month < 12; month++) {
       const startDate = new Date(year, month, 1);
       startDate.setHours(startDate.getHours() + 5);
@@ -624,46 +619,23 @@ export class StatisticService {
       const endDate = new Date(year, month + 1, 0, 23, 59, 59);
       endDate.setHours(endDate.getHours() + 5);
 
-      console.log(
-        `StartDate: ${startDate.toISOString()} EndDate: ${endDate.toISOString()}`,
-      );
-
-      // To‘lovlarni alohida olish
-      const payments = await this.repoPayment.findAll({
+      const paymentSum = await this.repoPayment.sum('price', {
         where: {
           school_id,
           group_id: { [Op.in]: groupIds },
-          status: { [Op.ne]: 'delete' },
-          student_id: { [Op.in]: studentIds },
+          status: {
+            [Op.ne]: 'delete',
+          },
+          // student_id: { [Op.in]: studentIds },
           createdAt: { [Op.between]: [startDate, endDate] },
         },
-        attributes: ['price', 'createdAt'],
       });
 
-      // Paymentlarni log qilish
-      payments.forEach((p) => {
-        console.log(`Payment: price=${p.price}, createdAt=${p.createdAt}`);
-      });
-
-      // Summani hisoblash
-      const paymentSum = Number(
-        payments.reduce((sum, p) => sum + Number(p.price || 0), 0),
-      );
-
-      // Foiz hisoblash
       const teacherShare =
-        percent === 0 ? paymentSum : (paymentSum * percent) / 100;
-
-      console.log(`Month: ${month + 1}`);
-      console.log('paymentSum:', paymentSum);
-      console.log('percent:', percent);
-      console.log('teacherShare:', teacherShare);
-      console.log('----------------------------');
-
+        percent === 0 ? paymentSum || 0 : ((paymentSum || 0) * percent) / 100;
       paymentsPerMonth.push(teacherShare);
     }
 
-    // 5️⃣ Natija
     return {
       year,
       PaymentStats: paymentsPerMonth,
