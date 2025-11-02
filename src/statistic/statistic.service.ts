@@ -623,6 +623,7 @@ export class StatisticService {
 
       const endDate = new Date(year, month + 1, 0, 23, 59, 59);
       endDate.setHours(endDate.getHours() + 5);
+      console.log(startDate, endDate)
 
       let paymentSum = await this.repoPayment.sum('price', {
         where: {
