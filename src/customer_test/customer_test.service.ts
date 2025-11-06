@@ -63,26 +63,22 @@ export class CustomerTestService {
   async findOne(id: number) {
     const customer_test = await this.repo.findByPk(id, {
       include: [
-        {
-          model: Customer,
-        },
+        { model: Customer },
         {
           model: CustomerAnswer,
+          as: 'customer_answer',
+          separate: true,
+          order: [['id', 'ASC']],
           include: [
             {
               model: Question,
               include: [{ model: QuestionText }],
             },
-            {
-              model: Option,
-            },
+            { model: Option },
           ],
         },
-        {
-          model: Test,
-        },
+        { model: Test },
       ],
-      order: [[CustomerAnswer, 'id', 'ASC']],
     });
 
     if (!customer_test) {
