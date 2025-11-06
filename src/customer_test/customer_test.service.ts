@@ -82,6 +82,7 @@ export class CustomerTestService {
           model: Test,
         },
       ],
+      order: [[CustomerAnswer, 'id', 'ASC']],
     });
 
     if (!customer_test) {
