@@ -11,8 +11,8 @@ export class CreateCustomerDto {
   @IsString()
   full_name: string;
 
-  @ApiProperty({ example: '=998901234567', description: 'Customer phone number' })
-  @IsPhoneNumber()
+  @ApiProperty({ example: '+998901234567', description: 'Customer phone number' })
+  @IsPhoneNumber(undefined)
   phone_number: string;
 
   @ApiProperty({ example: 1, description: 'Social Media ID' })
