@@ -20,10 +20,10 @@ export class CreateEmployeeDto {
   full_name: string;
 
   @ApiProperty({
-    example: '=998901234567',
+    example: '+998901234567',
     description: 'Employee phone number',
   })
-  @IsPhoneNumber()
+  @IsPhoneNumber(undefined)
   @IsNotEmpty()
   phone_number: string;
 

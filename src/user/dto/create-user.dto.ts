@@ -8,7 +8,7 @@ export class CreateUserDto {
   full_name: string;
 
   @ApiProperty({ example: '=998901234567', description: 'User phone number' })
-  @IsPhoneNumber()
+  @IsPhoneNumber(undefined)
   @IsNotEmpty()
   phone_number: string;
 
