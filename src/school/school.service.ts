@@ -4,6 +4,7 @@ import { UpdateSchoolDto } from './dto/update-school.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { School } from './models/school.model';
 import { FilesService } from 'src/common/files/files.service';
+import { User } from 'src/user/models/user.model';
 
 @Injectable()
 export class SchoolService {
@@ -35,6 +36,7 @@ export class SchoolService {
       const limit = 10;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
+        include: [{model: User, attributes: ['full_name']}],
         order: [['createdAt', 'DESC']],
         offset,
         limit,
