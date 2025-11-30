@@ -27,7 +27,9 @@ export class SchoolService {
   }
 
   async findAll() {
-    return await this.repo.findAll();
+    return await this.repo.findAll({
+      include: [{ model: User, attributes: ['full_name'] }],
+    });
   }
 
   async paginate(page: number): Promise<object> {

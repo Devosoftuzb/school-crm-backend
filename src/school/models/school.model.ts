@@ -26,6 +26,7 @@ interface SchoolAttr {
   name: string;
   address: string;
   owner_id: number;
+  price: number;
   image: string;
 }
 
@@ -49,6 +50,12 @@ export class School extends Model<School, SchoolAttr> {
     allowNull: false,
   })
   address: string;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
+  price: number;
 
   @Column({
     type: DataType.STRING,
