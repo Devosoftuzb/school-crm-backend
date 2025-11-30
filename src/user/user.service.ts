@@ -66,6 +66,7 @@ export class UserService {
   async findAll() {
     const owners = await this.repo.findAll({
       where: { role: 'owner' },
+      include: { all: true },
       order: [['createdAt', 'ASC']],
     });
 
