@@ -14,6 +14,8 @@ import { StudentGroup } from 'src/student_group/models/student_group.model';
 import { Cost } from 'src/cost/model/cost.model';
 import { Salary } from 'src/salary/models/salary.model';
 import { CostCategory } from 'src/cost-category/models/cost-category.model';
+import { SocialMedia } from 'src/social_media/models/social_media.model';
+import { Customer } from 'src/customer/models/customer.model';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { CostCategory } from 'src/cost-category/models/cost-category.model';
       Cost,
       Salary,
       CostCategory,
+      SocialMedia,
+      Customer
     ]),
     JwtModule,
   ],
