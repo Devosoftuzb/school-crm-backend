@@ -134,4 +134,14 @@ export class StatisticController {
   getFinanceStatistics(@Param('school_id') school_id: string) {
     return this.statisticService.getFinanceStatistics(+school_id);
   }
+
+  @ApiOperation({ summary: 'School Customer' })
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Get('customer/:school_id/:date')
+  getCustomerStatistics(
+    @Param('school_id') school_id: string,
+    @Param('date') date: string,
+  ) {
+    return this.statisticService.getCustomerStatistics(+school_id, date);
+  }
 }
