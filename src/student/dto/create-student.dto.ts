@@ -21,7 +21,7 @@ export class CreateStudentDto {
     example: '+998901234567',
     description: 'Parents phone number',
   })
-  @IsPhoneNumber()
+  @IsPhoneNumber(undefined)
   parents_phone_number: string;
 
   @ApiProperty({ example: 'John Doe', description: 'Student full name' })
@@ -33,7 +33,7 @@ export class CreateStudentDto {
     example: '+998901234567',
     description: 'Student phone number',
   })
-  @IsPhoneNumber()
+  @IsPhoneNumber(undefined)
   @IsNotEmpty()
   phone_number: string;
 
