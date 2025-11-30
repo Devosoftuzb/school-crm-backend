@@ -12,6 +12,8 @@ import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 import { Cost } from 'src/cost/model/cost.model';
 import { Salary } from 'src/salary/models/salary.model';
 import { CostCategory } from 'src/cost-category/models/cost-category.model';
+import { SocialMedia } from 'src/social_media/models/social_media.model';
+import { Customer } from 'src/customer/models/customer.model';
 
 @Injectable()
 export class StatisticService {
@@ -27,6 +29,8 @@ export class StatisticService {
     @InjectModel(Cost) private costRepo: typeof Cost,
     @InjectModel(Salary) private salaryRepo: typeof Salary,
     @InjectModel(CostCategory) private categoryRepo: typeof CostCategory,
+    @InjectModel(SocialMedia) private repoSocial: typeof SocialMedia,
+    @InjectModel(Customer) private repoCustomer: typeof Customer,
   ) {}
 
   async getSchoolStatistics(school_id: number) {
@@ -951,5 +955,83 @@ export class StatisticService {
     return {
       statistic: cost_by_category,
     };
+  }
+
+  async getCustomerStatistics(school_id: number, date: string) {
+    let startDate: Date;
+    let endDate: Date;
+
+    const dateParts = date.split('-');
+
+    if (dateParts.length === 3) {
+      startDate = new Date(+dateParts[0], +dateParts[1] - 1, +dateParts[2]);
+      endDate = new Date(
+        +dateParts[0],
+        +dateParts[1] - 1,
+        +dateParts[2],
+        23,
+        59,
+        59,
+      );
+    } else if (dateParts.length === 2) {
+      startDate = new Date(+dateParts[0], +dateParts[1] - 1, 1);
+      endDate = new Date(+dateParts[0], +dateParts[1], 0, 23, 59, 59);
+    } else {
+      throw new Error(
+        "Noto'g'ri sana formati. 'YYYY-MM-DD' yoki 'YYYY-MM' bo'lishi kerak.",
+      );
+    }
+
+    const allSocial = await this.repoSocial.findAll({
+      where: { school_id },
+      attributes: ['name'],
+    });
+
+    const customers = await this.repoCustomer.findAll({
+      where: {
+        school_id,
+        createdAt: { [Op.between]: [startDate, endDate] },
+      },
+      attributes: ['id'],
+      include: [
+        {
+          model: SocialMedia,
+          attributes: ['name'],
+        },
+      ],
+    });
+
+    const socialStats = allSocial.reduce(
+      (acc, s) => {
+        acc[s.name] = { count: 0 };
+        return acc;
+      },
+      {} as Record<string, { count: number }>,
+    );
+
+    customers.forEach((customer) => {
+      const social = customer.social_media?.name || 'Noma’lum';
+
+      if (!socialStats[social]) {
+        socialStats[social] = { count: 0 };
+      }
+
+      socialStats[social].count += 1;
+    });
+
+    let totalCount = 0;
+    const statistics = Object.entries(socialStats).map(
+      ([social, { count }]) => {
+        totalCount += count;
+        return { social, count };
+      },
+    );
+
+    statistics.push({
+      social: 'Umumiy',
+      count: totalCount,
+    });
+
+    return { statistics };
   }
 }
