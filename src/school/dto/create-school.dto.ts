@@ -20,11 +20,9 @@ export class CreateSchoolDto {
 
   @ApiProperty({ example: 300000, description: 'School month price' })
   @IsNotEmpty()
-  @IsInt()
   price: number;
 
   @ApiProperty({ example: 1, description: 'School owner ID' })
-  // @IsInt()
   @IsNotEmpty()
   owner_id: number;
 }
