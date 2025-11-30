@@ -506,7 +506,13 @@ export class StatisticService {
               },
             },
             required: false,
-            attributes: ['price', 'discount', 'group_id', 'createdAt'],
+            attributes: [
+              'price',
+              'discount',
+              'discountSum',
+              'group_id',
+              'createdAt',
+            ],
           },
         ],
       });
@@ -529,7 +535,14 @@ export class StatisticService {
           let totalDiscount = 0;
 
           for (const payment of payments) {
-            const discountAmount = (groupPrice * (payment.discount || 0)) / 100;
+            let discountAmount = 0;
+
+            if (payment.discount && payment.discount > 0) {
+              discountAmount = (groupPrice * payment.discount) / 100;
+            } else if (payment.discountSum && payment.discountSum > 0) {
+              discountAmount = payment.discountSum;
+            }
+
             totalPaid += payment.price;
             totalDiscount += discountAmount;
           }
@@ -698,7 +711,7 @@ export class StatisticService {
               },
             },
             required: false,
-            attributes: ['price', 'discount', 'group_id'],
+            attributes: ['price', 'discount', 'discountSum', 'group_id'],
           },
         ],
       });
@@ -736,7 +749,14 @@ export class StatisticService {
           let totalDiscount = 0;
 
           for (const payment of payments) {
-            const discountAmount = (groupPrice * (payment.discount || 0)) / 100;
+            let discountAmount = 0;
+
+            if (payment.discount && payment.discount > 0) {
+              discountAmount = (groupPrice * payment.discount) / 100;
+            } else if (payment.discountSum && payment.discountSum > 0) {
+              discountAmount = payment.discountSum;
+            }
+
             totalPaid += payment.price;
             totalDiscount += discountAmount;
           }
