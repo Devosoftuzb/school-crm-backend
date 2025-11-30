@@ -69,6 +69,7 @@ export class PaymentService {
             where: {
               school_id,
               discount: 0,
+              discountSum: 0,
               createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
             include: [
@@ -85,6 +86,7 @@ export class PaymentService {
             where: {
               school_id,
               discount: 0,
+              discountSum: 0,
               createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
             include: [
@@ -101,6 +103,7 @@ export class PaymentService {
             where: {
               school_id,
               discount: { [Op.ne]: 0 },
+              discountSum: { [Op.ne]: 0 },
               createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
           }),
@@ -119,18 +122,21 @@ export class PaymentService {
 
       if (status === 'payment') {
         whereClause.discount = 0;
+        whereClause.discountSum = 0;
         groupInclude.required = true;
         groupInclude.on = literal(
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" = CAST("group"."price" AS INTEGER)`,
         );
       } else if (status === 'halfPayment') {
         whereClause.discount = 0;
+        whereClause.discountSum = 0;
         groupInclude.required = true;
         groupInclude.on = literal(
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
         );
       } else if (status === 'discount') {
         whereClause.discount = { [Op.ne]: 0 };
+        whereClause.discountSum = { [Op.ne]: 0 };
       }
 
       const { count, rows: allUsers } = await this.repo.findAndCountAll({
@@ -140,6 +146,7 @@ export class PaymentService {
           'method',
           'price',
           'discount',
+          'discountSum',
           'month',
           'status',
           'description',
@@ -207,6 +214,7 @@ export class PaymentService {
             method: user.method,
             price: user.price,
             discount: user.discount,
+            discountSum: user.discountSum,
             month: user.month,
             status: user.status,
             description: user.description,
@@ -258,6 +266,7 @@ export class PaymentService {
             where: {
               school_id,
               discount: 0,
+              discountSum: 0,
               createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
             include: [
@@ -274,6 +283,7 @@ export class PaymentService {
             where: {
               school_id,
               discount: 0,
+              discountSum: 0,
               createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
             include: [
@@ -290,6 +300,7 @@ export class PaymentService {
             where: {
               school_id,
               discount: { [Op.ne]: 0 },
+              discountSum: { [Op.ne]: 0 },
               createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
           }),
@@ -308,18 +319,21 @@ export class PaymentService {
 
       if (status === 'payment') {
         whereClause.discount = 0;
+        whereClause.discountSum = 0;
         groupInclude.required = true;
         groupInclude.on = literal(
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" = CAST("group"."price" AS INTEGER)`,
         );
       } else if (status === 'halfPayment') {
         whereClause.discount = 0;
+        whereClause.discountSum = 0;
         groupInclude.required = true;
         groupInclude.on = literal(
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
         );
       } else if (status === 'discount') {
         whereClause.discount = { [Op.ne]: 0 };
+        whereClause.discountSum = { [Op.ne]: 0 };
       }
 
       const { count, rows: allUsers } = await this.repo.findAndCountAll({
@@ -329,6 +343,7 @@ export class PaymentService {
           'method',
           'price',
           'discount',
+          'discountSum',
           'month',
           'status',
           'description',
@@ -396,6 +411,7 @@ export class PaymentService {
             method: user.method,
             price: user.price,
             discount: user.discount,
+            discountSum: user.discountSum,
             month: user.month,
             status: user.status,
             description: user.description,
@@ -447,6 +463,7 @@ export class PaymentService {
               school_id,
               group_id,
               discount: 0,
+              discountSum: 0,
               year,
               month,
             },
@@ -465,6 +482,7 @@ export class PaymentService {
               school_id,
               group_id,
               discount: 0,
+              discountSum: 0,
               year,
               month,
             },
@@ -483,6 +501,7 @@ export class PaymentService {
               school_id,
               group_id,
               discount: { [Op.ne]: 0 },
+              discountSum: { [Op.ne]: 0 },
               year,
               month,
             },
@@ -504,18 +523,21 @@ export class PaymentService {
 
       if (status === 'payment') {
         whereClause.discount = 0;
+        whereClause.discountSum = 0;
         groupInclude.required = true;
         groupInclude.on = literal(
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" = CAST("group"."price" AS INTEGER)`,
         );
       } else if (status === 'halfPayment') {
         whereClause.discount = 0;
+        whereClause.discountSum = 0;
         groupInclude.required = true;
         groupInclude.on = literal(
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
         );
       } else if (status === 'discount') {
         whereClause.discount = { [Op.ne]: 0 };
+        whereClause.discountSum = { [Op.ne]: 0 };
       }
 
       const { count, rows: allUsers } = await this.repo.findAndCountAll({
@@ -525,6 +547,7 @@ export class PaymentService {
           'method',
           'price',
           'discount',
+          'discountSum',
           'month',
           'status',
           'description',
@@ -592,6 +615,7 @@ export class PaymentService {
             method: user.method,
             price: user.price,
             discount: user.discount,
+            discountSum: user.discountSum,
             month: user.month,
             status: user.status,
             description: user.description,
@@ -645,6 +669,7 @@ export class PaymentService {
             where: {
               school_id,
               discount: 0,
+              discountSum: 0,
               createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
             include: [
@@ -661,6 +686,7 @@ export class PaymentService {
             where: {
               school_id,
               discount: 0,
+              discountSum: 0,
               createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
             include: [
@@ -677,6 +703,7 @@ export class PaymentService {
             where: {
               school_id,
               discount: { [Op.ne]: 0 },
+              discountSum: { [Op.ne]: 0 },
               createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
           }),
@@ -696,6 +723,7 @@ export class PaymentService {
           'method',
           'price',
           'discount',
+          'discountSum',
           'month',
           'status',
           'description',
@@ -718,18 +746,21 @@ export class PaymentService {
 
       if (status === 'payment') {
         baseOptions.where.discount = 0;
+        baseOptions.where.discountSum = 0;
         baseOptions.include[0].required = true;
         baseOptions.include[0].on = literal(
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" = CAST("group"."price" AS INTEGER)`,
         );
       } else if (status === 'halfPayment') {
         baseOptions.where.discount = 0;
+        baseOptions.where.discountSum = 0;
         baseOptions.include[0].required = true;
         baseOptions.include[0].on = literal(
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
         );
       } else if (status === 'discount') {
         baseOptions.where.discount = { [Op.ne]: 0 };
+        baseOptions.where.discountSum = { [Op.ne]: 0 };
       }
 
       ({ count, rows: allUsers } =
@@ -782,6 +813,7 @@ export class PaymentService {
             method: user.method,
             price: user.price,
             discount: user.discount,
+            discountSum: user.discountSum,
             month: user.month,
             status: user.status,
             description: user.description,
@@ -850,7 +882,12 @@ export class PaymentService {
                     model: Payment,
                     where: { year, month, group_id },
                     required: false,
-                    attributes: ['price', 'discount', 'createdAt'],
+                    attributes: [
+                      'price',
+                      'discount',
+                      'discountSum',
+                      'createdAt',
+                    ],
                   },
                 ],
               },
@@ -882,7 +919,14 @@ export class PaymentService {
         let paymentDetails: object[] = [];
 
         for (const payment of payments) {
-          const discountAmount = (groupPrice * (payment.discount || 0)) / 100;
+          let discountAmount = 0;
+
+          if (payment.discount && payment.discount > 0) {
+            discountAmount = (groupPrice * payment.discount) / 100;
+          } else if (payment.discountSum && payment.discountSum > 0) {
+            discountAmount = payment.discountSum;
+          }
+
           totalPaid += payment.price;
           totalDiscount += discountAmount;
 
@@ -972,7 +1016,13 @@ export class PaymentService {
             model: Payment,
             where: { year, month },
             required: false,
-            attributes: ['price', 'discount', 'group_id', 'createdAt'],
+            attributes: [
+              'price',
+              'discount',
+              'discountSum',
+              'group_id',
+              'createdAt',
+            ],
           },
         ],
       });
@@ -1013,7 +1063,14 @@ export class PaymentService {
           let paymentDetails: object[] = [];
 
           for (const payment of payments) {
-            const discountAmount = (groupPrice * (payment.discount || 0)) / 100;
+            let discountAmount = 0;
+
+            if (payment.discount && payment.discount > 0) {
+              discountAmount = (groupPrice * payment.discount) / 100;
+            } else if (payment.discountSum && payment.discountSum > 0) {
+              discountAmount = payment.discountSum;
+            }
+
             totalPaid += payment.price;
             totalDiscount += discountAmount;
 
@@ -1169,6 +1226,7 @@ export class PaymentService {
           'method',
           'price',
           'discount',
+          'discountSum',
           'month',
           'createdAt',
           'status',
@@ -1206,6 +1264,7 @@ export class PaymentService {
           method: user.method,
           price: user.price,
           discount: user.discount,
+          discountSum: user.discountSum,
           month: user.month,
           status: user.status,
           description: user.description,
@@ -1292,6 +1351,7 @@ export class PaymentService {
           'method',
           'price',
           'discount',
+          'discountSum',
           'month',
           'createdAt',
           'status',
@@ -1329,6 +1389,7 @@ export class PaymentService {
           method: user.method,
           price: user.price,
           discount: user.discount,
+          discountSum: user.discountSum,
           month: user.month,
           status: user.status,
           description: user.description,
@@ -1414,6 +1475,7 @@ export class PaymentService {
           'method',
           'price',
           'discount',
+          'discountSum',
           'month',
           'createdAt',
           'status',
@@ -1451,6 +1513,7 @@ export class PaymentService {
           method: user.method,
           price: user.price,
           discount: user.discount,
+          discountSum: user.discountSum,
           month: user.month,
           status: user.status,
           description: user.description,
@@ -1539,7 +1602,13 @@ export class PaymentService {
             model: Payment,
             where: { year, month },
             required: false,
-            attributes: ['price', 'discount', 'group_id', 'createdAt'],
+            attributes: [
+              'price',
+              'discount',
+              'discountSum',
+              'group_id',
+              'createdAt',
+            ],
           },
         ],
       });
@@ -1580,7 +1649,14 @@ export class PaymentService {
           let paymentDetails: object[] = [];
 
           for (const payment of payments) {
-            const discountAmount = (groupPrice * (payment.discount || 0)) / 100;
+            let discountAmount = 0;
+
+            if (payment.discount && payment.discount > 0) {
+              discountAmount = (groupPrice * payment.discount) / 100;
+            } else if (payment.discountSum && payment.discountSum > 0) {
+              discountAmount = payment.discountSum;
+            }
+
             totalPaid += payment.price;
             totalDiscount += discountAmount;
 

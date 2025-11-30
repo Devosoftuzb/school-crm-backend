@@ -18,6 +18,7 @@ interface PaymentAttr {
   month: string;
   method: string;
   discount: number;
+  discountSum: number;
   price: number;
   status: string;
   description: string;
@@ -93,6 +94,12 @@ export class Payment extends Model<Payment, PaymentAttr> {
     allowNull: false,
   })
   discount: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+  })
+  discountSum: number;
 
   @Column({
     type: DataType.INTEGER,
