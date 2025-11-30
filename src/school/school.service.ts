@@ -26,7 +26,7 @@ export class SchoolService {
   }
 
   async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
+    return await this.repo.findAll();
   }
 
   async paginate(page: number): Promise<object> {
@@ -35,7 +35,6 @@ export class SchoolService {
       const limit = 10;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
-        include: { all: true },
         order: [['createdAt', 'DESC']],
         offset,
         limit,
