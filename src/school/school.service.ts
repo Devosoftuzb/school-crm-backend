@@ -36,7 +36,7 @@ export class SchoolService {
       const limit = 10;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
-        include: [{model: User, attributes: ['full_name']}],
+        include: [{ model: User, attributes: ['full_name'] }],
         order: [['createdAt', 'DESC']],
         offset,
         limit,
@@ -106,17 +106,16 @@ export class SchoolService {
   async remove(id: number) {
     const school = await this.findOne(id);
 
-    if (school.image !== null) {
-      try {
+    try {
+      if (school.image) {
         await this.fileService.deleteFile(school.image);
-      } catch (error) {
-        school.destroy();
-        // throw new BadRequestException(error.message);
       }
+
+      await this.repo.destroy({ where: { id } });
+
+      return { message: 'Success' };
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Delete failed');
     }
-    school.destroy();
-    return {
-      message: 'Success',
-    };
   }
 }
