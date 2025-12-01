@@ -102,8 +102,10 @@ export class PaymentService {
           this.repo.count({
             where: {
               school_id,
-              discount: { [Op.ne]: 0 },
-              discountSum: { [Op.ne]: 0 },
+              [Op.or]: [
+                { discount: { [Op.ne]: 0 } },
+                { discountSum: { [Op.ne]: 0 } },
+              ],
               createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
           }),
@@ -135,8 +137,10 @@ export class PaymentService {
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
         );
       } else if (status === 'discount') {
-        whereClause.discount = { [Op.ne]: 0 };
-        whereClause.discountSum = { [Op.ne]: 0 };
+        whereClause[Op.or] = [
+          { discount: { [Op.ne]: 0 } },
+          { discountSum: { [Op.ne]: 0 } },
+        ];
       }
 
       const { count, rows: allUsers } = await this.repo.findAndCountAll({
@@ -299,8 +303,10 @@ export class PaymentService {
           this.repo.count({
             where: {
               school_id,
-              discount: { [Op.ne]: 0 },
-              discountSum: { [Op.ne]: 0 },
+              [Op.or]: [
+                { discount: { [Op.ne]: 0 } },
+                { discountSum: { [Op.ne]: 0 } },
+              ],
               createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
           }),
@@ -332,8 +338,10 @@ export class PaymentService {
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
         );
       } else if (status === 'discount') {
-        whereClause.discount = { [Op.ne]: 0 };
-        whereClause.discountSum = { [Op.ne]: 0 };
+        whereClause[Op.or] = [
+          { discount: { [Op.ne]: 0 } },
+          { discountSum: { [Op.ne]: 0 } },
+        ];
       }
 
       const { count, rows: allUsers } = await this.repo.findAndCountAll({
@@ -500,8 +508,10 @@ export class PaymentService {
             where: {
               school_id,
               group_id,
-              discount: { [Op.ne]: 0 },
-              discountSum: { [Op.ne]: 0 },
+              [Op.or]: [
+                { discount: { [Op.ne]: 0 } },
+                { discountSum: { [Op.ne]: 0 } },
+              ],
               year,
               month,
             },
@@ -536,8 +546,10 @@ export class PaymentService {
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
         );
       } else if (status === 'discount') {
-        whereClause.discount = { [Op.ne]: 0 };
-        whereClause.discountSum = { [Op.ne]: 0 };
+        whereClause[Op.or] = [
+          { discount: { [Op.ne]: 0 } },
+          { discountSum: { [Op.ne]: 0 } },
+        ];
       }
 
       const { count, rows: allUsers } = await this.repo.findAndCountAll({
@@ -702,8 +714,10 @@ export class PaymentService {
           this.repo.count({
             where: {
               school_id,
-              discount: { [Op.ne]: 0 },
-              discountSum: { [Op.ne]: 0 },
+              [Op.or]: [
+                { discount: { [Op.ne]: 0 } },
+                { discountSum: { [Op.ne]: 0 } },
+              ],
               createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
             },
           }),
@@ -759,8 +773,10 @@ export class PaymentService {
           `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER)`,
         );
       } else if (status === 'discount') {
-        baseOptions.where.discount = { [Op.ne]: 0 };
-        baseOptions.where.discountSum = { [Op.ne]: 0 };
+        baseOptions.where[Op.or] = [
+          { discount: { [Op.ne]: 0 } },
+          { discountSum: { [Op.ne]: 0 } },
+        ];
       }
 
       ({ count, rows: allUsers } =
