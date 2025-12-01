@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsPhoneNumber,
   IsString,
+  Matches,
 } from 'class-validator';
 
 export class CreateStudentDto {
@@ -21,7 +22,9 @@ export class CreateStudentDto {
     example: '+998901234567',
     description: 'Parents phone number',
   })
-  @IsPhoneNumber(undefined)
+  @Matches(/^\+998\d{9}$/, {
+    message: 'phone_number must be a valid phone number',
+  })
   parents_phone_number: string;
 
   @ApiProperty({ example: 'John Doe', description: 'Student full name' })
@@ -33,7 +36,9 @@ export class CreateStudentDto {
     example: '+998901234567',
     description: 'Student phone number',
   })
-  @IsPhoneNumber(undefined)
+  @Matches(/^\+998\d{9}$/, {
+    message: 'phone_number must be a valid phone number',
+  })
   @IsNotEmpty()
   phone_number: string;
 

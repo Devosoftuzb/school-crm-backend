@@ -4,6 +4,7 @@ import { UpdateSchoolDto } from './dto/update-school.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { School } from './models/school.model';
 import { FilesService } from 'src/common/files/files.service';
+import { User } from 'src/user/models/user.model';
 
 @Injectable()
 export class SchoolService {
@@ -26,7 +27,9 @@ export class SchoolService {
   }
 
   async findAll() {
-    return await this.repo.findAll();
+    return await this.repo.findAll({
+      include: [{ model: User, attributes: ['full_name'] }],
+    });
   }
 
   async paginate(page: number): Promise<object> {
@@ -35,6 +38,7 @@ export class SchoolService {
       const limit = 10;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
+        include: [{ model: User, attributes: ['full_name'] }],
         order: [['createdAt', 'DESC']],
         offset,
         limit,
@@ -104,17 +108,16 @@ export class SchoolService {
   async remove(id: number) {
     const school = await this.findOne(id);
 
-    if (school.image !== null) {
-      try {
+    try {
+      if (school.image) {
         await this.fileService.deleteFile(school.image);
-      } catch (error) {
-        school.destroy();
-        // throw new BadRequestException(error.message);
       }
+
+      await this.repo.destroy({ where: { id } });
+
+      return { message: 'Success' };
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Delete failed');
     }
-    school.destroy();
-    return {
-      message: 'Success',
-    };
   }
 }
