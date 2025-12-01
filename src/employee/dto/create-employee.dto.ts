@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsPhoneNumber,
   IsString,
+  Matches,
   MinLength,
 } from 'class-validator';
 
@@ -23,7 +24,9 @@ export class CreateEmployeeDto {
     example: '+998901234567',
     description: 'Employee phone number',
   })
-  @IsPhoneNumber(undefined)
+  @Matches(/^\+998\d{9}$/, {
+    message: 'phone_number must be a valid phone number',
+  })
   @IsNotEmpty()
   phone_number: string;
 

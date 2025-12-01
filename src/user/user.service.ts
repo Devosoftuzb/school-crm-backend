@@ -64,7 +64,13 @@ export class UserService {
   }
 
   async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
+    const owners = await this.repo.findAll({
+      where: { role: 'owner' },
+      include: { all: true },
+      order: [['createdAt', 'ASC']],
+    });
+
+    return owners;
   }
 
   async paginate(page: number): Promise<object> {
@@ -73,11 +79,15 @@ export class UserService {
       const limit = 15;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
+        where: { role: 'owner' },
         include: { all: true },
+        order: [['createdAt', 'ASC']],
         offset,
         limit,
       });
-      const total_count = await this.repo.count();
+      const total_count = await this.repo.count({
+        where: { role: 'owner' },
+      });
       const total_pages = Math.ceil(total_count / limit);
       const res = {
         status: 200,
@@ -145,10 +155,7 @@ export class UserService {
     };
   }
 
-  async changePassword(
-    id: number,
-    changePasswordDto: ChangePasswordDto,
-  ) {
+  async changePassword(id: number, changePasswordDto: ChangePasswordDto) {
     const { old_password, new_password } = changePasswordDto;
     const employee = await this.findOne(id);
 
