@@ -96,4 +96,32 @@ export class CustomerController {
   createWeb(@Body() createWebCustomerDto: CreateWebCustomerDto) {
     return this.customerService.createWeb(createWebCustomerDto);
   }
+
+  @ApiOperation({ summary: 'Customer history month view by ID by school ID' })
+  @Roles('owner', 'administrator')
+  @Get('year/:school_id/:year/page')
+  findYearHistory(
+    @Param('school_id') school_id: string,
+    @Param('year') year: string,
+    @Query('page') page: number,
+  ) {
+    return this.customerService.findYearHistory(+school_id, +year, page);
+  }
+
+  @ApiOperation({ summary: 'Customer history month view by ID by school ID' })
+  @Roles('owner', 'administrator')
+  @Get('month/:school_id/:year/:month/page')
+  findMonthHistory(
+    @Param('school_id') school_id: string,
+    @Param('year') year: string,
+    @Param('month') month: string,
+    @Query('page') page: number,
+  ) {
+    return this.customerService.findMonthHistory(
+      +school_id,
+      +year,
+      +month,
+      page,
+    );
+  }
 }

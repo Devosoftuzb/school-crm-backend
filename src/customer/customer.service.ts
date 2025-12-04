@@ -6,6 +6,7 @@ import { Customer } from './models/customer.model';
 import { SocialMedia } from 'src/social_media/models/social_media.model';
 import { Subject } from 'src/subject/models/subject.model';
 import { CreateWebCustomerDto } from './dto/create-web-customer.dto';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class CustomerService {
@@ -124,5 +125,108 @@ export class CustomerService {
       message: 'Login successfully',
       customer,
     };
+  }
+
+  async findYearHistory(
+    school_id: number,
+    year: number,
+    page: number,
+  ): Promise<object> {
+    try {
+      const limit = 15;
+      const pageNum = Number(page) || 1;
+      const offset = (pageNum - 1) * limit;
+
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year + 1, 0, 1);
+
+      const whereCondition = {
+        school_id,
+        is_student: false,
+        createdAt: {
+          [Op.gte]: startDate,
+          [Op.lt]: endDate,
+        },
+      };
+
+      const customers = await this.repo.findAll({
+        where: whereCondition,
+        include: { all: true },
+        order: [['createdAt', 'DESC']],
+        offset,
+        limit,
+      });
+
+      const total_count = await this.repo.count({ where: whereCondition });
+      const total_pages = Math.ceil(total_count / limit);
+
+      return {
+        status: 200,
+        data: {
+          records: customers,
+          pagination: {
+            currentPage: pageNum,
+            total_pages,
+            total_count,
+          },
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        'Failed to paginate customers: ' + error.message,
+      );
+    }
+  }
+
+  async findMonthHistory(
+    school_id: number,
+    year: number,
+    month: number,
+    page: number,
+  ): Promise<object> {
+    try {
+      const limit = 15;
+      const pageNum = Number(page) || 1;
+      const offset = (pageNum - 1) * limit;
+
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59);
+
+      const whereCondition = {
+        school_id,
+        is_student: false,
+        createdAt: {
+          [Op.gte]: startDate,
+          [Op.lt]: endDate,
+        },
+      };
+
+      const customers = await this.repo.findAll({
+        where: whereCondition,
+        include: { all: true },
+        order: [['createdAt', 'DESC']],
+        offset,
+        limit,
+      });
+
+      const total_count = await this.repo.count({ where: whereCondition });
+      const total_pages = Math.ceil(total_count / limit);
+
+      return {
+        status: 200,
+        data: {
+          records: customers,
+          pagination: {
+            currentPage: pageNum,
+            total_pages,
+            total_count,
+          },
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        'Failed to paginate customers: ' + error.message,
+      );
+    }
   }
 }
