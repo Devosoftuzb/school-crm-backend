@@ -961,24 +961,22 @@ export class StatisticService {
     let startDate: Date;
     let endDate: Date;
 
-    const dateParts = date.split('-');
+    const parts = date.split('-');
 
-    if (dateParts.length === 3) {
-      startDate = new Date(+dateParts[0], +dateParts[1] - 1, +dateParts[2]);
-      endDate = new Date(
-        +dateParts[0],
-        +dateParts[1] - 1,
-        +dateParts[2],
-        23,
-        59,
-        59,
-      );
-    } else if (dateParts.length === 2) {
-      startDate = new Date(+dateParts[0], +dateParts[1] - 1, 1);
-      endDate = new Date(+dateParts[0], +dateParts[1], 0, 23, 59, 59);
+    // YYYY-MM
+    if (parts.length === 2) {
+      const [y, m] = parts.map(Number);
+      startDate = new Date(y, m - 1, 1);
+      endDate = new Date(y, m, 0, 23, 59, 59);
+    }
+    // YYYY
+    else if (parts.length === 1) {
+      const y = Number(parts[0]);
+      startDate = new Date(y, 0, 1);
+      endDate = new Date(y, 11, 31, 23, 59, 59);
     } else {
       throw new Error(
-        "Noto'g'ri sana formati. 'YYYY-MM-DD' yoki 'YYYY-MM' bo'lishi kerak.",
+        "Kunlik statistika yo‘q. Faqat 'YYYY' yoki 'YYYY-MM' format bo'lishi kerak.",
       );
     }
 
@@ -990,15 +988,11 @@ export class StatisticService {
     const customers = await this.repoCustomer.findAll({
       where: {
         school_id,
+        is_student: false,
         createdAt: { [Op.between]: [startDate, endDate] },
       },
       attributes: ['id'],
-      include: [
-        {
-          model: SocialMedia,
-          attributes: ['name'],
-        },
-      ],
+      include: [{ model: SocialMedia, attributes: ['name'] }],
     });
 
     const socialStats = allSocial.reduce(
@@ -1011,26 +1005,19 @@ export class StatisticService {
 
     customers.forEach((customer) => {
       const social = customer.social_media?.name || 'Noma’lum';
-
-      if (!socialStats[social]) {
-        socialStats[social] = { count: 0 };
-      }
-
-      socialStats[social].count += 1;
+      if (!socialStats[social]) socialStats[social] = { count: 0 };
+      socialStats[social].count++;
     });
 
-    let totalCount = 0;
+    let total = 0;
     const statistics = Object.entries(socialStats).map(
       ([social, { count }]) => {
-        totalCount += count;
+        total += count;
         return { social, count };
       },
     );
 
-    statistics.push({
-      social: 'Umumiy',
-      count: totalCount,
-    });
+    statistics.push({ social: 'Umumiy', count: total });
 
     return { statistics };
   }
