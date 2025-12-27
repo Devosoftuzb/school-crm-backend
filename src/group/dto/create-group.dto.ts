@@ -7,6 +7,11 @@ export class CreateGroupDto {
   @IsInt()
   school_id: number;
 
+  @ApiProperty({ example: 'Beginner', description: 'Group level' })
+  @IsString()
+  @IsNotEmpty()
+  level: string;
+
   @ApiProperty({ example: 'Backend N=1', description: 'Group name' })
   @IsString()
   @IsNotEmpty()

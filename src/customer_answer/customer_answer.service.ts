@@ -37,7 +37,7 @@ export class CustomerAnswerService {
     const createdAnswers = [];
     let score = 0;
     let customerTestId: number | null = null;
-    let writingResult = '';
+    let writingResult = "Noma'lum";
 
     for (const answer of createCustomerAnswerDto.list) {
       const { customer_test_id, question_id, option_id, writing } = answer;
@@ -202,16 +202,16 @@ export class CustomerAnswerService {
     const levels: Record<string, number> = {
       BEGINNER: 1,
       ELEMENTARY: 2,
-      'PRE INTER': 3,
-      INTER: 4,
+      'PRE INTERMEDIATE': 3,
+      INTERMEDIATE: 4,
       IELTS: 5,
     };
 
     const reverseLevels: Record<number, string> = {
       1: 'BEGINNER',
       2: 'ELEMENTARY',
-      3: 'PRE INTER',
-      4: 'INTER',
+      3: 'PRE INTERMEDIATE',
+      4: 'INTERMEDIATE',
       5: 'IELTS',
     };
 

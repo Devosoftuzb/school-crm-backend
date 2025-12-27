@@ -18,6 +18,7 @@ import { School } from 'src/school/models/school.model';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
 
 interface GroupAttr {
+  level: string;
   school_id: number;
   name: string;
   price: string;
@@ -36,6 +37,12 @@ export class Group extends Model<Group, GroupAttr> {
     primaryKey: true,
   })
   id: number;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  level: string;
 
   @ForeignKey(() => School)
   @Column({
