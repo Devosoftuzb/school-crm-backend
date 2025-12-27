@@ -18,7 +18,9 @@ interface CustomerTestAttr {
   test_id: number;
   started_at: string;
   finished_at: string;
-  result: string;
+  test_result: string;
+  writing_result: string;
+  overall_result: string;
   description: string;
 }
 
@@ -69,9 +71,15 @@ export class CustomerTest extends Model<CustomerTest, CustomerTestAttr> {
   finished_at: string;
 
   @Column({ type: DataType.STRING, allowNull: true })
-  result: string;
+  test_result: string;
 
-  @Column({ type: DataType.TEXT, allowNull: true})
+  @Column({ type: DataType.STRING, allowNull: true })
+  writing_result: string;
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  overall_result: string;
+
+  @Column({ type: DataType.TEXT, allowNull: true })
   description: string;
 
   @HasMany(() => CustomerAnswer, {

@@ -300,7 +300,7 @@ export class EmployeeService {
 
   async findAllWeb() {
     return await this.repo.findAll({
-      where: { school_id: 1, role: 'teacher' },
+      where: { school_id: 6, role: 'teacher' },
       attributes: ['full_name'],
     });
   }

@@ -13,6 +13,7 @@ import { QuestionText } from 'src/question-text/model/question-text.model';
 import { Test } from 'src/test/model/test.model';
 
 interface QuestionAttr {
+  type: string;
   test_id: number;
   text_id: number;
   file: string;
@@ -27,6 +28,12 @@ export class Question extends Model<Question, QuestionAttr> {
     primaryKey: true,
   })
   id: number;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  type: string;
 
   @ForeignKey(() => Test)
   @Column({

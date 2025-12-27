@@ -2,6 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateQuestionDto {
+  @ApiProperty({ example: 'test | writing', description: 'Question type' })
+  @IsString()
+  @IsNotEmpty()
+  type: string;
+
   @ApiProperty({ example: 1, description: 'Test ID' })
   @IsNotEmpty()
   test_id: number;

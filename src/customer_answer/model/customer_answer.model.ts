@@ -15,6 +15,7 @@ interface CustomerAnswerAttr {
   question_id: number;
   option_id: number;
   is_correct: boolean;
+  writing: string;
 }
 
 @Table({ tableName: 'customer_answer' })
@@ -56,7 +57,7 @@ export class CustomerAnswer extends Model<CustomerAnswer, CustomerAnswerAttr> {
   @Column({
     type: DataType.INTEGER,
     onDelete: 'CASCADE',
-    allowNull: false,
+    allowNull: true,
   })
   option_id: number;
 
@@ -70,4 +71,10 @@ export class CustomerAnswer extends Model<CustomerAnswer, CustomerAnswerAttr> {
     allowNull: false,
   })
   is_correct: boolean;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  writing: string;
 }

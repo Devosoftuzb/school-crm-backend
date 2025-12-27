@@ -6,9 +6,20 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { CustomerAnswer } from './model/customer_answer.model';
 import { JwtModule } from '@nestjs/jwt';
 import { Option } from 'src/option/model/option.model';
+import { ConfigModule } from '@nestjs/config';
+import { Question } from 'src/questions/model/question.model';
 
 @Module({
-  imports: [SequelizeModule.forFeature([CustomerAnswer, Option, CustomerTest]), JwtModule],
+  imports: [
+    ConfigModule.forRoot(),
+    SequelizeModule.forFeature([
+      CustomerAnswer,
+      Option,
+      CustomerTest,
+      Question,
+    ]),
+    JwtModule,
+  ],
   controllers: [CustomerAnswerController],
   providers: [CustomerAnswerService],
 })
