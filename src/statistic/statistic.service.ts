@@ -491,7 +491,7 @@ export class StatisticService {
         include: [
           {
             model: StudentGroup,
-            attributes: ['group_id'],
+            attributes: ['group_id', 'createdAt'], 
             include: [
               {
                 model: Group,
@@ -505,9 +505,7 @@ export class StatisticService {
             where: {
               year: String(currentYear),
               month,
-              status: {
-                [Op.ne]: 'delete',
-              },
+              status: { [Op.ne]: 'delete' },
             },
             required: false,
             attributes: [
@@ -521,15 +519,31 @@ export class StatisticService {
         ],
       });
 
-      let noPayment = 0; // 100% qarzdorlar soni
-      let halfPayment = 0; // Qisman qarzdorlar soni
-      let fullPayment = 0; // Qarzdor emaslar soni
+      let noPayment = 0;
+      let halfPayment = 0;
+      let fullPayment = 0;
 
       for (const student of allStudents) {
         for (const studentGroup of student.group) {
           const group = studentGroup.group;
           const groupId = group.id;
           const groupPrice = Number(group.price);
+
+          
+          const joinedDate = new Date(studentGroup.createdAt);
+          const checkDate = new Date(`${currentYear}-${month}-01`);
+          const joinedYear = joinedDate.getFullYear();
+          const joinedMonth = joinedDate.getMonth();
+          const checkYear = checkDate.getFullYear();
+          const checkMonth = checkDate.getMonth();
+
+          if (
+            joinedYear > checkYear ||
+            (joinedYear === checkYear && joinedMonth > checkMonth)
+          ) {
+            continue; 
+          }
+          
 
           const payments = student.payment.filter(
             (p) => p.group_id === groupId,
@@ -556,15 +570,11 @@ export class StatisticService {
             0,
           );
 
-          // Qarzdorlik holatlarini tekshirish
           if (remainingDebt === groupPrice) {
-            // 100% qarzdor
             noPayment++;
           } else if (remainingDebt > 0) {
-            // Qisman qarzdor
             halfPayment++;
           } else {
-            // Qarzdor emas
             fullPayment++;
           }
         }
@@ -643,7 +653,6 @@ export class StatisticService {
           status: {
             [Op.ne]: 'delete',
           },
-          // student_id: { [Op.in]: studentIds },
           createdAt: { [Op.between]: [startDate, endDate] },
         },
       });
