@@ -1013,6 +1013,7 @@ export class PaymentService {
               {
                 model: Group,
                 attributes: ['id', 'name', 'price'],
+                where: { status: true },
                 include: [
                   {
                     model: EmployeeGroup,
@@ -1030,7 +1031,7 @@ export class PaymentService {
           },
           {
             model: Payment,
-            where: { year, month },
+            where: { year, month, status: { [Op.ne]: 'delete' } },
             required: false,
             attributes: [
               'price',
