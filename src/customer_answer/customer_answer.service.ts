@@ -61,6 +61,10 @@ export class CustomerAnswerService {
 
         writingResult = writingLevel;
       } else {
+        if (!option_id) {
+          throw new BadRequestException('Variant tanlanmagan');
+        }
+
         const option = await this.repoOption.findOne({
           where: { id: option_id, question_id },
         });
