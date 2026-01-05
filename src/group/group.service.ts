@@ -12,6 +12,7 @@ import { StudentGroup } from 'src/student_group/models/student_group.model';
 import { School } from 'src/school/models/school.model';
 import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 import { GroupDay } from 'src/group_day/models/group_day.model';
+import { Employee } from 'src/employee/models/employee.model';
 
 @Injectable()
 export class GroupService {
@@ -267,12 +268,32 @@ export class GroupService {
 
     const userRank = levelRank[overall];
 
-    const groups = await this.repo.findAll({ where: { school_id } });
-
-    const matchedGroups = groups.filter((g) => {
-      const groupRank = levelRank[g.level];
-      return groupRank <= userRank;
+    const groups = await this.repo.findAll({
+      where: { school_id, status: true },
+      include: [
+        {
+          model: EmployeeGroup,
+          include: [{ model: Employee, attributes: ['full_name'] }],
+        },
+        {
+          model: StudentGroup,
+          attributes: ['id'], 
+        },
+      ],
     });
+
+    const matchedGroups = groups
+      .filter((g) => {
+        const groupRank = levelRank[g.level];
+        return groupRank <= userRank;
+      })
+      .map((g) => ({
+        id: g.id,
+        name: g.name,
+        level: g.level,
+        teacher: g.employee[0].employee?.full_name ?? 'Nomaʼlum',
+        student_count: g.student?.length ?? 0,
+      }));
 
     return matchedGroups;
   }
