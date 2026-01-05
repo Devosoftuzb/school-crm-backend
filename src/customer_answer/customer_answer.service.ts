@@ -7,7 +7,6 @@ import { CustomerTest } from 'src/customer_test/model/customer_test.model';
 import { Question } from 'src/questions/model/question.model';
 import { GoogleGenerativeAI } from '@google/generative-ai'; // Google AI import
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
 
 @Injectable()
 export class CustomerAnswerService {
@@ -28,6 +27,10 @@ export class CustomerAnswerService {
     }
 
     this.genAI = new GoogleGenerativeAI(apiKey);
+    this.geminiModel = this.genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+      generationConfig: { temperature: 0 },
+    });
   }
 
   async create(createCustomerAnswerDto: CreateCustomerAnswerDto) {
@@ -157,27 +160,43 @@ export class CustomerAnswerService {
     writing: string,
   ): Promise<string> {
     try {
-      const apiKey = this.configService.get('GEMINI_API_KEY');
-      const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const prompt = `
+As an English teacher, evaluate if the writing answers the question and determine its level.
 
-      const response = await axios.post(url, {
-        contents: [
-          {
-            parts: [
-              {
-                text: `Evaluate English writing level. Question: "${question}", Student's Writing: "${writing}". Return ONLY one word: BEGINNER, ELEMENTARY, PRE INTERMEDIATE, INTERMEDIATE, or IELTS.`,
-              },
-            ],
-          },
-        ],
-      });
+Question: """${question}"""
+Student's Writing: """${writing}"""
 
-      const text = response.data.candidates[0].content.parts[0].text
-        .trim()
-        .toUpperCase();
-      return text || "Noma'lum";
+If the writing does NOT answer the question, return: NOT RELEVANT
+
+If it answers the question, return ONLY ONE of these levels:
+BEGINNER, ELEMENTARY, PRE INTERMEDIATE, INTERMEDIATE, IELTS
+
+Return ONLY ONE PHRASE. No explanations.
+    `;
+
+      const result = await this.geminiModel.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text().trim().toUpperCase();
+
+      // Avval "NOT RELEVANT" ni tekshirish
+      if (text.includes('NOT RELEVANT')) {
+        return 'Savolga mos emas';
+      }
+
+      // Darajani topish
+      const allowedLevels = [
+        'BEGINNER',
+        'ELEMENTARY',
+        'PRE INTERMEDIATE',
+        'INTERMEDIATE',
+        'IELTS',
+      ];
+
+      const finalLevel = allowedLevels.find((l) => text.includes(l));
+
+      return finalLevel || "Noma'lum";
     } catch (err) {
-      console.error('Direct Axios Error:', err.response?.data || err.message);
+      console.error('Gemini API error:', err);
       return "Noma'lum";
     }
   }
