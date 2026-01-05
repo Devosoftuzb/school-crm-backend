@@ -34,7 +34,7 @@ export class CustomerAnswerService {
   }
 
   async create(createCustomerAnswerDto: CreateCustomerAnswerDto) {
-    // Transaction boshlash
+
     const transaction = await this.repo.sequelize.transaction();
 
     try {
@@ -67,7 +67,6 @@ export class CustomerAnswerService {
             writing,
           );
 
-          // Agar savolga mos kelmasa
           if (writingLevel === 'Savolga mos emas') {
             throw new BadRequestException(
               "Yozilgan matn savolga mos javob emas. Iltimos, savolga to'g'ridan-to'g'ri javob bering.",
@@ -86,11 +85,7 @@ export class CustomerAnswerService {
           writingResult = writingLevel;
         }
         // Test
-        else if (question.type === 'test') {
-          if (!option_id) {
-            throw new BadRequestException('Variant tanlanmagan');
-          }
-
+        else if (question.type === 'test' && option_id) {
           const option = await this.repoOption.findOne({
             where: { id: option_id, question_id },
             transaction,
@@ -120,7 +115,7 @@ export class CustomerAnswerService {
         createdAnswers.push(customerAnswer);
       }
 
-      // Test natijasini hisoblash
+
       let testResult = '';
       if (score <= 15) testResult = 'BEGINNER';
       else if (score <= 27) testResult = 'ELEMENTARY';
@@ -129,17 +124,17 @@ export class CustomerAnswerService {
       else if (score <= 70) testResult = 'IELTS';
       else testResult = "Noma'lum";
 
-      // Umumiy natijani hisoblash
+
       const overall = this.calculateOverallResult(testResult, writingResult);
 
-      // CustomerTest ni yangilash
+
       if (customerTestId !== null) {
         const updateData: any = {
           test_result: testResult,
           overall_result: overall,
         };
 
-        // Faqat writing savoli bo'lsa, writing_result ni yangilash
+
         if (hasWritingQuestion) {
           updateData.writing_result = writingResult;
         }
@@ -150,7 +145,7 @@ export class CustomerAnswerService {
         });
       }
 
-      // Transaction commit qilish (barcha o'zgarishlar saqlanadi)
+
       await transaction.commit();
 
       return {
@@ -162,7 +157,6 @@ export class CustomerAnswerService {
         overall_result: overall,
       };
     } catch (error) {
-      // Xatolik bo'lsa transaction rollback qilish (hamma narsa bekor qilinadi)
       await transaction.rollback();
       throw error;
     }
