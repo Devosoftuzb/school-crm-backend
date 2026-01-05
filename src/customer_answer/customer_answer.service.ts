@@ -7,6 +7,7 @@ import { CustomerTest } from 'src/customer_test/model/customer_test.model';
 import { Question } from 'src/questions/model/question.model';
 import { GoogleGenerativeAI } from '@google/generative-ai'; // Google AI import
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 
 @Injectable()
 export class CustomerAnswerService {
@@ -156,38 +157,27 @@ export class CustomerAnswerService {
     writing: string,
   ): Promise<string> {
     try {
-      const model = this.genAI.getGenerativeModel({
-        model: 'gemini-1.5-flash',
+      const apiKey = this.configService.get('GEMINI_API_KEY');
+      const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+      const response = await axios.post(url, {
+        contents: [
+          {
+            parts: [
+              {
+                text: `Evaluate English writing level. Question: "${question}", Student's Writing: "${writing}". Return ONLY one word: BEGINNER, ELEMENTARY, PRE INTERMEDIATE, INTERMEDIATE, or IELTS.`,
+              },
+            ],
+          },
+        ],
       });
 
-      const prompt = `
-        As an English teacher, evaluate if the writing answers the question and determine its level.
-        Question: """${question}"""
-        Student's Writing: """${writing}"""
-        If the writing does NOT answer the question, return: NOT RELEVANT
-        If it answers the question, return ONLY ONE of these levels:
-        BEGINNER, ELEMENTARY, PRE INTERMEDIATE, INTERMEDIATE, IELTS
-        Return ONLY ONE PHRASE. No explanations.`;
-
-      const result = await model.generateContent(prompt);
-      const text = result.response.text().trim().toUpperCase();
-
-      if (text.includes('NOT RELEVANT')) return 'Savolga mos emas';
-
-      const allowedLevels = [
-        'BEGINNER',
-        'ELEMENTARY',
-        'PRE INTERMEDIATE',
-        'INTERMEDIATE',
-        'IELTS',
-      ];
-      const finalLevel = allowedLevels.find((l) => text.includes(l));
-
-      return finalLevel || "Noma'lum";
+      const text = response.data.candidates[0].content.parts[0].text
+        .trim()
+        .toUpperCase();
+      return text || "Noma'lum";
     } catch (err) {
-      console.error('--- GEMINI API ERROR DETAILS ---');
-      console.error('Status:', err.status);
-      console.error('Message:', err.message);
+      console.error('Direct Axios Error:', err.response?.data || err.message);
       return "Noma'lum";
     }
   }
