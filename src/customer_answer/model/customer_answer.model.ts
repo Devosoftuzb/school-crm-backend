@@ -68,7 +68,8 @@ export class CustomerAnswer extends Model<CustomerAnswer, CustomerAnswerAttr> {
 
   @Column({
     type: DataType.BOOLEAN,
-    allowNull: false,
+    allowNull: true,
+    defaultValue: null,
   })
   is_correct: boolean;
 

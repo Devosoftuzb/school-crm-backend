@@ -34,7 +34,6 @@ export class CustomerAnswerService {
   }
 
   async create(createCustomerAnswerDto: CreateCustomerAnswerDto) {
-
     const transaction = await this.repo.sequelize.transaction();
 
     try {
@@ -78,6 +77,7 @@ export class CustomerAnswerService {
               customer_test_id,
               question_id,
               writing,
+              is_correct: null,
             },
             { transaction },
           );
@@ -103,7 +103,7 @@ export class CustomerAnswerService {
               customer_test_id,
               question_id,
               option_id,
-              is_correct,
+              is_correct, // Test uchun is_correct majburiy
             },
             { transaction },
           );
@@ -113,7 +113,6 @@ export class CustomerAnswerService {
         createdAnswers.push(customerAnswer);
       }
 
-
       let testResult = '';
       if (score <= 15) testResult = 'BEGINNER';
       else if (score <= 27) testResult = 'ELEMENTARY';
@@ -122,16 +121,13 @@ export class CustomerAnswerService {
       else if (score <= 70) testResult = 'IELTS';
       else testResult = "Noma'lum";
 
-
       const overall = this.calculateOverallResult(testResult, writingResult);
-
 
       if (customerTestId !== null) {
         const updateData: any = {
           test_result: testResult,
           overall_result: overall,
         };
-
 
         if (hasWritingQuestion) {
           updateData.writing_result = writingResult;
@@ -142,7 +138,6 @@ export class CustomerAnswerService {
           transaction,
         });
       }
-
 
       await transaction.commit();
 
