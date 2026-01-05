@@ -25,13 +25,8 @@ export class CustomerAnswerService {
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY topilmadi! .env faylini tekshiring.');
     }
-    console.log("API Key length:", apiKey?.length);
 
     this.genAI = new GoogleGenerativeAI(apiKey);
-    this.geminiModel = this.genAI.getGenerativeModel({
-      model: 'models/gemini-1.5-flash',
-      generationConfig: { temperature: 0 },
-    });
   }
 
   async create(createCustomerAnswerDto: CreateCustomerAnswerDto) {
@@ -161,30 +156,24 @@ export class CustomerAnswerService {
     writing: string,
   ): Promise<string> {
     try {
+      const model = this.genAI.getGenerativeModel({
+        model: 'gemini-1.5-flash',
+      });
+
       const prompt = `
-As an English teacher, evaluate if the writing answers the question and determine its level.
+        As an English teacher, evaluate if the writing answers the question and determine its level.
+        Question: """${question}"""
+        Student's Writing: """${writing}"""
+        If the writing does NOT answer the question, return: NOT RELEVANT
+        If it answers the question, return ONLY ONE of these levels:
+        BEGINNER, ELEMENTARY, PRE INTERMEDIATE, INTERMEDIATE, IELTS
+        Return ONLY ONE PHRASE. No explanations.`;
 
-Question: """${question}"""
-Student's Writing: """${writing}"""
+      const result = await model.generateContent(prompt);
+      const text = result.response.text().trim().toUpperCase();
 
-If the writing does NOT answer the question, return: NOT RELEVANT
+      if (text.includes('NOT RELEVANT')) return 'Savolga mos emas';
 
-If it answers the question, return ONLY ONE of these levels:
-BEGINNER, ELEMENTARY, PRE INTERMEDIATE, INTERMEDIATE, IELTS
-
-Return ONLY ONE PHRASE. No explanations.
-    `;
-
-      const result = await this.geminiModel.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().trim().toUpperCase();
-
-      // Avval "NOT RELEVANT" ni tekshirish
-      if (text.includes('NOT RELEVANT')) {
-        return 'Savolga mos emas';
-      }
-
-      // Darajani topish
       const allowedLevels = [
         'BEGINNER',
         'ELEMENTARY',
@@ -192,12 +181,13 @@ Return ONLY ONE PHRASE. No explanations.
         'INTERMEDIATE',
         'IELTS',
       ];
-
       const finalLevel = allowedLevels.find((l) => text.includes(l));
 
       return finalLevel || "Noma'lum";
     } catch (err) {
-      console.error('Gemini API error:', err);
+      console.error('--- GEMINI API ERROR DETAILS ---');
+      console.error('Status:', err.status);
+      console.error('Message:', err.message);
       return "Noma'lum";
     }
   }
