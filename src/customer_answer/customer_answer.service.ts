@@ -34,106 +34,169 @@ export class CustomerAnswerService {
   }
 
   async create(createCustomerAnswerDto: CreateCustomerAnswerDto) {
-    const createdAnswers = [];
-    let score = 0;
-    let customerTestId: number | null = null;
-    let writingResult = "Noma'lum";
+    // Transaction boshlash
+    const transaction = await this.repo.sequelize.transaction();
 
-    for (const answer of createCustomerAnswerDto.list) {
-      const { customer_test_id, question_id, option_id, writing } = answer;
+    try {
+      const createdAnswers = [];
+      let score = 0;
+      let customerTestId: number | null = null;
+      let writingResult = "Noma'lum";
+      let hasWritingQuestion = false;
 
-      const question = await this.repoQuestion.findByPk(question_id);
-      if (!question) throw new BadRequestException('Savol topilmadi');
+      for (const answer of createCustomerAnswerDto.list) {
+        const { customer_test_id, question_id, option_id, writing } = answer;
 
-      let customerAnswer;
-
-      if (question.type === 'writing') {
-        if (!writing)
-          throw new BadRequestException('Writing javob kiritilmagan');
-
-        const writingLevel = await this.checkWritingLevel(writing);
-
-        customerAnswer = await this.repo.create({
-          customer_test_id,
-          question_id,
-          writing,
+        const question = await this.repoQuestion.findByPk(question_id, {
+          transaction,
         });
+        if (!question) throw new BadRequestException('Savol topilmadi');
 
-        writingResult = writingLevel;
-      } else {
-        if (!option_id) {
-          throw new BadRequestException('Variant tanlanmagan');
+        let customerAnswer;
+
+        // Writing
+        if (question.type === 'writing') {
+          hasWritingQuestion = true;
+
+          if (!writing?.trim()) {
+            throw new BadRequestException('Writing javob kiritilmagan');
+          }
+
+          const writingLevel = await this.checkWritingLevel(
+            question.question,
+            writing,
+          );
+
+          // Agar savolga mos kelmasa
+          if (writingLevel === 'Savolga mos emas') {
+            throw new BadRequestException(
+              "Yozilgan matn savolga mos javob emas. Iltimos, savolga to'g'ridan-to'g'ri javob bering.",
+            );
+          }
+
+          customerAnswer = await this.repo.create(
+            {
+              customer_test_id,
+              question_id,
+              writing,
+            },
+            { transaction },
+          );
+
+          writingResult = writingLevel;
+        }
+        // Test
+        else if (question.type === 'test') {
+          if (!option_id) {
+            throw new BadRequestException('Variant tanlanmagan');
+          }
+
+          const option = await this.repoOption.findOne({
+            where: { id: option_id, question_id },
+            transaction,
+          });
+
+          if (!option) {
+            throw new BadRequestException('Savol uchun mos variant topilmadi');
+          }
+
+          const is_correct = option.is_correct;
+          if (is_correct) score += 1;
+
+          customerAnswer = await this.repo.create(
+            {
+              customer_test_id,
+              question_id,
+              option_id,
+              is_correct,
+            },
+            { transaction },
+          );
+        } else {
+          throw new BadRequestException("Noto'g'ri savol turi");
         }
 
-        const option = await this.repoOption.findOne({
-          where: { id: option_id, question_id },
-        });
+        customerTestId = customer_test_id;
+        createdAnswers.push(customerAnswer);
+      }
 
-        if (!option)
-          throw new BadRequestException('Savol uchun mos variant topilmadi');
+      // Test natijasini hisoblash
+      let testResult = '';
+      if (score <= 15) testResult = 'BEGINNER';
+      else if (score <= 27) testResult = 'ELEMENTARY';
+      else if (score <= 38) testResult = 'PRE INTERMEDIATE';
+      else if (score <= 50) testResult = 'INTERMEDIATE';
+      else if (score <= 70) testResult = 'IELTS';
+      else testResult = "Noma'lum";
 
-        const is_correct = option.is_correct;
-        if (is_correct) score += 1;
+      // Umumiy natijani hisoblash
+      const overall = this.calculateOverallResult(testResult, writingResult);
 
-        customerAnswer = await this.repo.create({
-          customer_test_id,
-          question_id,
-          option_id,
-          is_correct,
+      // CustomerTest ni yangilash
+      if (customerTestId !== null) {
+        const updateData: any = {
+          test_result: testResult,
+          overall_result: overall,
+        };
+
+        // Faqat writing savoli bo'lsa, writing_result ni yangilash
+        if (hasWritingQuestion) {
+          updateData.writing_result = writingResult;
+        }
+
+        await this.repoCustomerTest.update(updateData, {
+          where: { id: customerTestId },
+          transaction,
         });
       }
 
-      customerTestId = customer_test_id;
-      createdAnswers.push(customerAnswer);
+      // Transaction commit qilish (barcha o'zgarishlar saqlanadi)
+      await transaction.commit();
+
+      return {
+        message: 'Customer Answers created successfully',
+        customerAnswers: createdAnswers,
+        score,
+        test_result: testResult,
+        writing_result: hasWritingQuestion ? writingResult : null,
+        overall_result: overall,
+      };
+    } catch (error) {
+      // Xatolik bo'lsa transaction rollback qilish (hamma narsa bekor qilinadi)
+      await transaction.rollback();
+      throw error;
     }
-
-    let testResult = '';
-    if (score <= 15) testResult = 'BEGINNER';
-    else if (score <= 27) testResult = 'ELEMENTARY';
-    else if (score <= 38) testResult = 'PRE INTERMEDIATE';
-    else if (score <= 50) testResult = 'INTERMEDIATE';
-    else if (score <= 70) testResult = 'IELTS';
-    else testResult = "Noma'lum";
-
-    const overall = this.calculateOverallResult(testResult, writingResult);
-
-    if (customerTestId !== null) {
-      await this.repoCustomerTest.update(
-        {
-          test_result: testResult,
-          writing_result: writingResult,
-          overall_result: overall,
-        },
-        { where: { id: customerTestId } },
-      );
-    }
-
-    return {
-      message: 'Customer Answers created successfully',
-      customerAnswers: createdAnswers,
-      score,
-      test_result: testResult,
-      writing_result: writingResult,
-      overall_result: overall,
-    };
   }
 
-  private async checkWritingLevel(writing: string): Promise<string> {
+  private async checkWritingLevel(
+    question: string,
+    writing: string,
+  ): Promise<string> {
     try {
       const prompt = `
-        As an English teacher, evaluate the following writing and categorize it into one of these levels:
-        BEGINNER, ELEMENTARY, PRE INTERMEDIATE, INTERMEDIATE, IELTS.
+As an English teacher, evaluate if the writing answers the question and determine its level.
 
-        Writing: """${writing}"""
+Question: """${question}"""
+Student's Writing: """${writing}"""
 
-        Strictly return ONLY ONE WORD from the list above. No explanations or extra text.
-      `;
+If the writing does NOT answer the question, return: NOT RELEVANT
+
+If it answers the question, return ONLY ONE of these levels:
+BEGINNER, ELEMENTARY, PRE INTERMEDIATE, INTERMEDIATE, IELTS
+
+Return ONLY ONE PHRASE. No explanations.
+    `;
 
       const result = await this.geminiModel.generateContent(prompt);
       const response = await result.response;
-      const level = response.text().trim().toUpperCase();
+      const text = response.text().trim().toUpperCase();
 
-      // Kutilgan darajalardan biri ekanligini tekshirish (fallback)
+      // Avval "NOT RELEVANT" ni tekshirish
+      if (text.includes('NOT RELEVANT')) {
+        return 'Savolga mos emas';
+      }
+
+      // Darajani topish
       const allowedLevels = [
         'BEGINNER',
         'ELEMENTARY',
@@ -141,7 +204,8 @@ export class CustomerAnswerService {
         'INTERMEDIATE',
         'IELTS',
       ];
-      const finalLevel = allowedLevels.find((l) => level.includes(l));
+
+      const finalLevel = allowedLevels.find((l) => text.includes(l));
 
       return finalLevel || "Noma'lum";
     } catch (err) {
