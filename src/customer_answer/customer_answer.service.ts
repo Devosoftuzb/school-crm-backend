@@ -25,10 +25,11 @@ export class CustomerAnswerService {
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY topilmadi! .env faylini tekshiring.');
     }
+    console.log("API Key length:", apiKey?.length);
 
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.geminiModel = this.genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'models/gemini-1.5-flash',
       generationConfig: { temperature: 0 },
     });
   }
