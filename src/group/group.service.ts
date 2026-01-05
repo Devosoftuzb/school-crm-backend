@@ -228,8 +228,7 @@ export class GroupService {
     });
 
     return {
-      message:
-        'Group removed successfully',
+      message: 'Group removed successfully',
     };
   }
 
@@ -255,5 +254,26 @@ export class GroupService {
     }
 
     return groups;
+  }
+
+  async getGroupLevel(school_id: number, overall: string) {
+    const levelRank: Record<string, number> = {
+      BEGINNER: 1,
+      ELEMENTARY: 2,
+      'PRE INTERMEDIATE': 3,
+      INTERMEDIATE: 4,
+      IELTS: 5,
+    };
+
+    const userRank = levelRank[overall];
+
+    const groups = await this.repo.findAll({ where: { school_id } });
+
+    const matchedGroups = groups.filter((g) => {
+      const groupRank = levelRank[g.level];
+      return groupRank <= userRank;
+    });
+
+    return matchedGroups;
   }
 }

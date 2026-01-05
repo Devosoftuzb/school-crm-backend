@@ -38,7 +38,6 @@ export class GroupController {
   findAll() {
     return this.groupService.findAll();
   }
-  
 
   @ApiOperation({ summary: 'View all groups by school ID' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
@@ -53,15 +52,11 @@ export class GroupController {
   findBySchoolId(@Param('school_id') school_id: string) {
     return this.groupService.findBySchoolId(+school_id);
   }
-  
 
   @ApiOperation({ summary: 'Paginate groups by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/page')
-  paginate(
-    @Query('page') page: number,
-    @Param('school_id') school_id: string
-  ) {
+  paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
     return this.groupService.paginate(+school_id, page);
   }
 
@@ -75,21 +70,30 @@ export class GroupController {
   @ApiOperation({ summary: 'View a group by ID and school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/not')
-  findOneNotInclude(@Param('id') id: string, @Param('school_id') school_id: string) {
+  findOneNotInclude(
+    @Param('id') id: string,
+    @Param('school_id') school_id: string,
+  ) {
     return this.groupService.findOneNotInclude(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'View a group by ID and school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/student')
-  findOneStudent(@Param('id') id: string, @Param('school_id') school_id: string) {
+  findOneStudent(
+    @Param('id') id: string,
+    @Param('school_id') school_id: string,
+  ) {
     return this.groupService.findOneStudent(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'View a group by ID and school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/payment')
-  findOnePayment(@Param('id') id: string, @Param('school_id') school_id: string) {
+  findOnePayment(
+    @Param('id') id: string,
+    @Param('school_id') school_id: string,
+  ) {
     return this.groupService.findOnePayment(+id, +school_id);
   }
 
@@ -114,17 +118,30 @@ export class GroupController {
   @ApiOperation({ summary: 'Remove a group by ID and school ID' })
   @Roles('owner', 'administrator')
   @Delete(':school_id/:id')
-  remove(
-    @Param('id') id: string, 
-    @Param('school_id') school_id: string
-  ) {
+  remove(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.groupService.remove(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'View a employee by ID and school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get('getEmployeeGroup/:school_id/:employee_id')
-  getEmployeeGroup(@Param('employee_id') employee_id: string, @Param('school_id') school_id: string) {
+  getEmployeeGroup(
+    @Param('employee_id') employee_id: string,
+    @Param('school_id') school_id: string,
+  ) {
     return this.groupService.getEmployeeGroup(+employee_id, +school_id);
+  }
+
+  @ApiOperation({
+    summary:
+      'Get recommended groups based on test, writing, and overall levels',
+  })
+  @Roles('owner', 'administrator', 'teacher')
+  @Get('level/:school_id/:overall')
+  getGroupLevel(
+    @Param('school_id') school_id: string,
+    @Param('overall') overall: string,
+  ) {
+    return this.groupService.getGroupLevel(+school_id, overall);
   }
 }
