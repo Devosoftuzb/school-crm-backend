@@ -107,8 +107,6 @@ export class CustomerAnswerService {
             },
             { transaction },
           );
-        } else {
-          throw new BadRequestException("Noto'g'ri savol turi");
         }
 
         customerTestId = customer_test_id;
