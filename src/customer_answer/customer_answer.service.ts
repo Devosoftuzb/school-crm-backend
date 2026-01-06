@@ -67,22 +67,30 @@ export class CustomerAnswerService {
           );
 
           if (writingLevel === 'Savolga mos emas') {
-            throw new BadRequestException(
-              "Yozilgan matn savolga mos javob emas. Iltimos, savolga to'g'ridan-to'g'ri javob bering.",
+            customerAnswer = await this.repo.create(
+              {
+                customer_test_id,
+                question_id,
+                writing,
+                is_correct: null,
+              },
+              { transaction },
             );
+
+            writingResult = 'BEGINNER';
+          } else {
+            customerAnswer = await this.repo.create(
+              {
+                customer_test_id,
+                question_id,
+                writing,
+                is_correct: null,
+              },
+              { transaction },
+            );
+
+            writingResult = writingLevel;
           }
-
-          customerAnswer = await this.repo.create(
-            {
-              customer_test_id,
-              question_id,
-              writing,
-              is_correct: null,
-            },
-            { transaction },
-          );
-
-          writingResult = writingLevel;
         }
         // Test
         else if (question.type === 'test' && option_id) {
