@@ -491,7 +491,10 @@ export class StatisticService {
         include: [
           {
             model: StudentGroup,
+
             attributes: ['group_id', 'createdAt'], 
+
+
             include: [
               {
                 model: Group,
@@ -529,7 +532,7 @@ export class StatisticService {
           const groupId = group.id;
           const groupPrice = Number(group.price);
 
-          
+
           const joinedDate = new Date(studentGroup.createdAt);
           const checkDate = new Date(`${currentYear}-${month}-01`);
           const joinedYear = joinedDate.getFullYear();
@@ -544,6 +547,7 @@ export class StatisticService {
             continue; 
           }
           
+
 
           const payments = student.payment.filter(
             (p) => p.group_id === groupId,
