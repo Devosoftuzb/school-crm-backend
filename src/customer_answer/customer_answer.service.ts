@@ -58,15 +58,6 @@ export class CustomerAnswerService {
           hasWritingQuestion = true;
 
           if (!writing?.trim()) {
-            throw new BadRequestException('Writing javob kiritilmagan');
-          }
-
-          const writingLevel = await this.checkWritingLevel(
-            question.question,
-            writing,
-          );
-
-          if (writingLevel === 'Savolga mos emas') {
             customerAnswer = await this.repo.create(
               {
                 customer_test_id,
@@ -76,20 +67,35 @@ export class CustomerAnswerService {
               },
               { transaction },
             );
-
-            writingResult = 'BEGINNER';
           } else {
-            customerAnswer = await this.repo.create(
-              {
-                customer_test_id,
-                question_id,
-                writing,
-                is_correct: null,
-              },
-              { transaction },
+            const writingLevel = await this.checkWritingLevel(
+              question.question,
+              writing,
             );
 
-            writingResult = writingLevel;
+            if (writingLevel === 'Savolga mos emas') {
+              customerAnswer = await this.repo.create(
+                {
+                  customer_test_id,
+                  question_id,
+                  writing,
+                  is_correct: null,
+                },
+                { transaction },
+              );
+            } else {
+              customerAnswer = await this.repo.create(
+                {
+                  customer_test_id,
+                  question_id,
+                  writing,
+                  is_correct: null,
+                },
+                { transaction },
+              );
+
+              writingResult = writingLevel;
+            }
           }
         }
         // Test
@@ -121,7 +127,7 @@ export class CustomerAnswerService {
         createdAnswers.push(customerAnswer);
       }
 
-      let testResult = '';
+      let testResult = "Noma'lum";
       if (score <= 15) testResult = 'BEGINNER';
       else if (score <= 27) testResult = 'ELEMENTARY';
       else if (score <= 38) testResult = 'PRE INTERMEDIATE';
@@ -263,6 +269,7 @@ Return ONLY ONE PHRASE. No explanations.
     writingResult: string,
   ): string {
     const levels: Record<string, number> = {
+      "Noma'lum": 0,
       BEGINNER: 1,
       ELEMENTARY: 2,
       'PRE INTERMEDIATE': 3,
@@ -271,6 +278,7 @@ Return ONLY ONE PHRASE. No explanations.
     };
 
     const reverseLevels: Record<number, string> = {
+      0: "Noma'lum",
       1: 'BEGINNER',
       2: 'ELEMENTARY',
       3: 'PRE INTERMEDIATE',
@@ -278,10 +286,14 @@ Return ONLY ONE PHRASE. No explanations.
       5: 'IELTS',
     };
 
-    const testScore = levels[testResult] || 0;
-    const writingScore = levels[writingResult] || 0;
+    const testScore = levels[testResult] ?? 0;
+    const writingScore = levels[writingResult] ?? 0;
 
-    const average = Math.round((testScore + writingScore) / 2);
+    let average = Math.round((testScore + writingScore) / 2);
+
+    if (testResult === "Noma'lum" || writingResult === "Noma'lum") {
+      average = Math.max(average - 1, 0);
+    }
 
     return reverseLevels[average] || "Noma'lum";
   }
