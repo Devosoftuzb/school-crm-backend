@@ -266,7 +266,11 @@ export class GroupService {
       IELTS: 5,
     };
 
-    const userRank = levelRank[overall];
+
+    const userRank =
+      overall === "Noma'lum" || !levelRank[overall]
+        ? levelRank.BEGINNER
+        : levelRank[overall];
 
     const groups = await this.repo.findAll({
       where: { school_id, status: true },
@@ -277,7 +281,7 @@ export class GroupService {
         },
         {
           model: StudentGroup,
-          attributes: ['id'], 
+          attributes: ['id'],
         },
       ],
     });
@@ -285,13 +289,18 @@ export class GroupService {
     const matchedGroups = groups
       .filter((g) => {
         const groupRank = levelRank[g.level];
+
+        if (overall === "Noma'lum") {
+          return g.level === 'BEGINNER';
+        }
+
         return groupRank <= userRank;
       })
       .map((g) => ({
         id: g.id,
         name: g.name,
         level: g.level,
-        teacher: g.employee[0].employee?.full_name ?? 'Nomaʼlum',
+        teacher: g.employee[0]?.employee?.full_name ?? 'Nomaʼlum',
         student_count: g.student?.length ?? 0,
       }));
 

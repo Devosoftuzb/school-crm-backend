@@ -128,7 +128,8 @@ export class CustomerAnswerService {
       }
 
       let testResult = "Noma'lum";
-      if (score <= 15) testResult = 'BEGINNER';
+      if (score == 0) testResult = "Noma'lum";
+      else if (score <= 15) testResult = 'BEGINNER';
       else if (score <= 27) testResult = 'ELEMENTARY';
       else if (score <= 38) testResult = 'PRE INTERMEDIATE';
       else if (score <= 50) testResult = 'INTERMEDIATE';
