@@ -24,3 +24,9 @@ export class CreateSmsAttendanceDto {
   @IsNotEmpty()
   student_id: number;
 }
+
+export class CreateSmsGroupDto {
+  @ApiProperty({ example: 1, description: 'Student ID' })
+  @IsNotEmpty()
+  student_id: number;
+}
