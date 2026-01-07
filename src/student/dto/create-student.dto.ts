@@ -46,4 +46,9 @@ export class CreateStudentDto {
   @IsBoolean()
   @IsNotEmpty()
   status: boolean;
+
+  @ApiProperty({ example: '15-10-2025', description: 'Student start date' })
+  @IsString()
+  @IsNotEmpty()
+  start_date: string;
 }

@@ -19,6 +19,7 @@ interface StudentAttr {
   full_name: string;
   phone_number: string;
   status: boolean;
+  start_date: string;
 }
 
 @Table({ tableName: 'student' })
@@ -72,6 +73,12 @@ export class Student extends Model<Student, StudentAttr> {
     allowNull: false,
   })
   status: boolean;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  start_date: string;
 
   @HasMany(() => StudentGroup, {
     onDelete: 'CASCADE',
