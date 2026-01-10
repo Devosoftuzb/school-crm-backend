@@ -28,7 +28,7 @@ export class UserController {
   @ApiOperation({ summary: 'User create' })
   @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin')
-  @UseGuards(RolesGuard, JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   create(
     @Body() createUserDto: CreateUserDto,
@@ -94,9 +94,6 @@ export class UserController {
     @Param('id') id: string,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
-    return this.userService.changePassword(
-      +id,
-      changePasswordDto,
-    );
+    return this.userService.changePassword(+id, changePasswordDto);
   }
 }

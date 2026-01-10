@@ -16,11 +16,7 @@ export class SubjectService {
     };
   }
 
-  async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
-  }
-
-  async findAllBySchoolId(school_id: number) {
+  async findAll(school_id: number) {
     return await this.repo.findAll({
       where: { school_id },
     });
@@ -91,5 +87,12 @@ export class SubjectService {
     return {
       message: 'Subject removed successfully',
     };
+  }
+
+  async findAdd(school_id: number) {
+    return await this.repo.findAll({
+      where: { school_id },
+      attributes: ['id', 'name'],
+    });
   }
 }

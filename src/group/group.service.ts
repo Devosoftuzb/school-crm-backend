@@ -31,14 +31,7 @@ export class GroupService {
     };
   }
 
-  async findAll() {
-    return await this.repo.findAll({
-      where: { status: true },
-      include: { all: true },
-    });
-  }
-
-  async findAllBySchoolId(school_id: number) {
+  async findAll(school_id: number) {
     return await this.repo.findAll({
       where: { school_id, status: true },
     });
@@ -228,8 +221,7 @@ export class GroupService {
     });
 
     return {
-      message:
-        'Group removed successfully',
+      message: 'Group removed successfully',
     };
   }
 
@@ -255,5 +247,12 @@ export class GroupService {
     }
 
     return groups;
+  }
+
+  async findAdd(school_id: number) {
+    return await this.repo.findAll({
+      where: { school_id, status: true },
+      attributes: ['id', 'name'],
+    });
   }
 }

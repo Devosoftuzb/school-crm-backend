@@ -11,6 +11,7 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  Version,
 } from '@nestjs/common';
 import { SchoolService } from './school.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
@@ -78,5 +79,13 @@ export class SchoolController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.schoolService.remove(+id);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'School navbar' })
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
+  @Get('navbar/:id')
+  navbarLogo(@Param('id') id: string) {
+    return this.schoolService.navbarLogo(+id);
   }
 }

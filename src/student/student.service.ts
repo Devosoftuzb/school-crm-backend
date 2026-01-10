@@ -15,10 +15,15 @@ export class StudentService {
   constructor(
     @InjectModel(Student) private repo: typeof Student,
     @InjectModel(EmployeeGroup) private repoEmployeeGroup: typeof EmployeeGroup,
+    @InjectModel(StudentGroup) private repoStudentGroup: typeof StudentGroup,
   ) {}
 
   async create(createStudentDto: CreateStudentDto) {
     const student = await this.repo.create(createStudentDto);
+    await this.repoStudentGroup.create({
+      student_id: student.id,
+      group_id: createStudentDto.group_id,
+    });
     return {
       message: 'Student created successfully',
       student,

@@ -9,6 +9,7 @@ import {
   UseGuards,
   Query,
   Put,
+  Version,
 } from '@nestjs/common';
 import { EmployeeService } from './employee.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
@@ -31,6 +32,7 @@ export class EmployeeController {
     return this.employeeService.findAllWeb();
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Create a new employee' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
@@ -40,22 +42,14 @@ export class EmployeeController {
     return this.employeeService.create(createEmployeeDto);
   }
 
-  @ApiOperation({ summary: 'View all employees by school ID' })
-  @UseGuards(RolesGuard, JwtAuthGuard)
-  @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin')
-  @Get()
-  findAll() {
-    return this.employeeService.findAll();
-  }
-
+  @Version('1')
   @ApiOperation({ summary: 'View employees by school ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get(':school_id')
-  findAllBySchoolId(@Param('school_id') school_id: string) {
-    return this.employeeService.findAllBySchoolId(+school_id);
+  findAll(@Param('school_id') school_id: string) {
+    return this.employeeService.findAll(+school_id);
   }
 
   @ApiOperation({ summary: 'View employees by school ID' })
@@ -67,15 +61,21 @@ export class EmployeeController {
     return this.employeeService.findBySchoolId(+school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Paginate employees by school ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
-  @Get(':school_id/page')
-  paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
-    return this.employeeService.paginate(+school_id, page);
+  @Get(':school_id/:role/page')
+  paginate(
+    @Param('school_id') school_id: string,
+    @Param('role') role: string,
+    @Query('page') page: number,
+  ) {
+    return this.employeeService.paginate(+school_id, role, page);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'View employee by ID and school ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
@@ -85,6 +85,7 @@ export class EmployeeController {
     return this.employeeService.findOne(+id, +school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'View employee by ID and school ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
@@ -127,6 +128,7 @@ export class EmployeeController {
     return this.employeeService.findOneFullName(+id, +school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Update employee by ID and school ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
@@ -140,6 +142,7 @@ export class EmployeeController {
     return this.employeeService.update(+id, +school_id, updateEmployeeDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Remove employee by ID and school ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
@@ -149,6 +152,7 @@ export class EmployeeController {
     return this.employeeService.remove(+id, +school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Change password employee' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
@@ -166,6 +170,7 @@ export class EmployeeController {
     );
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Reset password employee' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
@@ -181,5 +186,19 @@ export class EmployeeController {
       +id,
       resetPasswordDto,
     );
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Search employee by name' })
+  @ApiBearerAuth('access-token')
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('search/:school_id/:role/:name')
+  searchName(
+    @Param('school_id') school_id: string,
+    @Param('role') role: string,
+    @Param('name') name: string,
+  ) {
+    return this.employeeService.searchName(+school_id, role, name);
   }
 }

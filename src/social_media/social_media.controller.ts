@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Put } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+  Put,
+  Version,
+} from '@nestjs/common';
 import { SocialMediaService } from './social_media.service';
 import { CreateSocialMediaDto } from './dto/create-social_media.dto';
 import { UpdateSocialMediaDto } from './dto/update-social_media.dto';
@@ -9,8 +21,8 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
 @ApiTags('Social Media')
 @Controller('social-media')
-@UseGuards(RolesGuard, JwtAuthGuard)
 @ApiBearerAuth('access-token')
+@UseGuards(RolesGuard, JwtAuthGuard)
 export class SocialMediaController {
   constructor(private readonly socialMediaService: SocialMediaService) {}
 
@@ -22,17 +34,10 @@ export class SocialMediaController {
   }
 
   @ApiOperation({ summary: 'SocialMedia view all by school ID' })
-  @Roles('superadmin', 'admin')
-  @Get()
-  findAll() {
-    return this.socialMediaService.findAll();
-  }
-
-  @ApiOperation({ summary: 'SocialMedia view all by school ID' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get(':school_id')
-  findAllBySchoolId(@Param('school_id') school_id: string) {
-    return this.socialMediaService.findAllBySchoolId(+school_id);
+  findAll(@Param('school_id') school_id: string) {
+    return this.socialMediaService.findAll(+school_id);
   }
 
   @ApiOperation({ summary: 'SocialMedia paginate' })
@@ -57,7 +62,11 @@ export class SocialMediaController {
     @Param('school_id') school_id: string,
     @Body() updateSocialMediaDto: UpdateSocialMediaDto,
   ) {
-    return this.socialMediaService.update(+id, +school_id, updateSocialMediaDto);
+    return this.socialMediaService.update(
+      +id,
+      +school_id,
+      updateSocialMediaDto,
+    );
   }
 
   @ApiOperation({ summary: 'SocialMedia remove by ID by school ID' })
@@ -65,5 +74,13 @@ export class SocialMediaController {
   @Delete(':school_id/:id')
   remove(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.socialMediaService.remove(+id, +school_id);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'SocialMedia view all by school ID' })
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Get('add/:school_id')
+  findAdd(@Param('school_id') school_id: string) {
+    return this.socialMediaService.findAdd(+school_id);
   }
 }

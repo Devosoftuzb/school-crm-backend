@@ -9,6 +9,7 @@ import {
   UseGuards,
   Query,
   Put,
+  Version,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
@@ -20,8 +21,8 @@ import { UpdateGroupDto } from './dto/update-group.dto';
 
 @ApiTags('Group')
 @Controller('group')
-@UseGuards(RolesGuard, JwtAuthGuard)
 @ApiBearerAuth('access-token')
+@UseGuards(RolesGuard, JwtAuthGuard)
 export class GroupController {
   constructor(private readonly groupService: GroupService) {}
 
@@ -33,18 +34,10 @@ export class GroupController {
   }
 
   @ApiOperation({ summary: 'View all groups by school ID' })
-  @Roles('superadmin', 'admin')
-  @Get()
-  findAll() {
-    return this.groupService.findAll();
-  }
-  
-
-  @ApiOperation({ summary: 'View all groups by school ID' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get(':school_id')
-  findAllBySchoolId(@Param('school_id') school_id: string) {
-    return this.groupService.findAllBySchoolId(+school_id);
+  findAll(@Param('school_id') school_id: string) {
+    return this.groupService.findAll(+school_id);
   }
 
   @ApiOperation({ summary: 'View all groups by school ID' })
@@ -53,15 +46,11 @@ export class GroupController {
   findBySchoolId(@Param('school_id') school_id: string) {
     return this.groupService.findBySchoolId(+school_id);
   }
-  
 
   @ApiOperation({ summary: 'Paginate groups by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/page')
-  paginate(
-    @Query('page') page: number,
-    @Param('school_id') school_id: string
-  ) {
+  paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
     return this.groupService.paginate(+school_id, page);
   }
 
@@ -75,21 +64,30 @@ export class GroupController {
   @ApiOperation({ summary: 'View a group by ID and school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/not')
-  findOneNotInclude(@Param('id') id: string, @Param('school_id') school_id: string) {
+  findOneNotInclude(
+    @Param('id') id: string,
+    @Param('school_id') school_id: string,
+  ) {
     return this.groupService.findOneNotInclude(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'View a group by ID and school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/student')
-  findOneStudent(@Param('id') id: string, @Param('school_id') school_id: string) {
+  findOneStudent(
+    @Param('id') id: string,
+    @Param('school_id') school_id: string,
+  ) {
     return this.groupService.findOneStudent(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'View a group by ID and school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/payment')
-  findOnePayment(@Param('id') id: string, @Param('school_id') school_id: string) {
+  findOnePayment(
+    @Param('id') id: string,
+    @Param('school_id') school_id: string,
+  ) {
     return this.groupService.findOnePayment(+id, +school_id);
   }
 
@@ -114,17 +112,25 @@ export class GroupController {
   @ApiOperation({ summary: 'Remove a group by ID and school ID' })
   @Roles('owner', 'administrator')
   @Delete(':school_id/:id')
-  remove(
-    @Param('id') id: string, 
-    @Param('school_id') school_id: string
-  ) {
+  remove(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.groupService.remove(+id, +school_id);
   }
 
   @ApiOperation({ summary: 'View a employee by ID and school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get('getEmployeeGroup/:school_id/:employee_id')
-  getEmployeeGroup(@Param('employee_id') employee_id: string, @Param('school_id') school_id: string) {
+  getEmployeeGroup(
+    @Param('employee_id') employee_id: string,
+    @Param('school_id') school_id: string,
+  ) {
     return this.groupService.getEmployeeGroup(+employee_id, +school_id);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'View all groups by school ID' })
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
+  @Get('add/:school_id')
+  findAdd(@Param('school_id') school_id: string) {
+    return this.groupService.findAdd(+school_id);
   }
 }

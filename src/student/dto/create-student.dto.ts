@@ -46,4 +46,9 @@ export class CreateStudentDto {
   @IsBoolean()
   @IsNotEmpty()
   status: boolean;
+
+  @ApiProperty({ example: 1, description: 'Group ID' })
+  @IsNotEmpty()
+  @IsInt()
+  group_id: number;
 }

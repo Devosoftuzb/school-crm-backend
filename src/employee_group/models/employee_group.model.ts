@@ -12,7 +12,6 @@ import { Group } from 'src/group/models/group.model';
 interface EmployeeGroupAttr {
   employee_id: number;
   group_id: number;
-  group_name: string;
 }
 
 @Table({ tableName: 'employee_group' })
@@ -50,9 +49,4 @@ export class EmployeeGroup extends Model<EmployeeGroup, EmployeeGroupAttr> {
   })
   group: Group;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-  })
-  group_name: string;
 }

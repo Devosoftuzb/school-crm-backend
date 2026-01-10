@@ -120,4 +120,16 @@ export class SchoolService {
       throw new BadRequestException(error.message || 'Delete failed');
     }
   }
+
+  async navbarLogo(id: number) {
+    const school = await this.repo.findByPk(id, {
+      attributes: ['id', 'name', 'image'],
+    });
+
+    if (!school) {
+      throw new BadRequestException(`School with id ${id} not found`);
+    }
+
+    return school;
+  }
 }

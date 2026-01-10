@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Version,
 } from '@nestjs/common';
 import { StatisticService } from './statistic.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -21,6 +22,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 export class StatisticController {
   constructor(private readonly statisticService: StatisticService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'School Statistics' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get('school/:school_id')
@@ -28,6 +30,7 @@ export class StatisticController {
     return this.statisticService.getSchoolStatistics(+school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'School Payments' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get('school-payments/:school_id/:year')
@@ -38,6 +41,7 @@ export class StatisticController {
     return this.statisticService.getYearlyPayments(+school_id, +year);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'School Student payments' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get('school-studentPayments/:school_id/:month')
@@ -48,6 +52,7 @@ export class StatisticController {
     return this.statisticService.studentPayments(+school_id, month);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Teacher Student payments' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get('teacher-studentPayments/:school_id/:employee_id/:month')
@@ -63,6 +68,7 @@ export class StatisticController {
     );
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Teacher Salary' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get('teacher-salary/:school_id/:employee_id/:year')
@@ -78,6 +84,7 @@ export class StatisticController {
     );
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Teacher stats' })
   @Roles('teacher')
   @Get('teacher-stats/:school_id/:employee_id')
@@ -135,6 +142,7 @@ export class StatisticController {
     return this.statisticService.getFinanceStatistics(+school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'School Customer' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get('customer/:school_id/:date')

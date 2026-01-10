@@ -7,6 +7,7 @@ import { SocialMedia } from 'src/social_media/models/social_media.model';
 import { Subject } from 'src/subject/models/subject.model';
 import { CreateWebCustomerDto } from './dto/create-web-customer.dto';
 import { Op } from 'sequelize';
+import { UpdateStatusDto } from './dto/update-status.dto';
 
 @Injectable()
 export class CustomerService {
@@ -20,62 +21,14 @@ export class CustomerService {
     };
   }
 
-  async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
-  }
-
-  async findAllBySchoolId(school_id: number) {
-    return await this.repo.findAll({
-      where: { school_id, is_student: false },
-      include: [
-        {
-          model: SocialMedia,
-        },
-        {
-          model: Subject,
-        },
-      ],
-    });
-  }
-
-  async paginate(school_id: number, page: number): Promise<object> {
-    try {
-      page = Number(page);
-      const limit = 15;
-      const offset = (page - 1) * limit;
-      const customers = await this.repo.findAll({
-        where: { school_id, is_student: false },
-        include: { all: true },
-        order: [['createdAt', 'DESC']],
-        offset,
-        limit,
-      });
-      const total_count = await this.repo.count({
-        where: { school_id, is_student: false },
-      });
-      const total_pages = Math.ceil(total_count / limit);
-      return {
-        status: 200,
-        data: {
-          records: customers,
-          pagination: {
-            currentPage: page,
-            total_pages,
-            total_count,
-          },
-        },
-      };
-    } catch (error) {
-      throw new BadRequestException(
-        'Failed to paginate customers: ' + error.message,
-      );
-    }
-  }
-
   async findOne(id: number, school_id: number) {
     const customer = await this.repo.findOne({
       where: { id, school_id },
-      include: { all: true },
+      include: [
+        { model: Subject, attributes: ['id', 'name'] },
+        { model: SocialMedia, attributes: ['id', 'name'] },
+      ],
+      attributes: ['id', 'full_name', 'phone_number', 'description'],
     });
 
     if (!customer) {
@@ -151,7 +104,11 @@ export class CustomerService {
 
       const customers = await this.repo.findAll({
         where: whereCondition,
-        include: { all: true },
+        include: [
+          { model: Subject, attributes: ['id', 'name'] },
+          { model: SocialMedia, attributes: ['id', 'name'] },
+        ],
+        attributes: ['id', 'full_name', 'phone_number', 'description'],
         order: [['createdAt', 'DESC']],
         offset,
         limit,
@@ -203,7 +160,11 @@ export class CustomerService {
 
       const customers = await this.repo.findAll({
         where: whereCondition,
-        include: { all: true },
+        include: [
+          { model: Subject, attributes: ['id', 'name'] },
+          { model: SocialMedia, attributes: ['id', 'name'] },
+        ],
+        attributes: ['id', 'full_name', 'phone_number', 'description'],
         order: [['createdAt', 'DESC']],
         offset,
         limit,
@@ -228,5 +189,31 @@ export class CustomerService {
         'Failed to paginate customers: ' + error.message,
       );
     }
+  }
+
+  async searchName(school_id: number, name: string) {
+    return await this.repo.findAll({
+      where: { school_id, full_name: { [Op.iLike]: `%${name}%` } },
+      include: [
+        { model: Subject, attributes: ['id', 'name'] },
+        { model: SocialMedia, attributes: ['id', 'name'] },
+      ],
+      attributes: ['id', 'full_name', 'phone_number', 'description'],
+    });
+  }
+  
+  async updateStatus(
+    id: number,
+    school_id: number,
+    updateStatusDto: UpdateStatusDto,
+  ) {
+    const customer = await this.findOne(id, school_id);
+
+    await customer.update({ is_student: updateStatusDto.is_student });
+
+    return {
+      message: 'Customer updated successfully',
+      customer,
+    };
   }
 }
