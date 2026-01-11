@@ -43,6 +43,16 @@ export class EmployeeController {
   }
 
   @Version('1')
+  @ApiOperation({ summary: 'Employee view all by school ID' })
+  @ApiBearerAuth('access-token')
+  @Roles('owner', 'administrator')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('add/:school_id')
+  findAdd(@Param('school_id') school_id: string) {
+    return this.employeeService.findAdd(+school_id);
+  }
+
+  @Version('1')
   @ApiOperation({ summary: 'View employees by school ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')

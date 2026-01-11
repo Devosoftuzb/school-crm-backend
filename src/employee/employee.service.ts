@@ -124,7 +124,14 @@ export class EmployeeService {
   async findOne(id: number, school_id: number) {
     const employee = await this.repo.findOne({
       where: { id, school_id },
-      attributes: ['id', 'full_name', 'phone_number', 'role', 'salary', 'createdAt'],
+      attributes: [
+        'id',
+        'full_name',
+        'phone_number',
+        'role',
+        'salary',
+        'createdAt',
+      ],
       include: [
         {
           model: EmployeeGroup,
@@ -141,7 +148,7 @@ export class EmployeeService {
               ],
             },
           ],
-        }
+        },
       ],
     });
 
@@ -334,6 +341,13 @@ export class EmployeeService {
         },
       ],
       attributes: ['id', 'full_name', 'phone_number', 'role'],
+    });
+  }
+
+  async findAdd(school_id: number) {
+    return await this.repo.findAll({
+      where: { school_id, role: 'teacher' },
+      attributes: ['id', 'full_name'],
     });
   }
 }

@@ -9,6 +9,7 @@ import {
   UseGuards,
   Query,
   Put,
+  Version,
 } from '@nestjs/common';
 import { StudentService } from './student.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -26,6 +27,7 @@ import { ArchiveStudentDto } from './dto/archive-student.dto';
 export class StudentController {
   constructor(private readonly studentService: StudentService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Student create' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Post()
@@ -34,17 +36,10 @@ export class StudentController {
   }
 
   @ApiOperation({ summary: 'Student view all by school ID' })
-  @Roles('superadmin', 'admin')
-  @Get()
-  findAll() {
-    return this.studentService.findAll();
-  }
-
-  @ApiOperation({ summary: 'Student view all by school ID' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get(':school_id')
-  findAllBySchoolId(@Param('school_id') school_id: string) {
-    return this.studentService.findAllBySchoolId(+school_id);
+  findAll(@Param('school_id') school_id: string) {
+    return this.studentService.findAll(+school_id);
   }
 
   @ApiOperation({ summary: 'Student view all by school ID' })
@@ -54,7 +49,7 @@ export class StudentController {
     return this.studentService.findBySchoolId(+school_id);
   }
 
-    @ApiOperation({ summary: 'Student view all by school ID' })
+  @ApiOperation({ summary: 'Student view all by school ID' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get(':school_id/findNot')
   findBySchoolIdNot(@Param('school_id') school_id: string) {
@@ -78,9 +73,10 @@ export class StudentController {
     return this.studentService.findByArchiveSchoolId(+school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Student paginate archive' })
   @Roles('owner', 'administrator', 'teacher')
-  @Get(':school_id/archive/page')
+  @Get('archive/:school_id/page')
   paginateArchive(
     @Query('page') page: number,
     @Param('school_id') school_id: string,
@@ -88,6 +84,7 @@ export class StudentController {
     return this.studentService.paginateArchive(+school_id, page);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Student paginate' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/page')
@@ -95,9 +92,10 @@ export class StudentController {
     return this.studentService.paginate(+school_id, page);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Student paginate on teacher' })
   @Roles('teacher')
-  @Get(':school_id/teacher-student/:teacher_id/page')
+  @Get('teacher/:school_id/:teacher_id/page')
   paginateTeacher(
     @Query('page') page: number,
     @Param('school_id') school_id: string,
@@ -106,6 +104,7 @@ export class StudentController {
     return this.studentService.paginateTeacher(+school_id, +teacher_id, page);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Student view by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id')
@@ -113,14 +112,14 @@ export class StudentController {
     return this.studentService.findOne(+id, +school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Student view by ID by school ID not' })
   @Roles('owner', 'administrator', 'teacher')
-  @Get(':school_id/:id/not')
-  findOneNot(@Param('id') id: string, @Param('school_id') school_id: string) {
-    return this.studentService.findOneNot(+id, +school_id);
+  @Get('not/:school_id/:id')
+  findOneNot(@Param('school_id') school_id: string, @Param('id') id: string) {
+    return this.studentService.findOneNot(+school_id, +id);
   }
 
-  
   @ApiOperation({ summary: 'Student view by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:id/payment')
@@ -148,6 +147,7 @@ export class StudentController {
     return this.studentService.findOneGroup(+id, +school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Student update by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Put(':school_id/:id')
@@ -159,6 +159,7 @@ export class StudentController {
     return this.studentService.update(+id, +school_id, updateStudentDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Student archive by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Put('archive/:school_id/:id')
@@ -170,10 +171,51 @@ export class StudentController {
     return this.studentService.archive(+id, +school_id, archiveStudentDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Student remove by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Delete(':school_id/:id')
   remove(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.studentService.remove(+id, +school_id);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Search student by name' })
+  @ApiBearerAuth('access-token')
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('search/:school_id/:name')
+  searchName(
+    @Param('school_id') school_id: string,
+    @Param('name') name: string,
+  ) {
+    return this.studentService.searchName(+school_id, name);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Search student by name' })
+  @ApiBearerAuth('access-token')
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('search-teacher/:school_id/:teacher_id/:name')
+  searchNameTeacher(
+    @Param('school_id') school_id: string,
+    @Param('teacher_id') teacher_id: string,
+    @Param('name') name: string,
+  ) {
+    return this.studentService.searchNameTeacher(+school_id, +teacher_id, name);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Search student by name' })
+  @ApiBearerAuth('access-token')
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('search-archive/:school_id/:name')
+  searchNameArchive(
+    @Param('school_id') school_id: string,
+    @Param('name') name: string,
+  ) {
+    return this.studentService.searchNameArchive(+school_id, name);
   }
 }

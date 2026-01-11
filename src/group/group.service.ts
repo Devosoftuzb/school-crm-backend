@@ -12,6 +12,10 @@ import { StudentGroup } from 'src/student_group/models/student_group.model';
 import { School } from 'src/school/models/school.model';
 import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 import { GroupDay } from 'src/group_day/models/group_day.model';
+import { Subject } from 'src/subject/models/subject.model';
+import { Op } from 'sequelize';
+import { Employee } from 'src/employee/models/employee.model';
+import { Student } from 'src/student/models/student.model';
 
 @Injectable()
 export class GroupService {
@@ -25,6 +29,14 @@ export class GroupService {
 
   async create(createGroupDto: CreateGroupDto) {
     const group = await this.repo.create(createGroupDto);
+    await this.subjectGroupRepo.create({
+      group_id: group.id,
+      subject_id: createGroupDto.subject_id,
+    });
+    await this.employeeGroupRepo.create({
+      group_id: group.id,
+      employee_id: createGroupDto.teacher_id,
+    });
     return {
       message: 'Group created successfully',
       group,
@@ -54,10 +66,18 @@ export class GroupService {
       const limit = 15;
       const offset = (page - 1) * limit;
       const groups = await this.repo.findAll({
-        where: { school_id: school_id, status: true },
+        where: { school_id, status: true },
+        attributes: ['id', 'name', 'price', 'start_date', 'createdAt'],
         include: [
           {
             model: GroupSubject,
+            attributes: ['id'],
+            include: [{ model: Subject, attributes: ['id', 'name'] }],
+          },
+          {
+            model: EmployeeGroup,
+            attributes: ['id'],
+            include: [{ model: Employee, attributes: ['id', 'full_name'] }],
           },
         ],
         order: [['createdAt', 'DESC']],
@@ -86,15 +106,108 @@ export class GroupService {
     }
   }
 
-  async findOne(id: number, school_id: number) {
+  async paginateTeacher(
+    school_id: number,
+    teacher_id: number,
+    page: number,
+  ): Promise<object> {
+    try {
+      page = Number(page);
+      const limit = 15;
+      const offset = (page - 1) * limit;
+      const groups = await this.repo.findAll({
+        where: { school_id, status: true },
+        attributes: ['id', 'name', 'price', 'start_date', 'createdAt'],
+        include: [
+          {
+            model: GroupSubject,
+            attributes: ['id'],
+            include: [{ model: Subject, attributes: ['id', 'name'] }],
+          },
+          {
+            model: EmployeeGroup,
+            where: { employee_id: teacher_id },
+            attributes: ['id'],
+            include: [{ model: Employee, attributes: ['id', 'full_name'] }],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+        offset,
+        limit,
+      });
+      const total_count = await this.repo.count({
+        where: { school_id, status: true },
+      });
+      const total_pages = Math.ceil(total_count / limit);
+      return {
+        status: 200,
+        data: {
+          records: groups,
+          pagination: {
+            currentPage: page,
+            total_pages,
+            total_count,
+          },
+        },
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        'Failed to paginate groups: ' + error.message,
+      );
+    }
+  }
+
+  async findOne(school_id: number, id: number) {
     const group = await this.repo.findOne({
       where: { id, school_id, status: true },
+      attributes: [
+        'id',
+        'name',
+        'price',
+        'start_date',
+        'start_time',
+        'end_time',
+        'room_id',
+      ],
+    });
+
+    if (!group) {
+      throw new BadRequestException(
+        `Group with id ${id} not found in school ${school_id}`,
+      );
+    }
+
+    return group;
+  }
+
+  async findOneAll(school_id: number, id: number) {
+    const group = await this.repo.findOne({
+      where: { id, school_id, status: true },
+      attributes: [
+        'id',
+        'name',
+        'price',
+        'start_date',
+        'start_time',
+        'end_time',
+      ],
       include: [
         {
-          model: GroupSubject,
+          model: EmployeeGroup,
+          attributes: ['id', 'createdAt'],
+          include: [
+            {
+              model: Employee,
+              attributes: ['id', 'full_name', 'role', 'phone_number'],
+            },
+          ],
         },
         {
-          model: EmployeeGroup,
+          model: StudentGroup,
+          attributes: ['id', 'createdAt'],
+          include: [
+            { model: Student, attributes: ['id', 'full_name', 'phone_number'] },
+          ],
         },
       ],
     });
@@ -186,8 +299,8 @@ export class GroupService {
     return group;
   }
 
-  async update(id: number, school_id: number, updateGroupDto: UpdateGroupDto) {
-    const group = await this.findOne(id, school_id);
+  async update(school_id: number, id: number, updateGroupDto: UpdateGroupDto) {
+    const group = await this.findOne(school_id, id);
     await group.update(updateGroupDto);
 
     return {
@@ -197,7 +310,7 @@ export class GroupService {
   }
 
   async remove(id: number, school_id: number) {
-    const group = await this.findOne(id, school_id);
+    const group = await this.findOne(school_id, id);
     if (!group) {
       throw new NotFoundException('Group not found');
     }
@@ -253,6 +366,37 @@ export class GroupService {
     return await this.repo.findAll({
       where: { school_id, status: true },
       attributes: ['id', 'name'],
+    });
+  }
+
+  async findTeacherGroup(school_id: number, teacher_id: number) {
+    return await this.repo.findAll({
+      where: { school_id, status: true },
+      attributes: ['id', 'name'],
+      include: [{ model: EmployeeGroup, where: { employee_id: teacher_id } }],
+    });
+  }
+
+  async searchName(school_id: number, name: string) {
+    return await this.repo.findAll({
+      where: {
+        school_id,
+        status: true,
+        name: { [Op.iLike]: `%${name}%` },
+      },
+      attributes: ['id', 'name', 'price', 'start_date', 'createdAt'],
+      include: [
+        {
+          model: GroupSubject,
+          attributes: ['id'],
+          include: [{ model: Subject, attributes: ['id', 'name'] }],
+        },
+        {
+          model: EmployeeGroup,
+          attributes: ['id'],
+          include: [{ model: Employee, attributes: ['id', 'full_name'] }],
+        },
+      ],
     });
   }
 }

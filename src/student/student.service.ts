@@ -9,6 +9,9 @@ import { Payment } from 'src/payment/models/payment.model';
 import { ArchiveStudentDto } from './dto/archive-student.dto';
 import { Group } from 'src/group/models/group.model';
 import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
+import { Op } from 'sequelize';
+import { GroupSubject } from 'src/group_subject/models/group_subject.model';
+import { Subject } from 'src/subject/models/subject.model';
 
 @Injectable()
 export class StudentService {
@@ -30,14 +33,9 @@ export class StudentService {
     };
   }
 
-  async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
-  }
-
-  async findAllBySchoolId(school_id: number) {
+  async findAll(school_id: number) {
     return await this.repo.findAll({
       where: { school_id },
-      include: { all: true },
     });
   }
 
@@ -120,9 +118,12 @@ export class StudentService {
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
         where: { school_id: school_id, status: false },
+        attributes: ['id', 'full_name', 'phone_number', 'status', 'createdAt'],
         include: [
           {
             model: StudentGroup,
+            attributes: ['id'],
+            include: [{ model: Group, attributes: ['id', 'name'] }],
           },
         ],
         order: [['createdAt', 'DESC']],
@@ -157,9 +158,11 @@ export class StudentService {
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
         where: { school_id: school_id, status: true },
+        attributes: ['id', 'full_name', 'phone_number', 'status', 'createdAt'],
         include: [
           {
             model: StudentGroup,
+            attributes: ['id'],
             include: [{ model: Group, attributes: ['id', 'name'] }],
           },
         ],
@@ -197,36 +200,23 @@ export class StudentService {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
-      const teacherGroups = await this.repoEmployeeGroup.findAll({
-        where: { employee_id: teacher_id },
-        attributes: ['group_id'],
-      });
-
-      const groupIds = teacherGroups.map((g) => g.group_id);
-
-      if (groupIds.length === 0) {
-        return {
-          status: 200,
-          data: {
-            records: [],
-            pagination: {
-              currentPage: page,
-              total_pages: 0,
-              total_count: 0,
-            },
-          },
-        };
-      }
 
       const students = await this.repo.findAll({
         where: { school_id, status: true },
+        attributes: ['id', 'full_name', 'phone_number', 'status', 'createdAt'],
         include: [
           {
             model: StudentGroup,
-            where: {
-              group_id: groupIds,
-            },
-            include: [{ model: Group, attributes: ['id', 'name'] }],
+            attributes: ['id'],
+            include: [
+              {
+                model: Group,
+                attributes: ['id', 'name'],
+                include: [
+                  { model: EmployeeGroup, where: { employee_id: teacher_id } },
+                ],
+              },
+            ],
           },
         ],
         order: [['createdAt', 'DESC']],
@@ -239,9 +229,15 @@ export class StudentService {
         include: [
           {
             model: StudentGroup,
-            where: {
-              group_id: groupIds,
-            },
+            include: [
+              {
+                model: Group,
+                attributes: ['id', 'name'],
+                include: [
+                  { model: EmployeeGroup, where: { employee_id: teacher_id } },
+                ],
+              },
+            ],
           },
         ],
       });
@@ -270,7 +266,39 @@ export class StudentService {
         id,
         school_id,
       },
-      include: { all: true },
+      attributes: [
+        'id',
+        'full_name',
+        'phone_number',
+        'parents_full_name',
+        'parents_phone_number',
+        'status',
+        'createdAt',
+      ],
+      include: [
+        {
+          model: StudentGroup,
+          attributes: ['id', 'createdAt'],
+          include: [
+            {
+              model: Group,
+              attributes: ['id', 'name', 'price', 'start_date'],
+              include: [
+                {
+                  model: GroupSubject,
+                  attributes: ['id'],
+                  include: [{ model: Subject, attributes: ['id', 'name'] }],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: Payment,
+          attributes: ['id', 'method', 'price', 'month', 'createdAt'],
+          include: [{ model: Group, attributes: ['id', 'name', 'price'] }],
+        },
+      ],
     });
 
     if (!student) {
@@ -280,13 +308,19 @@ export class StudentService {
     return student;
   }
 
-  async findOneNot(id: number, school_id: number) {
+  async findOneNot(school_id: number, id: number) {
     const student = await this.repo.findOne({
       where: {
         id,
         school_id,
       },
-      attributes: ['id', 'full_name', 'phone_number'],
+      attributes: [
+        'id',
+        'full_name',
+        'phone_number',
+        'parents_full_name',
+        'parents_phone_number',
+      ],
     });
 
     if (!student) {
@@ -295,23 +329,6 @@ export class StudentService {
 
     return student;
   }
-
-  // async findAllNot(school_id: number) {
-  //   console.log(school_id)
-  //   const student = await this.repo.findAll({
-  //     where: { school_id },
-  //     attributes: ['id', 'full_name'],
-  //   });
-
-  //   console.log(student)
-  //   if (!student) {
-  //     throw new BadRequestException(
-  //       `Student with school id ${school_id} not found`,
-  //     );
-  //   }
-
-  //   return student;
-  // }
 
   async findOnePayment(id: number, school_id: number) {
     const student = await this.repo.findOne({
@@ -420,5 +437,64 @@ export class StudentService {
     return {
       message: 'Student removed successfully',
     };
+  }
+
+  async searchName(school_id: number, name: string) {
+    return await this.repo.findAll({
+      where: {
+        school_id,
+        status: true,
+        full_name: { [Op.iLike]: `%${name}%` },
+      },
+      include: [
+        {
+          model: StudentGroup,
+          include: [{ model: Group, attributes: ['id', 'name'] }],
+        },
+      ],
+      attributes: ['id', 'full_name', 'phone_number'],
+    });
+  }
+
+  async searchNameTeacher(school_id: number, teacher_id: number, name: string) {
+    return await this.repo.findAll({
+      where: {
+        school_id,
+        status: true,
+        full_name: { [Op.iLike]: `%${name}%` },
+      },
+      include: [
+        {
+          model: StudentGroup,
+          include: [
+            {
+              model: Group,
+              attributes: ['id', 'name'],
+              include: [
+                { model: EmployeeGroup, where: { employee_id: teacher_id } },
+              ],
+            },
+          ],
+        },
+      ],
+      attributes: ['id', 'full_name', 'phone_number'],
+    });
+  }
+
+  async searchNameArchive(school_id: number, name: string) {
+    return await this.repo.findAll({
+      where: {
+        school_id,
+        status: false,
+        full_name: { [Op.iLike]: `%${name}%` },
+      },
+      include: [
+        {
+          model: StudentGroup,
+          include: [{ model: Group, attributes: ['id', 'name'] }],
+        },
+      ],
+      attributes: ['id', 'full_name', 'phone_number'],
+    });
   }
 }

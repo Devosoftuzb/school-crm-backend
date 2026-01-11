@@ -28,7 +28,7 @@ interface GroupAttr {
   status: boolean;
 }
 
-@Table({ tableName: 'group' })
+@Table({ tableName: 'group_table' })
 export class Group extends Model<Group, GroupAttr> {
   @Column({
     type: DataType.INTEGER,
