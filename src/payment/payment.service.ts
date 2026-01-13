@@ -904,7 +904,12 @@ export class PaymentService {
                 include: [
                   {
                     model: Payment,
-                    where: { year, month, group_id },
+                    where: {
+                      year,
+                      month,
+                      group_id,
+                      status: { [Op.ne]: 'delete' },
+                    },
                     required: false,
                     attributes: [
                       'price',

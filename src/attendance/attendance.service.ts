@@ -7,6 +7,8 @@ import { Student } from 'src/student/models/student.model';
 import { Op } from 'sequelize';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
 import { SmsService } from 'src/sms/sms.service';
+import { Group } from 'src/group/models/group.model';
+import { Payment } from 'src/payment/models/payment.model';
 
 @Injectable()
 export class AttendanceService {
@@ -40,120 +42,100 @@ export class AttendanceService {
     };
   }
 
-  async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
-  }
+  async findGroupStudent(school_id: number, group_id: number) {
+    const today = new Date();
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1,
+    );
 
-  async findAllByAttendanceId(school_id: number) {
-    return await this.repo.findAll({
-      where: { school_id: school_id },
-      include: { all: true },
-    });
-  }
+    const currentYear = today.getFullYear();
+    const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
 
-  async paginate(school_id: number, page: number): Promise<object> {
-    try {
-      page = Number(page);
-      const limit = 10;
-      const offset = (page - 1) * limit;
-      const user = await this.repo.findAll({
-        where: { school_id: school_id },
-        include: { all: true },
-        offset,
-        limit,
-      });
-      const total_count = await this.repo.count();
-      const total_pages = Math.ceil(total_count / limit);
-      const res = {
-        status: 200,
-        data: {
-          records: user,
-          pagination: {
-            currentPage: page,
-            total_pages,
-            total_count,
-          },
+    const students = await this.repoStudent.findAll({
+      where: { school_id, status: true },
+      attributes: ['id', 'full_name'],
+      include: [
+        {
+          model: StudentGroup,
+          where: { group_id },
+          attributes: ['id'],
+          include: [{ model: Group, attributes: ['id', 'price'] }],
         },
+        {
+          model: Attendance,
+          where: {
+            group_id,
+            createdAt: { [Op.gte]: startOfDay, [Op.lt]: endOfDay },
+          },
+          required: false,
+          attributes: ['status'],
+        },
+        {
+          model: Payment,
+          where: {
+            status: { [Op.ne]: 'delete' },
+            group_id,
+            year: String(currentYear),
+            month: String(currentMonth),
+          },
+          required: false,
+          attributes: ['price', 'discount', 'discountSum'],
+        },
+      ],
+    });
+
+    const hasAttendance = students.some(
+      (student) => student.attendance && student.attendance.length > 0,
+    );
+    const method = hasAttendance ? 'put' : 'post';
+
+    const result = students.map((student) => {
+      const groupPrice = Number(student.group[0].group.price);
+
+      const paymentHistory = student.payment || [];
+      let discountedPrice = groupPrice;
+      if (paymentHistory.length > 0) {
+        const lastPaymentWithDiscountSum = paymentHistory.find(
+          (p) => p.discountSum > 0,
+        );
+        if (lastPaymentWithDiscountSum) {
+          discountedPrice = groupPrice - lastPaymentWithDiscountSum.discountSum;
+        } else {
+          const lastPayment = paymentHistory[paymentHistory.length - 1];
+          const totalDiscount = lastPayment?.discount || 0;
+          discountedPrice = Math.round(groupPrice * (1 - totalDiscount / 100));
+        }
+      }
+
+      const currentMonthPaid = paymentHistory.reduce(
+        (sum, p) => sum + p.price,
+        0,
+      );
+
+      const debt =
+        currentMonthPaid >= discountedPrice
+          ? "To'langan"
+          : `(${(discountedPrice - currentMonthPaid).toLocaleString('uz-UZ')}) so'm to'lanmagan`;
+
+      return {
+        id: student.id,
+        group_id: student.group[0].group.id,
+        student_group_id: student.group[0].id,
+        full_name: student.full_name,
+        debt,
+        attendance: student.attendance[0]?.status || false,
       };
-      return res;
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
+    });
+
+    return [result, { method }];
   }
-
-  // async findGroupHistory(
-  //   school_id: number,
-  //   group_id: number,
-  //   year: number,
-  //   month: number,
-  //   page: number,
-  // ): Promise<object> {
-  //   try {
-  //     page = Number(page);
-  //     const limit = 15;
-  //     const offset = (page - 1) * limit;
-
-  //     const allUsers = await this.repo.findAll({
-  //       where: {
-  //         school_id,
-  //         group_id,
-  //         createdAt: {
-  //           [Op.gte]: new Date(year, month - 1, 1),
-  //           [Op.lt]: new Date(year, month, 1),
-  //         },
-  //       },
-  //       include: [
-  //         {
-  //           model: Student,
-  //           attributes: ['id', 'full_name'],
-  //         },
-  //       ],
-  //       order: [['createdAt', 'DESC']],
-  //     });
-
-  //     const attendanceMap = new Map();
-
-  //     allUsers.forEach((user) => {
-  //       const studentName = user.student.full_name;
-  //       const studentId = user.student.id;
-
-  //       const attendanceRecord = {
-  //         date: user.createdAt.toISOString().split('T')[0],
-  //         status: user.status,
-  //       };
-
-  //       if (attendanceMap.has(studentName)) {
-  //         attendanceMap.get(studentName).attendance.push(attendanceRecord);
-  //       } else {
-  //         attendanceMap.set(studentName, {
-  //           student_id: studentId,
-  //           student_name: studentName,
-  //           attendance: [attendanceRecord],
-  //         });
-  //       }
-  //     });
-
-  //     const attendanceRecords = Array.from(attendanceMap.values());
-  //     const paginatedRecords = attendanceRecords.slice(offset, offset + limit);
-
-  //     const total_count = attendanceRecords.length;
-  //     const total_pages = Math.ceil(total_count / limit);
-
-  //     return {
-  //       status: 200,
-  //       data: {
-  //         records: paginatedRecords,
-  //         pagination: {
-  //           currentPage: page,
-  //           total_pages,
-  //           total_count,
-  //         },
-  //       },
-  //     };
-  //   } catch (error) {
-  //     throw new BadRequestException(error.message);
-  //   }
-  // }
 
   async findGroupHistory(
     school_id: number,
@@ -172,7 +154,7 @@ export class AttendanceService {
           {
             model: StudentGroup,
             where: { group_id },
-            attributes: [],
+            attributes: ['id'],
           },
         ],
         attributes: ['id', 'full_name'],
@@ -195,7 +177,7 @@ export class AttendanceService {
 
       allStudents.forEach((student) => {
         attendanceMap.set(student.id, {
-          student_id: student.id,
+          student_group_id: student.group[0].id,
           student_name: student.full_name,
           attendance: [],
         });
@@ -233,22 +215,6 @@ export class AttendanceService {
     }
   }
 
-  async findOne(id: number, school_id: number) {
-    const attendance = await this.repo.findOne({
-      where: {
-        id: id,
-        school_id: school_id,
-      },
-      include: { all: true },
-    });
-
-    if (!attendance) {
-      throw new BadRequestException(`Attendance with id ${id} not found`);
-    }
-
-    return attendance;
-  }
-
   async update(school_id: number, updateAttendanceDto: UpdateAttendanceDto) {
     let attendance = [];
     for (const item of updateAttendanceDto.list) {
@@ -278,12 +244,6 @@ export class AttendanceService {
         school_id: school_id,
       },
     });
-
-    // if (!attendances.length) {
-    //   throw new BadRequestException(
-    //     `Attendance not found for group_id: ${group_id}, student_id: ${student_id}, school_id: ${school_id}`,
-    //   );
-    // }
 
     await this.repo.destroy({
       where: {

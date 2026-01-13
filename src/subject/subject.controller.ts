@@ -24,6 +24,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 export class SubjectController {
   constructor(private readonly subjectService: SubjectService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Subject create' })
   @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
@@ -33,12 +34,23 @@ export class SubjectController {
     return this.subjectService.create(createSubjectDto);
   }
 
+  @Version('1')
+  @ApiOperation({ summary: 'Subject view all by school ID' })
+  @ApiBearerAuth('access-token')
+  @Roles('owner', 'administrator')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('add/:school_id')
+  findAdd(@Param('school_id') school_id: string) {
+    return this.subjectService.findAdd(+school_id);
+  }
+
   @ApiOperation({ summary: 'Subject view all by school ID' })
   @Get(':school_id')
   findAll(@Param('school_id') school_id: string) {
     return this.subjectService.findAll(+school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Subject paginate' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
@@ -48,6 +60,7 @@ export class SubjectController {
     return this.subjectService.paginate(+school_id, page);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Subject view by ID by school ID' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
@@ -57,6 +70,7 @@ export class SubjectController {
     return this.subjectService.findOne(+id, +school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Subject update by ID by school ID' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
@@ -70,6 +84,7 @@ export class SubjectController {
     return this.subjectService.update(+id, +school_id, updateSubjectDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Subject remove by ID by school ID' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
@@ -80,12 +95,15 @@ export class SubjectController {
   }
 
   @Version('1')
-  @ApiOperation({ summary: 'Subject view all by school ID' })
+  @ApiOperation({ summary: 'Search subject by name' })
   @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
-  @Get('add/:school_id')
-  findAdd(@Param('school_id') school_id: string) {
-    return this.subjectService.findAdd(+school_id);
+  @Get('search/:school_id/:name')
+  searchName(
+    @Param('school_id') school_id: string,
+    @Param('name') name: string,
+  ) {
+    return this.subjectService.searchName(+school_id, name);
   }
 }
