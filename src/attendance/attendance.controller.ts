@@ -30,8 +30,8 @@ export class AttendanceController {
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Post()
-  create(@Body() createAttendanceDto: CreateAttendanceDto) {
-    return this.attendanceService.create(createAttendanceDto);
+  saveAttendance(@Body() createAttendanceDto: CreateAttendanceDto) {
+    return this.attendanceService.saveAttendance(createAttendanceDto);
   }
 
   @Version('1')
@@ -65,19 +65,6 @@ export class AttendanceController {
     @Param('group_id') group_id: string,
   ) {
     return this.attendanceService.findGroupStudent(+school_id, +group_id);
-  }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Attendance update by ID by school ID' })
-  @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator', 'teacher')
-  @UseGuards(RolesGuard, JwtAuthGuard)
-  @Put(':school_id')
-  update(
-    @Param('school_id') school_id: string,
-    @Body() updateAttendanceDto: UpdateAttendanceDto,
-  ) {
-    return this.attendanceService.update(+school_id, updateAttendanceDto);
   }
 
   @Version('1')

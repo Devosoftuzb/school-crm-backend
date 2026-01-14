@@ -24,11 +24,7 @@ export class CustomerService {
   async findOne(id: number, school_id: number) {
     const customer = await this.repo.findOne({
       where: { id, school_id },
-      include: [
-        { model: Subject, attributes: ['id', 'name'] },
-        { model: SocialMedia, attributes: ['id', 'name'] },
-      ],
-      attributes: ['id', 'full_name', 'phone_number', 'description'],
+      attributes: ['id', 'full_name', 'phone_number', 'description', 'subject_id', 'social_media_id'],
     });
 
     if (!customer) {

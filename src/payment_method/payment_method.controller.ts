@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Put } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+  Put,
+  Version,
+} from '@nestjs/common';
 import { PaymentMethodService } from './payment_method.service';
 import { CreatePaymentMethodDto } from './dto/create-payment_method.dto';
 import { UpdatePaymentMethodDto } from './dto/update-payment_method.dto';
@@ -14,6 +26,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 export class PaymentMethodController {
   constructor(private readonly paymentMethodService: PaymentMethodService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Payment method create' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post()
@@ -21,13 +34,7 @@ export class PaymentMethodController {
     return this.paymentMethodService.create(createPaymentMethodDto);
   }
 
-  @ApiOperation({ summary: 'Payment method view all by school ID' })
-  @Roles('superadmin', 'admin')
-  @Get()
-  findAll() {
-    return this.paymentMethodService.findAll();
-  }
-
+  @Version('1')
   @ApiOperation({ summary: 'Payment method view all by school ID' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get(':school_id')
@@ -35,41 +42,11 @@ export class PaymentMethodController {
     return this.paymentMethodService.findAllBySchoolId(+school_id);
   }
 
-  @ApiOperation({ summary: 'Payment method paginate' })
-  @Roles('owner', 'administrator')
-  @Get(':school_id/page')
-  paginate(
-    @Query('page') page: number,
-    @Param('school_id') school_id: string
-  ) {
-    return this.paymentMethodService.paginate(+school_id, page);
-  }
-
-  @ApiOperation({ summary: 'Payment method view by ID by school ID' })
-  @Roles('owner', 'administrator')
-  @Get(':school_id/:id')
-  findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
-    return this.paymentMethodService.findOne(+id, +school_id);
-  }
-
-  @ApiOperation({ summary: 'Payment method update by ID by school ID' })
-  @Roles('owner', 'administrator')
-  @Put(':school_id/:id')
-  update(
-    @Param('id') id: string,
-    @Param('school_id') school_id: string,
-    @Body() updatePaymentMethodDto: UpdatePaymentMethodDto,
-  ) {
-    return this.paymentMethodService.update(+id, +school_id, updatePaymentMethodDto);
-  }
-
+  @Version('1')
   @ApiOperation({ summary: 'Payment method remove by ID by school ID' })
   @Roles('owner', 'administrator')
   @Delete(':school_id/:id')
-  remove(
-    @Param('id') id: string, 
-    @Param('school_id') school_id: string
-  ) {
+  remove(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.paymentMethodService.remove(+id, +school_id);
   }
 }

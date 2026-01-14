@@ -18,9 +18,10 @@ export class AttendanceService {
     private smsService: SmsService,
   ) {}
 
-  async create(createAttendanceDto: CreateAttendanceDto) {
-    let attendance = [];
-    for (const item of createAttendanceDto.list) {
+  async saveAttendance(dto: CreateAttendanceDto) {
+    const attendance = [];
+
+    for (const item of dto.list) {
       const student = await this.repoStudent.findOne({
         where: {
           id: item.student_id,
@@ -28,16 +29,38 @@ export class AttendanceService {
         },
       });
 
-      if (student) {
-        const createdAttendance = await this.repo.create(item);
-        attendance.push(createdAttendance);
-        if (!item.status) {
-          this.smsService.sendAttendance({ student_id: item.student_id });
+      if (!student) continue;
+
+      let record;
+      let isCreated = false;
+
+      if (item.attendance_id) {
+        const existingAttendance = await this.repo.findOne({
+          where: {
+            id: item.attendance_id,
+            school_id: item.school_id,
+          },
+        });
+
+        if (existingAttendance) {
+          record = await existingAttendance.update(item);
         }
       }
+
+      if (!record) {
+        record = await this.repo.create(item);
+        isCreated = true;
+      }
+
+      attendance.push(record);
+
+      if (isCreated && !record.status) {
+        await this.smsService.sendAttendance({ student_id: item.student_id });
+      }
     }
+
     return {
-      message: 'Attendance created',
+      message: 'Attendance saved',
       attendance,
     };
   }
@@ -75,7 +98,7 @@ export class AttendanceService {
             createdAt: { [Op.gte]: startOfDay, [Op.lt]: endOfDay },
           },
           required: false,
-          attributes: ['status'],
+          attributes: ['id', 'status'],
         },
         {
           model: Payment,
@@ -102,20 +125,21 @@ export class AttendanceService {
       const paymentHistory = student.payment || [];
       let discountedPrice = groupPrice;
       if (paymentHistory.length > 0) {
-        const lastPaymentWithDiscountSum = paymentHistory.find(
-          (p) => p.discountSum > 0,
+        const totalDiscount = paymentHistory.reduce(
+          (sum, p) => sum + (Number(p.discount) || 0),
+          0,
         );
-        if (lastPaymentWithDiscountSum) {
-          discountedPrice = groupPrice - lastPaymentWithDiscountSum.discountSum;
-        } else {
-          const lastPayment = paymentHistory[paymentHistory.length - 1];
-          const totalDiscount = lastPayment?.discount || 0;
-          discountedPrice = Math.round(groupPrice * (1 - totalDiscount / 100));
-        }
+        discountedPrice = Math.round(groupPrice * (1 - totalDiscount / 100));
+
+        const totalDiscountSum = paymentHistory.reduce(
+          (sum, p) => sum + (Number(p.discountSum) || 0),
+          0,
+        );
+        discountedPrice = discountedPrice - totalDiscountSum;
       }
 
       const currentMonthPaid = paymentHistory.reduce(
-        (sum, p) => sum + p.price,
+        (sum, p) => sum + Number(p.price),
         0,
       );
 
@@ -126,6 +150,7 @@ export class AttendanceService {
 
       return {
         id: student.id,
+        attendance_id: student.attendance[0]?.id,
         group_id: student.group[0].group.id,
         student_group_id: student.group[0].id,
         full_name: student.full_name,
@@ -213,27 +238,6 @@ export class AttendanceService {
     } catch (error) {
       throw new BadRequestException(error.message);
     }
-  }
-
-  async update(school_id: number, updateAttendanceDto: UpdateAttendanceDto) {
-    let attendance = [];
-    for (const item of updateAttendanceDto.list) {
-      const attendanceRecord = await this.repo.findOne({
-        where: {
-          id: item.attendance_id,
-          school_id: school_id,
-        },
-      });
-
-      if (attendanceRecord) {
-        const updatedRecord = await attendanceRecord.update(item);
-        attendance.push(updatedRecord);
-      }
-    }
-    return {
-      message: 'Attendance updated',
-      attendance,
-    };
   }
 
   async remove(group_id: number, student_id: number, school_id: number) {

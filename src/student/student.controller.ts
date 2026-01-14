@@ -49,9 +49,10 @@ export class StudentController {
     return this.studentService.findBySchoolId(+school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Student view all by school ID' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
-  @Get(':school_id/findNot')
+  @Get(':school_id/search')
   findBySchoolIdNot(@Param('school_id') school_id: string) {
     return this.studentService.findBySchoolIdNot(+school_id);
   }

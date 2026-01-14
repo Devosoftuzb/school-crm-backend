@@ -40,10 +40,6 @@ export class PaymentService {
     };
   }
 
-  async findAll() {
-    return this.repo.findAll({ include: { all: true } });
-  }
-
   async findAllBySchoolId(school_id: number) {
     return this.repo.findAll({ where: { school_id } });
   }
@@ -980,7 +976,7 @@ export class PaymentService {
             teacher_name: teacherName,
             group_price: groupPrice,
             debt: remainingDebt,
-            payments: paymentDetails,
+            // payments: paymentDetails,
           });
         }
       }
@@ -1125,7 +1121,7 @@ export class PaymentService {
               teacher_name: teacherName,
               group_price: groupPrice,
               debt: remainingDebt,
-              payments: paymentDetails,
+              // payments: paymentDetails,
             });
           }
         }
@@ -1157,7 +1153,20 @@ export class PaymentService {
         id,
         school_id,
       },
-      include: { all: true },
+      include: [
+        { model: Student, attributes: ['id', 'full_name'] },
+        {
+          model: Group,
+          attributes: ['id', 'name', 'price'],
+          include: [
+            {
+              model: EmployeeGroup,
+              attributes: ['id'],
+              include: [{ model: Employee, attributes: ['full_name'] }],
+            },
+          ],
+        },
+      ],
     });
 
     if (!payment) {
@@ -1741,5 +1750,175 @@ export class PaymentService {
     } catch (error) {
       throw new BadRequestException(error.message);
     }
+  }
+
+  async findGroupStudent(school_id: number, group_id: number) {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
+
+    const students = await this.repoStudent.findAll({
+      where: { school_id, status: true },
+      attributes: ['id', 'full_name'],
+      include: [
+        {
+          model: StudentGroup,
+          where: { group_id },
+          attributes: ['id'],
+          include: [
+            {
+              model: Group,
+              attributes: ['id', 'price', 'name'],
+              include: [
+                {
+                  model: EmployeeGroup,
+                  include: [{ model: Employee, attributes: ['full_name'] }],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: Payment,
+          where: {
+            status: { [Op.ne]: 'delete' },
+            group_id,
+            year: String(currentYear),
+            month: String(currentMonth),
+          },
+          required: false,
+          attributes: ['price', 'discount', 'discountSum'],
+        },
+      ],
+    });
+
+    const result = students.map((student) => {
+      const groupPrice = Number(student.group[0].group.price);
+
+      const groupPayments = student.payment || [];
+      let discountedPrice = groupPrice;
+
+      if (groupPayments.length > 0) {
+        const totalDiscount = groupPayments.reduce(
+          (sum, p) => sum + (Number(p.discount) || 0),
+          0,
+        );
+        discountedPrice = Math.round(groupPrice * (1 - totalDiscount / 100));
+
+        const totalDiscountSum = groupPayments.reduce(
+          (sum, p) => sum + (Number(p.discountSum) || 0),
+          0,
+        );
+        discountedPrice = discountedPrice - totalDiscountSum;
+      }
+
+      const currentMonthPaid = groupPayments.reduce(
+        (sum, p) => sum + Number(p.price),
+        0,
+      );
+
+      const debt =
+        currentMonthPaid >= discountedPrice
+          ? "To'langan"
+          : `(${(discountedPrice - currentMonthPaid).toLocaleString('uz-UZ')}) so'm to'lanmagan`;
+
+      return {
+        student_id: student.id,
+        student_name: student.full_name,
+        group_id: student.group[0].group.id,
+        group_name: student.group[0].group.name,
+        group_price: student.group[0].group.price,
+        teacher_name: student.group[0].group.employee[0].employee.full_name,
+        debt,
+      };
+    });
+
+    return [result];
+  }
+
+  async findStudentGroup(school_id: number, student_id: number) {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
+
+    const students = await this.repoStudent.findAll({
+      where: { school_id, id: student_id, status: true },
+      attributes: ['id', 'full_name'],
+      include: [
+        {
+          model: StudentGroup,
+          include: [
+            {
+              model: Group,
+              attributes: ['id', 'price', 'name'],
+              include: [
+                {
+                  model: EmployeeGroup,
+                  include: [{ model: Employee, attributes: ['full_name'] }],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: Payment,
+          where: {
+            status: { [Op.ne]: 'delete' },
+            year: String(currentYear),
+            month: String(currentMonth),
+          },
+          required: false,
+          attributes: ['group_id', 'price', 'discount', 'discountSum'],
+        },
+      ],
+    });
+
+    const result = students.flatMap((student) => {
+      return student.group.map((studentGroup) => {
+        const group = studentGroup.group;
+        const groupPrice = Number(group.price);
+
+        const groupPayments = (student.payment || []).filter(
+          (p) => p.group_id === group.id,
+        );
+
+        let discountedPrice = groupPrice;
+        if (groupPayments.length > 0) {
+          const totalDiscount = groupPayments.reduce(
+            (sum, p) => sum + (Number(p.discount) || 0),
+            0,
+          );
+          discountedPrice = Math.round(groupPrice * (1 - totalDiscount / 100));
+
+          const totalDiscountSum = groupPayments.reduce(
+            (sum, p) => sum + (Number(p.discountSum) || 0),
+            0,
+          );
+          discountedPrice = discountedPrice - totalDiscountSum;
+        }
+
+        const currentMonthPaid = groupPayments.reduce(
+          (sum, p) => sum + p.price,
+          0,
+        );
+
+        const debt =
+          currentMonthPaid >= discountedPrice
+            ? "To'langan"
+            : `(${(discountedPrice - currentMonthPaid).toLocaleString('uz-UZ')}) so'm to'lanmagan`;
+
+        return {
+          student_id: student.id,
+          student_name: student.full_name,
+          group_id: group.id,
+          group_name: group.name,
+          group_price: group.price,
+          teacher_name: group.employee[0].employee.full_name,
+          debt,
+        };
+      });
+    });
+
+    return result;
   }
 }

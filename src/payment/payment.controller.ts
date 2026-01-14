@@ -9,6 +9,7 @@ import {
   UseGuards,
   Query,
   Put,
+  Version,
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -25,18 +26,12 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Payment create' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post()
   create(@Body() createPaymentDto: CreatePaymentDto) {
     return this.paymentService.create(createPaymentDto);
-  }
-
-  @ApiOperation({ summary: 'Payment view all by school ID' })
-  @Roles('superadmin', 'admin')
-  @Get()
-  findAll() {
-    return this.paymentService.findAll();
   }
 
   @ApiOperation({ summary: 'Payment view all by school ID' })
@@ -46,6 +41,7 @@ export class PaymentController {
     return this.paymentService.findAllBySchoolId(+school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Payment view by ID by school ID' })
   @Roles('owner', 'administrator')
   @Get(':school_id/:id')
@@ -53,6 +49,7 @@ export class PaymentController {
     return this.paymentService.findOne(+id, +school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
   @Roles('owner', 'administrator')
   @Get('year/:school_id/:year/:status/page')
@@ -65,6 +62,7 @@ export class PaymentController {
     return this.paymentService.findYearHistory(+school_id, +year, status, page);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
   @Roles('owner', 'administrator')
   @Get('month/:school_id/:year/:month/:status/page')
@@ -84,6 +82,7 @@ export class PaymentController {
     );
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get('groupMonth/:school_id/:group_id/:year/:month/:status/page')
@@ -105,6 +104,7 @@ export class PaymentController {
     );
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Payment history one day view by ID by school ID' })
   @Roles('owner', 'administrator')
   @Get('day/:school_id/:year/:month/:day/:status/page')
@@ -126,6 +126,7 @@ export class PaymentController {
     );
   }
 
+  @Version('1')
   @ApiOperation({
     summary: 'Payment debtor month group view by ID by school ID',
   })
@@ -147,6 +148,7 @@ export class PaymentController {
     );
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Payment debtor month view by ID by school ID' })
   @Roles('owner', 'administrator')
   @Get('debtor/:school_id/:year/:month/page')
@@ -159,6 +161,7 @@ export class PaymentController {
     return this.paymentService.findHistoryDebtor(+school_id, year, month, page);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Payment update by ID by school ID' })
   @Roles('owner', 'administrator')
   @Put(':school_id/:id')
@@ -170,6 +173,7 @@ export class PaymentController {
     return this.paymentService.update(+id, +school_id, updatePaymentDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Payment remove by ID by school ID' })
   @Roles('owner', 'administrator')
   @Delete(':school_id/:id')
@@ -177,6 +181,7 @@ export class PaymentController {
     return this.paymentService.remove(+id, +school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Payment history one day view by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get('employeeDay/:school_id/:employee_id/:year/:month/:day/page')
@@ -198,6 +203,7 @@ export class PaymentController {
     );
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get('employeeMonth/:school_id/:employee_id/:year/:month/page')
@@ -217,6 +223,7 @@ export class PaymentController {
     );
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get('employeeYear/:school_id/:employee_id/:year/page')
@@ -234,7 +241,10 @@ export class PaymentController {
     );
   }
 
-  @ApiOperation({ summary: 'Payment debtor month view by school ID and employee ID' })
+  @Version('1')
+  @ApiOperation({
+    summary: 'Payment debtor month view by school ID and employee ID',
+  })
   @Roles('owner', 'administrator', 'teacher')
   @Get('employee-debtor/:school_id/:employee_id/:year/:month/page')
   findEmployeeHistoryDebtor(
@@ -251,5 +261,31 @@ export class PaymentController {
       month,
       page,
     );
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Attendance view by ID by school ID' })
+  @ApiBearerAuth('access-token')
+  @Roles('owner', 'administrator', 'teacher')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('group/:school_id/:group_id')
+  findGroupStudent(
+    @Param('school_id') school_id: string,
+    @Param('group_id') group_id: string,
+  ) {
+    return this.paymentService.findGroupStudent(+school_id, +group_id);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Attendance view by ID by school ID' })
+  @ApiBearerAuth('access-token')
+  @Roles('owner', 'administrator', 'teacher')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('student/:school_id/:student_id')
+  findStudentGroup(
+    @Param('school_id') school_id: string,
+    @Param('student_id') student_id: string,
+  ) {
+    return this.paymentService.findStudentGroup(+school_id, +student_id);
   }
 }
