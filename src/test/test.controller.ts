@@ -9,6 +9,7 @@ import {
   Put,
   Query,
   UseGuards,
+  Version,
 } from '@nestjs/common';
 import { TestService } from './test.service';
 import { CreateTestDto } from './dto/create-test.dto';
@@ -23,6 +24,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 export class TestController {
   constructor(private readonly testService: TestService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Test create' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
@@ -38,11 +40,23 @@ export class TestController {
     return this.testService.findAll(+school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Test paginate' })
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get(':school_id/page')
   paginate(@Param('school_id') school_id: string, @Query('page') page: number) {
     return this.testService.paginate(+school_id, page);
   }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Test view by ID' })
+  @Get('not/:id')
+  findOneNot(@Param('id') id: string) {
+    return this.testService.findOneNot(+id);
+  }
+
 
   @ApiOperation({ summary: 'Test view by ID' })
   @Get(':id')
@@ -50,6 +64,7 @@ export class TestController {
     return this.testService.findOne(+id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Test update by ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
@@ -59,6 +74,7 @@ export class TestController {
     return this.testService.update(+id, updateTestDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Test remove by ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
@@ -66,5 +82,18 @@ export class TestController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.testService.remove(+id);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Search test by name' })
+  @ApiBearerAuth('access-token')
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('search/:school_id/:name')
+  searchName(
+    @Param('school_id') school_id: string,
+    @Param('name') name: string,
+  ) {
+    return this.testService.searchName(+school_id, name);
   }
 }

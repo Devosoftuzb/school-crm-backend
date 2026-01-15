@@ -107,14 +107,6 @@ export class UserService {
   }
 
   async findOne(id: number) {
-    const user = await this.repo.findByPk(id, { include: { all: true } });
-    if (!user) {
-      throw new BadRequestException(`User with id ${id} not found`);
-    }
-    return user;
-  }
-
-  async findOneNot(id: number) {
     const user = await this.repo.findByPk(id);
     if (!user) {
       throw new BadRequestException(`User with id ${id} not found`);

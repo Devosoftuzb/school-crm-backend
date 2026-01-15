@@ -10,6 +10,7 @@ import {
   Query,
   Put,
   Version,
+  Res,
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -18,6 +19,9 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { Response } from 'express';
+import { ExcelHistoryDto } from './dto/excel-history.dto';
+import { ExcelTeacherHistoryDto } from './dto/excel-teacher-history.dto';
 
 @ApiTags('Payment')
 @Controller('payment')
@@ -39,6 +43,76 @@ export class PaymentController {
   @Get(':school_id')
   findAllBySchoolId(@Param('school_id') school_id: string) {
     return this.paymentService.findAllBySchoolId(+school_id);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Export excel by payment' })
+  @ApiBearerAuth('access-token')
+  @Roles('owner', 'administrator', 'teacher')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('history/excel')
+  async excelHistory(
+    @Query('school_id') school_id: number,
+    @Query() query: ExcelHistoryDto,
+    @Res() res: Response,
+  ) {
+    const { year, month, day, group_id } = query;
+
+    return this.paymentService.excelHistory(
+      school_id,
+      year,
+      month,
+      day,
+      group_id,
+      res,
+    );
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Export excel by employee' })
+  @ApiBearerAuth('access-token')
+  @Roles('owner', 'administrator', 'teacher')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('history/teacher/excel')
+  async excelTeacherHistory(
+    @Query('school_id') school_id: number,
+    @Query() query: ExcelTeacherHistoryDto,
+    @Res() res: Response,
+  ) {
+    const { year, month, day, employee_id } = query;
+
+    return this.paymentService.excelTeacherHistory(
+      school_id,
+      employee_id,
+      year,
+      month,
+      day,
+      res,
+    );
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Export excel by debtor' })
+  @ApiBearerAuth('access-token')
+  @Roles('owner', 'administrator', 'teacher')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('debtor/excel')
+  async exportDebtorExcel(
+    @Query('school_id') school_id: number,
+    @Query('year') year: string,
+    @Query('month') month: string,
+    @Query() query: ExcelHistoryDto,
+    @Res() res: Response,
+  ) {
+    const { group_id } = query;
+
+    return this.paymentService.exportDebtorExcel(
+      school_id,
+      year,
+      month,
+      res,
+      group_id
+    );
   }
 
   @Version('1')
@@ -274,18 +348,5 @@ export class PaymentController {
     @Param('group_id') group_id: string,
   ) {
     return this.paymentService.findGroupStudent(+school_id, +group_id);
-  }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Attendance view by ID by school ID' })
-  @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator', 'teacher')
-  @UseGuards(RolesGuard, JwtAuthGuard)
-  @Get('student/:school_id/:student_id')
-  findStudentGroup(
-    @Param('school_id') school_id: string,
-    @Param('student_id') student_id: string,
-  ) {
-    return this.paymentService.findStudentGroup(+school_id, +student_id);
   }
 }

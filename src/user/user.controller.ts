@@ -10,6 +10,7 @@ import {
   UseGuards,
   Put,
   Query,
+  Version,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -55,6 +56,7 @@ export class UserController {
     return this.userService.paginate(page);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'User view by ID' })
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
@@ -63,13 +65,6 @@ export class UserController {
     return this.userService.findOne(+id);
   }
 
-  @ApiOperation({ summary: 'User view by ID' })
-  @ApiBearerAuth('access-token')
-  @UseGuards(JwtAuthGuard)
-  @Get(':id/not')
-  findOneNot(@Param('id') id: string) {
-    return this.userService.findOneNot(+id);
-  }
 
   @ApiOperation({ summary: 'User update by ID' })
   @ApiBearerAuth('access-token')
@@ -88,6 +83,7 @@ export class UserController {
     return this.userService.delete(+id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Change password user' })
   @Post('change-password/:id')
   changePassword(

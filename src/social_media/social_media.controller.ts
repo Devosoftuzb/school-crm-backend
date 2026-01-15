@@ -26,6 +26,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 export class SocialMediaController {
   constructor(private readonly socialMediaService: SocialMediaService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'SocialMedia create' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post()
@@ -33,42 +34,7 @@ export class SocialMediaController {
     return this.socialMediaService.create(createSocialMediaDto);
   }
 
-  @ApiOperation({ summary: 'SocialMedia view all by school ID' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @Get(':school_id')
-  findAll(@Param('school_id') school_id: string) {
-    return this.socialMediaService.findAll(+school_id);
-  }
-
-  @ApiOperation({ summary: 'SocialMedia paginate' })
-  @Roles('owner', 'administrator')
-  @Get(':school_id/page')
-  paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
-    return this.socialMediaService.paginate(+school_id, page);
-  }
-
-  @ApiOperation({ summary: 'SocialMedia view by ID by school ID' })
-  @Roles('owner', 'administrator')
-  @Get(':school_id/:id')
-  findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
-    return this.socialMediaService.findOne(+id, +school_id);
-  }
-
-  @ApiOperation({ summary: 'SocialMedia update by ID by school ID' })
-  @Roles('owner', 'administrator')
-  @Put(':school_id/:id')
-  update(
-    @Param('id') id: string,
-    @Param('school_id') school_id: string,
-    @Body() updateSocialMediaDto: UpdateSocialMediaDto,
-  ) {
-    return this.socialMediaService.update(
-      +id,
-      +school_id,
-      updateSocialMediaDto,
-    );
-  }
-
+  @Version('1')
   @ApiOperation({ summary: 'SocialMedia remove by ID by school ID' })
   @Roles('owner', 'administrator')
   @Delete(':school_id/:id')

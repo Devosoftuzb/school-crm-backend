@@ -9,6 +9,9 @@ import { Employee } from 'src/employee/models/employee.model';
 import { Op, literal } from 'sequelize';
 import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
+import * as XLSX from 'xlsx';
+import { Response } from 'express';
+import { StatisticService } from 'src/statistic/statistic.service';
 
 @Injectable()
 export class PaymentService {
@@ -17,6 +20,7 @@ export class PaymentService {
     @InjectModel(Student) private repoStudent: typeof Student,
     @InjectModel(Group) private repoGroup: typeof Group,
     @InjectModel(Employee) private repoEmployee: typeof Employee,
+    private statistic: StatisticService,
   ) {}
 
   async create(createPaymentDto: CreatePaymentDto) {
@@ -1921,4 +1925,643 @@ export class PaymentService {
 
     return result;
   }
+
+  async excelHistory(
+    school_id: number,
+    year?: number,
+    month?: number,
+    day?: number,
+    group_id?: number,
+    res?: Response,
+  ) {
+    try {
+      const whereCondition: any = { school_id };
+      let statisticData: any = [];
+      if (group_id) {
+        if (!month || !year) {
+          throw new BadRequestException(
+            'group_id berilganda month va year majburiy',
+          );
+        }
+        statisticData = await this.statistic.getDayPaymentsGroup(
+          school_id,
+          group_id,
+          `${year}-${month}`,
+        );
+        whereCondition.group_id = group_id;
+        whereCondition.month = month;
+        whereCondition.year = year;
+      } else {
+        let startDate: Date;
+        let endDate: Date;
+
+        if (year && month && day) {
+          startDate = new Date(year, month - 1, day);
+          endDate = new Date(year, month - 1, day + 1);
+          statisticData = await this.statistic.getDayPayments(
+            school_id,
+            `${year}-${month}-${day}`,
+          );
+        } else if (year && month) {
+          startDate = new Date(year, month - 1, 1);
+          endDate = new Date(year, month, 1);
+          statisticData = await this.statistic.getDayPayments(
+            school_id,
+            `${year}-${month}`,
+          );
+        } else if (year) {
+          startDate = new Date(year, 0, 1);
+          endDate = new Date(year + 1, 0, 1);
+        } else {
+          throw new BadRequestException(
+            'Kamida year parametri berilishi kerak',
+          );
+        }
+
+        whereCondition.createdAt = { [Op.gte]: startDate, [Op.lt]: endDate };
+      }
+
+      const allUsers = await this.repo.findAll({
+        where: whereCondition,
+        attributes: [
+          'id',
+          'method',
+          'price',
+          'discount',
+          'discountSum',
+          'month',
+          'year',
+          'status',
+          'description',
+          'createdAt',
+        ],
+        include: [
+          {
+            model: Group,
+            attributes: ['id', 'name', 'price'],
+          },
+          {
+            model: Student,
+            attributes: ['full_name'],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+      });
+
+      if (!allUsers || allUsers.length === 0) {
+        throw new BadRequestException("Ma'lumotlar topilmadi");
+      }
+
+      const excelData: any[] = [];
+
+      const uniqueGroupIds = [
+        ...new Set(allUsers.map((u) => u.group?.id).filter(Boolean)),
+      ];
+
+      const groupsWithTeachers = await this.repoGroup.findAll({
+        where: {
+          id: { [Op.in]: uniqueGroupIds },
+          school_id,
+        },
+        include: [
+          {
+            model: EmployeeGroup,
+            attributes: ['employee_id'],
+            include: [
+              {
+                model: Employee,
+                attributes: ['full_name'],
+              },
+            ],
+          },
+        ],
+      });
+
+      const teacherMap = new Map<number, string>();
+      groupsWithTeachers.forEach((group) => {
+        const teacherName =
+          group.employee?.[0]?.employee?.full_name || 'Nomaʼlum';
+        teacherMap.set(group.id, teacherName);
+      });
+
+      for (const user of allUsers) {
+        const teacher_name = user.group?.id
+          ? teacherMap.get(user.group.id) || 'Nomaʼlum'
+          : 'Nomaʼlum';
+
+        const statusText =
+          user.status === 'delete'
+            ? "O'chirilgan"
+            : user.status === 'update'
+              ? "O'zgartirilgan"
+              : 'Tasdiqlangan';
+
+        excelData.push({
+          "O'quvchi (F . I . O)": user.student
+            ? user.student.full_name
+            : "O'chirilgan o'quvchi",
+          "O'qituvchi (F . I . O)": teacher_name,
+          'Guruh nomi': user.group?.name || 'N/A',
+          'Guruh narxi':
+            Number(user.group?.price || 0).toLocaleString('uz-UZ') + " so'm",
+          "To'lov turi": user.method,
+          "To'langan summa": user.price,
+          'Chegirma (%)': user.discount + ' %',
+          Yil: user.year + ' yil',
+          Oy: this.monthNames(Number(user.month)),
+          "To'lov sanasi": this.formatDate(user.createdAt),
+          Izoh: user.description || '',
+          Holati: statusText,
+        });
+      }
+
+      if (statisticData?.statistics?.length) {
+        excelData.push({});
+        excelData.push({});
+        excelData.push({});
+
+        excelData.push({
+          "O'quvchi (F . I . O)": "To'lov turi",
+          "O'qituvchi (F . I . O)": "To'lovlar soni",
+          'Guruh nomi': 'Jami summa',
+        });
+
+        for (const stat of statisticData.statistics) {
+          excelData.push({
+            "O'quvchi (F . I . O)": stat.method,
+            "O'qituvchi (F . I . O)":
+              Number(stat.count).toLocaleString('uz-UZ') + ' ta',
+            'Guruh nomi':
+              Number(stat.sum || stat.total || 0).toLocaleString('uz-UZ') +
+              " so'm",
+          });
+        }
+      }
+
+      const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+      const worksheet = this.createWorksheet(excelData);
+
+      worksheet['!cols'] = [
+        { wch: 25 }, // O'quvchi (F . I . O)
+        { wch: 25 }, // O'qituvchi (F . I . O)
+        { wch: 20 }, // Guruh nomi
+        { wch: 20 }, // Guruh narxi
+        { wch: 15 }, // To'lov turi
+        { wch: 15 }, // To'langan summa
+        { wch: 15 }, // Chegirma (%)
+        { wch: 10 }, // Yil
+        { wch: 12 }, // Oy
+        { wch: 15 }, // To'lov sanasi
+        { wch: 30 }, // Izoh
+        { wch: 15 }, // Holati
+      ];
+
+      let sheetName = "To'lovlar";
+      if (group_id) {
+        const groupName = allUsers[0]?.group?.name || 'Guruh';
+        sheetName = `${groupName} - ${this.monthNames(month)} ${year}`;
+      } else if (year && month && day) {
+        sheetName = `${day} ${this.monthNames(month)} ${year}`;
+      } else if (year && month) {
+        sheetName = `${this.monthNames(month)} ${year}`;
+      } else if (year) {
+        sheetName = `${year} yil`;
+      }
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+      const excelBuffer: Buffer = XLSX.write(workbook, {
+        type: 'buffer',
+        bookType: 'xlsx',
+      }) as Buffer;
+
+      let fileName = 'payment_history';
+      if (group_id) {
+        fileName = `payment_history_group_${group_id}_${month}_${year}.xlsx`;
+      } else if (year && month && day) {
+        fileName = `payment_history_${day}_${month}_${year}.xlsx`;
+      } else if (year && month) {
+        fileName = `payment_history_${month}_${year}.xlsx`;
+      } else if (year) {
+        fileName = `payment_history_${year}.xlsx`;
+      }
+
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${fileName}"`,
+      );
+
+      return res.send(excelBuffer);
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException(
+        error.message || 'Excel faylni yaratishda xatolik yuz berdi',
+      );
+    }
+  }
+
+  async excelTeacherHistory(
+    school_id: number,
+    employee_id: number,
+    year?: number,
+    month?: number,
+    day?: number,
+    res?: Response,
+  ) {
+    try {
+      let allowedGroupIds = [];
+      let statisticData: any = [];
+
+      if (employee_id) {
+        const employeeGroups = await this.repoGroup.findAll({
+          where: { school_id },
+          include: [
+            {
+              model: EmployeeGroup,
+              where: { employee_id },
+              attributes: [],
+              required: true,
+            },
+          ],
+          attributes: ['id'],
+        });
+
+        allowedGroupIds = employeeGroups.map((g) => g.id);
+      }
+
+      if (!allowedGroupIds.length) {
+        throw new BadRequestException("Ma'lumot topilmadi");
+      }
+
+      const whereCondition: any = {
+        school_id,
+        group_id: { [Op.in]: allowedGroupIds },
+      };
+
+      if (year && month && day) {
+        whereCondition.createdAt = {
+          [Op.gte]: new Date(year, month - 1, day),
+          [Op.lt]: new Date(year, month - 1, day + 1),
+        };
+        statisticData = await this.statistic.getEmployeeDayPayments(
+          school_id,
+          employee_id,
+          `${year}-${month}-${day}`,
+        );
+      } else if (year && month) {
+        whereCondition.createdAt = {
+          [Op.gte]: new Date(year, month - 1, 1),
+          [Op.lt]: new Date(year, month, 1),
+        };
+        statisticData = await this.statistic.getEmployeeDayPayments(
+          school_id,
+          employee_id,
+          `${year}-${month}`,
+        );
+      } else if (year) {
+        whereCondition.createdAt = {
+          [Op.gte]: new Date(year, 0, 1),
+          [Op.lt]: new Date(year + 1, 0, 1),
+        };
+      }
+
+      const allUsers = await this.repo.findAll({
+        where: whereCondition,
+        attributes: [
+          'id',
+          'method',
+          'price',
+          'discount',
+          'discountSum',
+          'month',
+          'year',
+          'createdAt',
+          'status',
+          'description',
+        ],
+        include: [
+          { model: Group, attributes: ['id', 'name', 'price'] },
+          { model: Student, attributes: ['full_name'] },
+        ],
+        order: [['createdAt', 'DESC']],
+      });
+
+      if (!allUsers.length) {
+        throw new BadRequestException("Ma'lumot topilmadi");
+      }
+
+      const teacherName = employee_id
+        ? (await this.repoEmployee.findByPk(employee_id))?.full_name ||
+          'Nomaʼlum'
+        : 'Nomaʼlum';
+
+      const excelData: any[] = [];
+
+      for (const user of allUsers) {
+        const statusText =
+          user.status === 'delete'
+            ? "O'chirilgan"
+            : user.status === 'update'
+              ? "O'zgartirilgan"
+              : 'Tasdiqlangan';
+
+        excelData.push({
+          "O'quvchi (F . I . O)":
+            user.student?.full_name || "O'chirilgan o'quvchi",
+          "O'qituvchi (F . I . O)": teacherName,
+          'Guruh nomi': user.group?.name || 'N/A',
+          'Guruh narxi':
+            Number(user.group?.price || 0).toLocaleString('uz-UZ') + " so'm",
+          "To'lov turi": user.method,
+          "To'langan summa": user.price,
+          'Chegirma (%)': user.discount + ' %',
+          Yil: user.year + ' yil',
+          Oy: this.monthNames(Number(user.month)),
+          "To'lov sanasi": this.formatDate(user.createdAt),
+          Izoh: user.description || '',
+          Holati: statusText,
+        });
+      }
+
+      if (statisticData?.statistics?.length) {
+        excelData.push({});
+        excelData.push({});
+        excelData.push({});
+
+        excelData.push({
+          "O'quvchi (F . I . O)": "To'lov turi",
+          "O'qituvchi (F . I . O)": "To'lovlar soni",
+          'Guruh nomi': 'Jami summa',
+        });
+
+        for (const stat of statisticData.statistics) {
+          excelData.push({
+            "O'quvchi (F . I . O)": stat.method,
+            "O'qituvchi (F . I . O)":
+              Number(stat.count).toLocaleString('uz-UZ') + ' ta',
+            'Guruh nomi':
+              Number(stat.sum || stat.total || 0).toLocaleString('uz-UZ') +
+              " so'm",
+          });
+        }
+      }
+      
+
+      const workbook = XLSX.utils.book_new();
+      const worksheet = this.createWorksheet(excelData);
+
+      worksheet['!cols'] = [
+        { wch: 25 }, // O'quvchi (F . I . O)
+        { wch: 25 }, // O'qituvchi (F . I . O)
+        { wch: 20 }, // Guruh nomi
+        { wch: 20 }, // Guruh narxi
+        { wch: 15 }, // To'lov turi
+        { wch: 15 }, // To'langan summa
+        { wch: 15 }, // Chegirma (%)
+        { wch: 10 }, // Yil
+        { wch: 12 }, // Oy
+        { wch: 15 }, // To'lov sanasi
+        { wch: 30 }, // Izoh
+        { wch: 15 }, // Holati
+      ];
+
+      const sheetName = year
+        ? month
+          ? day
+            ? `${day}.${month}.${year}`
+            : `${month}.${year}`
+          : `${year}`
+        : 'Data';
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+      const fileName = `teacher_all_${sheetName}.xlsx`;
+
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${fileName}"`,
+      );
+
+      return res.send(
+        XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }),
+      );
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async exportDebtorExcel(
+    school_id: number,
+    year: string,
+    month: string,
+    res: Response,
+    group_id?: number,
+  ) {
+    try {
+      // 1️⃣ Barcha studentlarni olish
+      const allStudents = await this.repoStudent.findAll({
+        where: { school_id },
+        attributes: ['id', 'full_name'],
+        include: [
+          {
+            model: StudentGroup,
+            where: group_id ? { group_id } : {},
+            attributes: ['group_id', 'createdAt'],
+            include: [
+              {
+                model: Group,
+                attributes: ['id', 'name', 'price'],
+                where: { status: true },
+                include: [
+                  {
+                    model: EmployeeGroup,
+                    attributes: ['employee_id'],
+                    include: [
+                      {
+                        model: Employee,
+                        attributes: ['id', 'full_name'],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: Payment,
+            where: { year, month, status: { [Op.ne]: 'delete' } },
+            required: false,
+            attributes: [
+              'price',
+              'discount',
+              'discountSum',
+              'group_id',
+              'createdAt',
+            ],
+          },
+        ],
+      });
+
+      const debtors: any[] = [];
+
+      for (const student of allStudents) {
+        for (const studentGroup of student.group) {
+          const group = studentGroup.group;
+          const groupPrice = Number(group.price);
+          const groupId = group.id;
+
+          const joinedDate = new Date(studentGroup.createdAt);
+          const checkDate = new Date(`${year}-${month}-01`);
+
+          if (
+            joinedDate.getFullYear() > checkDate.getFullYear() ||
+            (joinedDate.getFullYear() === checkDate.getFullYear() &&
+              joinedDate.getMonth() > checkDate.getMonth())
+          )
+            continue;
+
+          const teacher = group.employee?.[0]?.employee;
+          const teacherName = teacher
+            ? teacher.full_name
+            : 'Noma’lum o‘qituvchi';
+
+          const payments = student.payment.filter(
+            (p) => p.group_id === groupId,
+          );
+
+          let totalPaid = 0;
+          let totalDiscount = 0;
+
+          for (const payment of payments) {
+            let discountAmount = 0;
+            if (payment.discount && payment.discount > 0) {
+              discountAmount = (groupPrice * payment.discount) / 100;
+            } else if (payment.discountSum && payment.discountSum > 0) {
+              discountAmount = payment.discountSum;
+            }
+            totalPaid += payment.price;
+            totalDiscount += discountAmount;
+          }
+
+          const remainingDebt = Math.max(
+            groupPrice - (totalPaid + totalDiscount),
+            0,
+          );
+
+          if (remainingDebt > 0) {
+            debtors.push({
+              id: student.id,
+              student_name: student.full_name,
+              group_id: groupId,
+              group_name: group.name,
+              teacher_name: teacherName,
+              group_price: groupPrice,
+              debt: remainingDebt,
+            });
+          }
+        }
+      }
+
+      const excelData = debtors.map((item) => ({
+        "O'quvchi (F . I . O)": item.student_name,
+        "O'qituvchi (F . I . O)": item.teacher_name,
+        'Guruh nomi': item.group_name,
+        'Guruh narxi':
+          Number(item.group_price).toLocaleString('uz-UZ') + " so'm",
+        'Qarzdorlik suma': Number(item.debt).toLocaleString('uz-UZ') + " so'm",
+      }));
+
+      const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+      worksheet['!cols'] = [
+        { wch: 25 }, // O'quvchi
+        { wch: 25 }, // O'qituvchi
+        { wch: 20 }, // Guruh nomi
+        { wch: 20 }, // Guruh narxi
+        { wch: 20 }, // Qarzdorlik suma
+      ];
+
+
+      let sheetName = 'Qarzdorlar';
+      if (group_id) {
+        const groupName = allStudents[0]?.group?.[0]?.group?.name || 'Guruh';
+        sheetName = `${groupName} - ${month} ${year}`;
+      } else if (year && month) {
+        sheetName = `${year} ${month}`;
+      } else if (year) {
+        sheetName = `${year} yil`;
+      }
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+      let fileName = 'debtor_history.xlsx';
+      if (group_id) {
+        fileName = `debtor_group_${year}_${month}.xlsx`;
+      }else if (year && month) {
+        fileName = `debtor_${year}_${month}.xlsx`;
+      } else if (year) {
+        fileName = `debtor_${year}.xlsx`;
+      }
+
+      const excelBuffer: Buffer = XLSX.write(workbook, {
+        type: 'buffer',
+        bookType: 'xlsx',
+      }) as Buffer;
+
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${fileName}"`,
+      );
+
+      return res.send(excelBuffer);
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException(
+        error.message || 'Excel faylni yaratishda xatolik yuz berdi',
+      );
+    }
+  }
+
+  private createWorksheet<T extends object>(data: T[]): XLSX.WorkSheet {
+    return XLSX.utils.json_to_sheet(data as unknown as object[]);
+  }
+
+  private monthNames = (monthNum: number): string => {
+    const months = [
+      'Yanvar',
+      'Fevral',
+      'Mart',
+      'Aprel',
+      'May',
+      'Iyun',
+      'Iyul',
+      'Avgust',
+      'Sentabr',
+      'Oktabr',
+      'Noyabr',
+      'Dekabr',
+    ];
+    return months[monthNum - 1] || '';
+  };
+
+  private formatDate = (date: Date): string => {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}.${month}.${year}`;
+  };
 }

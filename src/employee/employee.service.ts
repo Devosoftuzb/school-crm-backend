@@ -279,7 +279,7 @@ export class EmployeeService {
     changePasswordDto: ChangePasswordDto,
   ) {
     const { old_password, new_password } = changePasswordDto;
-    const employee = await this.findOne(id, school_id);
+    const employee = await this.repo.findOne({ where: { id, school_id } });
 
     const isOldPasswordValid = await bcrypt.compare(
       old_password,
