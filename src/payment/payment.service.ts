@@ -884,7 +884,7 @@ export class PaymentService {
 
       const group = await this.repoGroup.findOne({
         where: { id: group_id, school_id },
-        attributes: ['id', 'name', 'price'],
+        attributes: ['id', 'name', 'price', 'start_date'],
         include: [
           {
             model: EmployeeGroup,
@@ -979,6 +979,7 @@ export class PaymentService {
             group_name: group.name,
             teacher_name: teacherName,
             group_price: groupPrice,
+            group_start_date: group.start_date,
             debt: remainingDebt,
             // payments: paymentDetails,
           });
@@ -1025,7 +1026,7 @@ export class PaymentService {
             include: [
               {
                 model: Group,
-                attributes: ['id', 'name', 'price'],
+                attributes: ['id', 'name', 'price', 'start_date'],
                 where: { status: true },
                 include: [
                   {
@@ -1124,6 +1125,7 @@ export class PaymentService {
               group_name: group.name,
               teacher_name: teacherName,
               group_price: groupPrice,
+              group_start_date: group.start_date,
               debt: remainingDebt,
               // payments: paymentDetails,
             });
@@ -1772,7 +1774,7 @@ export class PaymentService {
           include: [
             {
               model: Group,
-              attributes: ['id', 'price', 'name'],
+              attributes: ['id', 'price', 'name', 'start_date'],
               include: [
                 {
                   model: EmployeeGroup,
@@ -1832,6 +1834,7 @@ export class PaymentService {
         group_id: student.group[0].group.id,
         group_name: student.group[0].group.name,
         group_price: student.group[0].group.price,
+        group_start_date: student.group[0].group.start_date,
         teacher_name: student.group[0].group.employee[0].employee.full_name,
         debt,
       };
@@ -1854,7 +1857,7 @@ export class PaymentService {
           include: [
             {
               model: Group,
-              attributes: ['id', 'price', 'name'],
+              attributes: ['id', 'price', 'name', 'start_date'],
               include: [
                 {
                   model: EmployeeGroup,
@@ -1917,6 +1920,7 @@ export class PaymentService {
           group_id: group.id,
           group_name: group.name,
           group_price: group.price,
+          group_start_date: group.start_date,
           teacher_name: group.employee[0].employee.full_name,
           debt,
         };

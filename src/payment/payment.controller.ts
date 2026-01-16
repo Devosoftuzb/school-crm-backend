@@ -111,7 +111,7 @@ export class PaymentController {
       year,
       month,
       res,
-      group_id
+      group_id,
     );
   }
 
@@ -348,5 +348,18 @@ export class PaymentController {
     @Param('group_id') group_id: string,
   ) {
     return this.paymentService.findGroupStudent(+school_id, +group_id);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Attendance view by ID by school ID' })
+  @ApiBearerAuth('access-token')
+  @Roles('owner', 'administrator', 'teacher')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('student/:school_id/:student_id')
+  findStudentGroup(
+    @Param('school_id') school_id: string,
+    @Param('student_id') student_id: string,
+  ) {
+    return this.paymentService.findStudentGroup(+school_id, +student_id);
   }
 }
