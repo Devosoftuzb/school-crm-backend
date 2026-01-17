@@ -11,6 +11,7 @@ import {
   Put,
   Version,
   Res,
+  BadRequestException,
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -38,18 +39,42 @@ export class PaymentController {
     return this.paymentService.create(createPaymentDto);
   }
 
-  @ApiOperation({ summary: 'Payment view all by school ID' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @Get(':school_id')
-  findAllBySchoolId(@Param('school_id') school_id: string) {
-    return this.paymentService.findAllBySchoolId(+school_id);
+  @Version('1')
+  @ApiOperation({ summary: 'Get debtor history' })
+  @ApiBearerAuth('access-token')
+  @Roles('owner', 'administrator', 'teacher')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('history/debtor')
+  async getDebtors(
+    @Query('school_id') school_id: string,
+    @Query('employee_id') employee_id?: string,
+    @Query('group_id') group_id?: string,
+    @Query('year') year?: string,
+    @Query('month') month?: string,
+    @Query('page') page?: string,
+  ) {
+    if (!school_id) throw new BadRequestException('school_id majburiy');
+    if (!year) throw new BadRequestException('year majburiy');
+    if (!month) throw new BadRequestException('month majburiy');
+
+    const response = await this.paymentService.findDebtors(
+      Number(school_id),
+      year,
+      month,
+      {
+        employee_id: employee_id ? Number(employee_id) : undefined,
+        group_id: group_id ? Number(group_id) : undefined,
+        page: page ? Number(page) : 1,
+      },
+    );
+
+    return response;
   }
 
   @Version('1')
   @ApiOperation({ summary: 'Export excel by payment' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator', 'teacher')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get('history/excel')
   async excelHistory(
     @Query('school_id') school_id: number,
@@ -72,7 +97,6 @@ export class PaymentController {
   @ApiOperation({ summary: 'Export excel by employee' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator', 'teacher')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get('history/teacher/excel')
   async excelTeacherHistory(
     @Query('school_id') school_id: number,
@@ -92,10 +116,9 @@ export class PaymentController {
   }
 
   @Version('1')
-  @ApiOperation({ summary: 'Export excel by debtor' })
+  @ApiOperation({ summary: 'Export Excel by debtor' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator', 'teacher')
-  @UseGuards(RolesGuard, JwtAuthGuard)
   @Get('debtor/excel')
   async exportDebtorExcel(
     @Query('school_id') school_id: number,
@@ -104,15 +127,16 @@ export class PaymentController {
     @Query() query: ExcelHistoryDto,
     @Res() res: Response,
   ) {
-    const { group_id } = query;
+    if (!school_id) throw new BadRequestException('school_id majburiy');
+    if (!year) throw new BadRequestException('year majburiy');
+    if (!month) throw new BadRequestException('month majburiy');
 
-    return this.paymentService.exportDebtorExcel(
-      school_id,
-      year,
-      month,
-      res,
-      group_id,
-    );
+    const { group_id, employee_id } = query;
+
+    return this.paymentService.exportDebtorExcel(school_id, year, month, res, {
+      group_id: group_id ? Number(group_id) : undefined,
+      employee_id: employee_id ? Number(employee_id) : undefined,
+    });
   }
 
   @Version('1')
@@ -121,118 +145,6 @@ export class PaymentController {
   @Get(':school_id/:id')
   findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.paymentService.findOne(+id, +school_id);
-  }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
-  @Roles('owner', 'administrator')
-  @Get('year/:school_id/:year/:status/page')
-  findYearHistory(
-    @Param('school_id') school_id: string,
-    @Param('year') year: string,
-    @Param('status') status: string,
-    @Query('page') page: number,
-  ) {
-    return this.paymentService.findYearHistory(+school_id, +year, status, page);
-  }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
-  @Roles('owner', 'administrator')
-  @Get('month/:school_id/:year/:month/:status/page')
-  findMonthHistory(
-    @Param('school_id') school_id: string,
-    @Param('year') year: string,
-    @Param('month') month: string,
-    @Param('status') status: string,
-    @Query('page') page: number,
-  ) {
-    return this.paymentService.findMonthHistory(
-      +school_id,
-      +year,
-      +month,
-      status,
-      page,
-    );
-  }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
-  @Roles('owner', 'administrator', 'teacher')
-  @Get('groupMonth/:school_id/:group_id/:year/:month/:status/page')
-  findGroupMonthHistory(
-    @Param('school_id') school_id: string,
-    @Param('group_id') group_id: string,
-    @Param('year') year: string,
-    @Param('month') month: string,
-    @Param('status') status: string,
-    @Query('page') page: number,
-  ) {
-    return this.paymentService.findGroupMonthHistory(
-      +school_id,
-      +group_id,
-      year,
-      month,
-      status,
-      page,
-    );
-  }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Payment history one day view by ID by school ID' })
-  @Roles('owner', 'administrator')
-  @Get('day/:school_id/:year/:month/:day/:status/page')
-  findDayHistory(
-    @Param('school_id') school_id: string,
-    @Param('year') year: string,
-    @Param('month') month: string,
-    @Param('day') day: string,
-    @Param('status') status: string,
-    @Query('page') page: number,
-  ) {
-    return this.paymentService.findDayHistory(
-      +school_id,
-      +year,
-      +month,
-      +day,
-      status,
-      page,
-    );
-  }
-
-  @Version('1')
-  @ApiOperation({
-    summary: 'Payment debtor month group view by ID by school ID',
-  })
-  @Roles('owner', 'administrator', 'teacher')
-  @Get('debtor-group/:school_id/:group_id/:year/:month/page')
-  findGroupHistoryDebtor(
-    @Param('school_id') school_id: string,
-    @Param('group_id') group_id: string,
-    @Param('year') year: string,
-    @Param('month') month: string,
-    @Query('page') page: number,
-  ) {
-    return this.paymentService.findGroupHistoryDebtor(
-      +school_id,
-      +group_id,
-      year,
-      month,
-      page,
-    );
-  }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Payment debtor month view by ID by school ID' })
-  @Roles('owner', 'administrator')
-  @Get('debtor/:school_id/:year/:month/page')
-  findHistoryDebtor(
-    @Param('school_id') school_id: string,
-    @Param('year') year: string,
-    @Param('month') month: string,
-    @Query('page') page: number,
-  ) {
-    return this.paymentService.findHistoryDebtor(+school_id, year, month, page);
   }
 
   @Version('1')
@@ -253,88 +165,6 @@ export class PaymentController {
   @Delete(':school_id/:id')
   remove(@Param('id') id: string, @Param('school_id') school_id: string) {
     return this.paymentService.remove(+id, +school_id);
-  }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Payment history one day view by ID by school ID' })
-  @Roles('owner', 'administrator', 'teacher')
-  @Get('employeeDay/:school_id/:employee_id/:year/:month/:day/page')
-  findEmployeeDayHistory(
-    @Param('school_id') school_id: string,
-    @Param('employee_id') employee_id: string,
-    @Param('year') year: string,
-    @Param('month') month: string,
-    @Param('day') day: string,
-    @Query('page') page: number,
-  ) {
-    return this.paymentService.findEmployeeDayHistory(
-      +school_id,
-      +employee_id,
-      +year,
-      +month,
-      +day,
-      page,
-    );
-  }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
-  @Roles('owner', 'administrator', 'teacher')
-  @Get('employeeMonth/:school_id/:employee_id/:year/:month/page')
-  findEmployeeMonthHistory(
-    @Param('school_id') school_id: string,
-    @Param('employee_id') employee_id: string,
-    @Param('year') year: string,
-    @Param('month') month: string,
-    @Query('page') page: number,
-  ) {
-    return this.paymentService.findEmployeeMonthHistory(
-      +school_id,
-      +employee_id,
-      +year,
-      +month,
-      page,
-    );
-  }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Payment history month view by ID by school ID' })
-  @Roles('owner', 'administrator', 'teacher')
-  @Get('employeeYear/:school_id/:employee_id/:year/page')
-  findEmployeeYearHistory(
-    @Param('school_id') school_id: string,
-    @Param('employee_id') employee_id: string,
-    @Param('year') year: string,
-    @Query('page') page: number,
-  ) {
-    return this.paymentService.findEmployeeYearHistory(
-      +school_id,
-      +employee_id,
-      +year,
-      page,
-    );
-  }
-
-  @Version('1')
-  @ApiOperation({
-    summary: 'Payment debtor month view by school ID and employee ID',
-  })
-  @Roles('owner', 'administrator', 'teacher')
-  @Get('employee-debtor/:school_id/:employee_id/:year/:month/page')
-  findEmployeeHistoryDebtor(
-    @Param('school_id') school_id: string,
-    @Param('employee_id') employee_id: string,
-    @Param('year') year: string,
-    @Param('month') month: string,
-    @Query('page') page: number,
-  ) {
-    return this.paymentService.findEmployeeHistoryDebtor(
-      +school_id,
-      +employee_id,
-      year,
-      month,
-      page,
-    );
   }
 
   @Version('1')
@@ -361,5 +191,37 @@ export class PaymentController {
     @Param('student_id') student_id: string,
   ) {
     return this.paymentService.findStudentGroup(+school_id, +student_id);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'History view' })
+  @ApiBearerAuth('access-token')
+  @Roles('owner', 'administrator', 'teacher')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('history')
+  async findHistory(
+    @Query('school_id') school_id: string,
+    @Query('employee_id') employee_id?: string,
+    @Query('group_id') group_id?: string,
+    @Query('year') year?: string,
+    @Query('month') month?: string,
+    @Query('day') day?: string,
+    @Query('status') status?: 'all' | 'payment' | 'halfPayment' | 'discount',
+    @Query('page') page?: string,
+  ) {
+    if (!school_id) throw new BadRequestException('school_id majburiy');
+
+    const response = await this.paymentService.findHistory({
+      school_id: Number(school_id),
+      employee_id: employee_id ? Number(employee_id) : undefined,
+      group_id: group_id ? Number(group_id) : undefined,
+      year: year ? Number(year) : undefined,
+      month: month ? Number(month) : undefined,
+      day: day ? Number(day) : undefined,
+      status,
+      page: page ? Number(page) : 1,
+    });
+
+    return response;
   }
 }

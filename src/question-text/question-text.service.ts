@@ -18,7 +18,7 @@ export class QuestionTextService {
   async findAll(test_id: number) {
     return await this.repo.findAll({
       where: { test_id },
-      include: { all: true },
+      attributes: ['id', 'title']
     });
   }
 

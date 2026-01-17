@@ -201,46 +201,43 @@ export class StudentService {
       const limit = 15;
       const offset = (page - 1) * limit;
 
-      const students = await this.repo.findAll({
-        where: { school_id, status: true },
-        attributes: ['id', 'full_name', 'phone_number', 'status', 'createdAt'],
-        include: [
-          {
-            model: StudentGroup,
-            attributes: ['id'],
-            include: [
-              {
-                model: Group,
-                attributes: ['id', 'name'],
-                include: [
-                  { model: EmployeeGroup, where: { employee_id: teacher_id } },
-                ],
-              },
-            ],
-          },
-        ],
-        order: [['createdAt', 'DESC']],
-        offset,
-        limit,
+      const teacherGroups = await this.repoEmployeeGroup.findAll({
+        where: { employee_id: teacher_id },
       });
 
-      const total_count = await this.repo.count({
-        where: { school_id, status: true },
-        include: [
-          {
-            model: StudentGroup,
-            include: [
-              {
-                model: Group,
-                attributes: ['id', 'name'],
-                include: [
-                  { model: EmployeeGroup, where: { employee_id: teacher_id } },
-                ],
-              },
-            ],
+      if (!teacherGroups.length) {
+        return {
+          status: 200,
+          data: {
+            records: [],
+            pagination: { currentPage: page, total_pages: 0, total_count: 0 },
           },
-        ],
-      });
+        };
+      }
+
+      const groupIds = teacherGroups.map((g) => g.group_id);
+
+      const { rows: students, count: total_count } =
+        await this.repo.findAndCountAll({
+          where: { school_id, status: true },
+          include: [
+            {
+              model: StudentGroup,
+              where: { group_id: { [Op.in]: groupIds } },
+              attributes: ['id', 'group_id'],
+              include: [
+                {
+                  model: Group,
+                  attributes: ['id', 'name'],
+                },
+              ],
+            },
+          ],
+          order: [['createdAt', 'DESC']],
+          offset,
+          limit,
+          distinct: true, // count to'g'ri chiqishi uchun
+        });
 
       const total_pages = Math.ceil(total_count / limit);
 
@@ -248,11 +245,7 @@ export class StudentService {
         status: 200,
         data: {
           records: students,
-          pagination: {
-            currentPage: page,
-            total_pages,
-            total_count,
-          },
+          pagination: { currentPage: page, total_pages, total_count },
         },
       };
     } catch (error) {

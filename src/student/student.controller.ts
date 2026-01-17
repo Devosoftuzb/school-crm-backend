@@ -196,7 +196,7 @@ export class StudentController {
   @Version('1')
   @ApiOperation({ summary: 'Search student by name' })
   @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Get('search-teacher/:school_id/:teacher_id/:name')
   searchNameTeacher(

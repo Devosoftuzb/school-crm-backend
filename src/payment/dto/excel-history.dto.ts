@@ -13,4 +13,7 @@ export class ExcelHistoryDto {
 
   @ApiPropertyOptional()
   group_id?: number;
+
+  @ApiPropertyOptional()
+  employee_id?: number;
 }

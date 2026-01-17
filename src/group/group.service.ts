@@ -373,7 +373,7 @@ export class GroupService {
     return await this.repo.findAll({
       where: { school_id, status: true },
       attributes: ['id', 'name'],
-      include: [{ model: EmployeeGroup, where: { employee_id: teacher_id } }],
+      include: [{ model: EmployeeGroup, where: { employee_id: teacher_id }, attributes: ['id'] }],
     });
   }
 

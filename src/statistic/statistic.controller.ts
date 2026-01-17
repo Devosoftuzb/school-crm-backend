@@ -122,6 +122,7 @@ export class StatisticController {
     );
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'School Payments' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get('payment-day-employee/:school_id/:employee_id/:date')
@@ -137,6 +138,7 @@ export class StatisticController {
     );
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'School Statistics' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get('finance/:school_id')
