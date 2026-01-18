@@ -33,81 +33,10 @@ export class StudentService {
     };
   }
 
-  async findAll(school_id: number) {
-    return await this.repo.findAll({
-      where: { school_id },
-    });
-  }
-
-  async findBySchoolId(school_id: number) {
-    return await this.repo.findAll({
-      where: { school_id, status: true },
-      include: [
-        {
-          model: StudentGroup,
-          include: [
-            {
-              model: Group,
-              attributes: ['id', 'name'],
-            },
-          ],
-        },
-      ],
-    });
-  }
-
   async findBySchoolIdNot(school_id: number) {
     return await this.repo.findAll({
       where: { school_id },
       attributes: ['id', 'full_name'],
-    });
-  }
-
-  async findByTeacherId(school_id: number, teacher_id: number) {
-    try {
-      const teacherGroups = await this.repoEmployeeGroup.findAll({
-        where: { employee_id: teacher_id },
-        attributes: ['group_id'],
-      });
-
-      const groupIds = teacherGroups.map((g) => g.group_id);
-
-      if (groupIds.length === 0) {
-        return [];
-      }
-
-      const students = await this.repo.findAll({
-        where: { school_id, status: true },
-        include: [
-          {
-            model: StudentGroup,
-            where: {
-              group_id: groupIds,
-            },
-            include: [
-              {
-                model: Group,
-                attributes: ['id', 'name'],
-              },
-            ],
-          },
-        ],
-      });
-
-      return students;
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
-  }
-
-  async findByArchiveSchoolId(school_id: number) {
-    return await this.repo.findAll({
-      where: { school_id, status: false },
-      include: [
-        {
-          model: StudentGroup,
-        },
-      ],
     });
   }
 
@@ -313,78 +242,6 @@ export class StudentService {
         'phone_number',
         'parents_full_name',
         'parents_phone_number',
-      ],
-    });
-
-    if (!student) {
-      throw new BadRequestException(`Student with id ${id} not found`);
-    }
-
-    return student;
-  }
-
-  async findOnePayment(id: number, school_id: number) {
-    const student = await this.repo.findOne({
-      where: {
-        id,
-        school_id,
-      },
-      include: [
-        {
-          model: Payment,
-        },
-        {
-          model: Attendance,
-        },
-      ],
-    });
-
-    if (!student) {
-      throw new BadRequestException(`Student with id ${id} not found`);
-    }
-
-    return student;
-  }
-
-  async findOnePaymentGroup(id: number, school_id: number) {
-    const student = await this.repo.findOne({
-      where: {
-        id,
-        school_id,
-      },
-      include: [
-        {
-          model: Payment,
-        },
-        {
-          model: StudentGroup,
-        },
-      ],
-    });
-
-    if (!student) {
-      throw new BadRequestException(`Student with id ${id} not found`);
-    }
-
-    return student;
-  }
-
-  async findOneGroup(id: number, school_id: number) {
-    const student = await this.repo.findOne({
-      where: {
-        id,
-        school_id,
-      },
-      include: [
-        {
-          model: StudentGroup,
-          include: [
-            {
-              model: Group,
-              attributes: ['id', 'name'],
-            },
-          ],
-        },
       ],
     });
 

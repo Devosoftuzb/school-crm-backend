@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   UseGuards,
+  Version,
 } from '@nestjs/common';
 import { DaysService } from './days.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -14,6 +15,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 export class DaysController {
   constructor(private readonly daysService: DaysService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Days view all' })
   @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator')
