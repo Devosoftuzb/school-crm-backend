@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Version,
 } from '@nestjs/common';
 import { StudentGroupService } from './student_group.service';
 import { CreateStudentGroupDto } from './dto/create-student_group.dto';
@@ -22,6 +23,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 export class StudentGroupController {
   constructor(private readonly studentGroupService: StudentGroupService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Student Group create' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Post()
@@ -29,13 +31,7 @@ export class StudentGroupController {
     return this.studentGroupService.create(createStudentGroupDto);
   }
 
-  @ApiOperation({ summary: 'Student Group view all' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @Get()
-  findAll() {
-    return this.studentGroupService.findAll();
-  }
-
+  @Version('1')
   @ApiOperation({ summary: 'Student Group view by ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':id')
@@ -43,6 +39,7 @@ export class StudentGroupController {
     return this.studentGroupService.findOne(+id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Student Group remove by ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Delete(':id')

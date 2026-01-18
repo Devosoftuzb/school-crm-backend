@@ -9,6 +9,8 @@ import {
   UseGuards,
   Query,
   Put,
+  Version,
+  Res,
 } from '@nestjs/common';
 import { CostService } from './cost.service';
 import { CreateCostDto } from './dto/create-cost.dto';
@@ -17,6 +19,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
+import { Response } from 'express';
 
 @ApiTags('Cost')
 @Controller('cost')
@@ -25,6 +28,7 @@ import { Roles } from 'src/common/decorators/roles-auth-decorator';
 export class CostController {
   constructor(private readonly costService: CostService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Cost create' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post()
@@ -32,62 +36,50 @@ export class CostController {
     return this.costService.create(createCostDto);
   }
 
-  @ApiOperation({ summary: 'Cost view all by school ID' })
-  @Roles('superadmin', 'admin')
-  @Get()
-  findAll() {
-    return this.costService.findAll();
-  }
-
-  @ApiOperation({ summary: 'Cost view all by school ID' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @Get(':school_id')
-  findAllBySchoolId(@Param('school_id') school_id: string) {
-    return this.costService.findAllBySchoolId(+school_id);
-  }
-
-  @ApiOperation({ summary: 'Cost paginate' })
-  @Roles('owner', 'administrator')
-  @Get(':school_id/:year/:month/page')
-  paginate(
-    @Query('page') page: number,
+  @Version('1')
+  @ApiOperation({ summary: 'Export excel by cost' })
+  @ApiBearerAuth('access-token')
+  @Roles('owner', 'administrator', 'teacher')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('excel/:school_id')
+  async excelCostHistory(
     @Param('school_id') school_id: string,
-    @Param('year') year: string,
-    @Param('month') month: string,
+    @Query('year') year?: string,
+    @Query('month') month?: string,
+    @Query('category_id') category_id?: string,
+    @Res() res?: Response,
   ) {
-    return this.costService.paginate(+school_id, +year, +month, page);
-  }
-
-  @ApiOperation({ summary: 'Cost paginate year' })
-  @Roles('owner', 'administrator')
-  @Get(':school_id/:year/page')
-  paginateYear(
-    @Query('page') page: number,
-    @Param('school_id') school_id: string,
-    @Param('year') year: string,
-  ) {
-    return this.costService.paginateYear(+school_id, +year, page);
-  }
-
-  @ApiOperation({ summary: 'Cost paginate' })
-  @Roles('owner', 'administrator')
-  @Get(':school_id/:year/:month/:category_id/page')
-  paginateCategory(
-    @Query('page') page: number,
-    @Param('school_id') school_id: string,
-    @Param('year') year: string,
-    @Param('month') month: string,
-    @Param('category_id') category_id: string,
-  ) {
-    return this.costService.paginateCategory(
+    return this.costService.excelCostHistory(
       +school_id,
-      +year,
-      +month,
-      +category_id,
-      page,
+      year ? +year : undefined,
+      month ? +month : undefined,
+      category_id ? +category_id : undefined,
+      res,
     );
   }
 
+  @Version('1')
+  @ApiOperation({ summary: 'Cost paginate (universal)' })
+  @Roles('owner', 'administrator')
+  @Get(':school_id')
+  paginateUniversal(
+    @Param('school_id') school_id: string,
+
+    @Query('year') year?: string,
+    @Query('month') month?: string,
+    @Query('category_id') category_id?: string,
+    @Query('page') page = 1,
+  ) {
+    return this.costService.paginateUniversal({
+      school_id: +school_id,
+      year: year ? +year : undefined,
+      month: month ? +month : undefined,
+      category_id: category_id ? +category_id : undefined,
+      page: +page,
+    });
+  }
+
+  @Version('1')
   @ApiOperation({ summary: 'Cost view by ID by school ID' })
   @Roles('owner', 'administrator')
   @Get(':school_id/:id')
@@ -95,6 +87,7 @@ export class CostController {
     return this.costService.findOne(+id, +school_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Cost update by ID by school ID' })
   @Roles('owner', 'administrator')
   @Put(':school_id/:id')
@@ -106,6 +99,7 @@ export class CostController {
     return this.costService.update(+id, +school_id, updateCostDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Cost remove by ID by school ID' })
   @Roles('owner', 'administrator')
   @Delete(':school_id/:id')

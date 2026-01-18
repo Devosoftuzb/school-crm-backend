@@ -10,6 +10,13 @@ export class EmployeeSubjectService {
   ) {}
 
   async create(createEmployeeSubjectDto: CreateEmployeeSubjectDto) {
+    const oldEmployeeSubject = await this.repo.findOne({
+      where: { subject_id: createEmployeeSubjectDto.subject_id, employee_id: createEmployeeSubjectDto.employee_id },
+    });
+
+    if (oldEmployeeSubject){
+      throw new BadRequestException(`This subject already exists`);
+    }
     const employeeSubject = await this.repo.create(createEmployeeSubjectDto);
     return {
       message: 'Employee Subject created successfully',
@@ -17,9 +24,6 @@ export class EmployeeSubjectService {
     };
   }
 
-  async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
-  }
 
   async findOne(id: number) {
     const employeeSubject = await this.repo.findByPk(id, {

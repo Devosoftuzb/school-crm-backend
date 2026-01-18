@@ -8,15 +8,21 @@ export class StudentGroupService {
   constructor(@InjectModel(StudentGroup) private repo: typeof StudentGroup) {}
 
   async create(createStudentGroupDto: CreateStudentGroupDto) {
+    const oldStudentGroup = await this.repo.findOne({
+      where: {
+        student_id: createStudentGroupDto.student_id,
+        group_id: createStudentGroupDto.group_id,
+      },
+    });
+
+    if (oldStudentGroup) {
+      throw new BadRequestException(`This group already exists`);
+    }
     const studentGroup = await this.repo.create(createStudentGroupDto);
     return {
       message: 'Student Group created successfully',
       studentGroup,
     };
-  }
-
-  async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
   }
 
   async findOne(id: number) {

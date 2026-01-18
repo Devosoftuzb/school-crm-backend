@@ -9,6 +9,7 @@ import {
   UseGuards,
   Query,
   Put,
+  Version,
 } from '@nestjs/common';
 import { CustomerTestService } from './customer_test.service';
 import { CreateCustomerTestDto } from './dto/create-customer_test.dto';
@@ -29,24 +30,28 @@ export class CustomerTestController {
     return this.customerTestService.create(createCustomerTestDto);
   }
 
-  @ApiOperation({ summary: 'CustomerTest view all' })
-  @Get('getSchoolId/:school_id')
-  findAll(@Param('school_id') school_id: string) {
-    return this.customerTestService.findAll(+school_id);
-  }
-
+  @Version('1')
   @ApiOperation({ summary: 'CustomerTest paginate' })
   @Get(':school_id/page')
   paginate(@Param('school_id') school_id: string, @Query('page') page: number) {
     return this.customerTestService.paginate(+school_id, page);
   }
 
+  @Version('1')
+  @ApiOperation({ summary: 'CustomerTest view by ID' })
+  @Get('note/:id')
+  findNote(@Param('id') id: string) {
+    return this.customerTestService.findNote(+id);
+  }
+
+  @Version('1')
   @ApiOperation({ summary: 'CustomerTest view by ID' })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.customerTestService.findOne(+id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'CustomerTest update by ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
@@ -59,6 +64,7 @@ export class CustomerTestController {
     return this.customerTestService.update(+id, updateCustomerTestDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'CustomerTest remove by ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
@@ -66,5 +72,18 @@ export class CustomerTestController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.customerTestService.remove(+id);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Search customer by name' })
+  @ApiBearerAuth('access-token')
+  @Roles('superadmin', 'admin')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('search/:school_id/:name')
+  searchName(
+    @Param('school_id') school_id: string,
+    @Param('name') name: string,
+  ) {
+    return this.customerTestService.searchName(+school_id, name);
   }
 }

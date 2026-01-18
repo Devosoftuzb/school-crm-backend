@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Version,
 } from '@nestjs/common';
 import { EmployeeSubjectService } from './employee_subject.service';
 import { CreateEmployeeSubjectDto } from './dto/create-employee_subject.dto';
@@ -24,6 +25,7 @@ export class EmployeeSubjectController {
     private readonly employeeSubjectService: EmployeeSubjectService,
   ) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Employee Subject create' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post()
@@ -31,13 +33,7 @@ export class EmployeeSubjectController {
     return this.employeeSubjectService.create(createEmployeeSubjectDto);
   }
 
-  @ApiOperation({ summary: 'Employee Subject view all' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @Get()
-  findAll() {
-    return this.employeeSubjectService.findAll();
-  }
-
+  @Version('1')
   @ApiOperation({ summary: 'Employee Subject view by ID' })
   @Roles('owner', 'administrator')
   @Get(':id')
@@ -45,6 +41,7 @@ export class EmployeeSubjectController {
     return this.employeeSubjectService.findOne(+id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Employee Subject remove by ID' })
   @Roles('owner', 'administrator')
   @Delete(':id')

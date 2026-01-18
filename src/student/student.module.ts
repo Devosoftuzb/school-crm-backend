@@ -5,9 +5,13 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { Student } from './models/student.model';
 import { JwtModule } from '@nestjs/jwt';
 import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
+import { StudentGroup } from 'src/student_group/models/student_group.model';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Student, EmployeeGroup]), JwtModule],
+  imports: [
+    SequelizeModule.forFeature([Student, EmployeeGroup, StudentGroup]),
+    JwtModule,
+  ],
   controllers: [StudentController],
   providers: [StudentService],
 })

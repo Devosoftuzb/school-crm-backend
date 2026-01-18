@@ -9,6 +9,7 @@ import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/user/models/user.model';
 import { Employee } from 'src/employee/models/employee.model';
+import { School } from 'src/school/models/school.model';
 
 @Injectable()
 export class AuthService {
@@ -60,8 +61,16 @@ export class AuthService {
 
   private async findUserByLogin(login: string) {
     return (
-      (await this.userRepo.findOne({ where: { login } })) ||
-      (await this.userEmployee.findOne({ where: { login } }))
+      (await this.userRepo.findOne({
+        where: { login },
+        attributes: ['id', 'role', 'hashed_password'],
+        include: [{ model: School, attributes: ['id', 'name'] }],
+      })) ||
+      (await this.userEmployee.findOne({
+        where: { login },
+        attributes: ['id', 'role', 'hashed_password'],
+        include: [{ model: School, attributes: ['id', 'name'] }],
+      }))
     );
   }
 

@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import { School } from './models/school.model';
 import { FilesService } from 'src/common/files/files.service';
 import { User } from 'src/user/models/user.model';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class SchoolService {
@@ -38,6 +39,7 @@ export class SchoolService {
       const limit = 10;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
+        attributes: ['id', 'name', 'image', 'price', 'address', 'createdAt'],
         include: [{ model: User, attributes: ['full_name'] }],
         order: [['createdAt', 'DESC']],
         offset,
@@ -119,5 +121,25 @@ export class SchoolService {
     } catch (error) {
       throw new BadRequestException(error.message || 'Delete failed');
     }
+  }
+
+  async navbarLogo(id: number) {
+    const school = await this.repo.findByPk(id, {
+      attributes: ['id', 'name', 'image'],
+    });
+
+    if (!school) {
+      throw new BadRequestException(`School with id ${id} not found`);
+    }
+
+    return school;
+  }
+
+  async searchName(name: string) {
+    return await this.repo.findAll({
+      where: { name: { [Op.iLike]: `%${name}%` } },
+      attributes: ['id', 'name', 'image', 'price', 'address', 'createdAt'],
+      include: [{ model: User, attributes: ['full_name'] }],
+    });
   }
 }

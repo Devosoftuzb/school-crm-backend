@@ -12,7 +12,6 @@ import { Student } from 'src/student/models/student.model';
 interface StudentGroupAttr {
   student_id: number;
   group_id: number;
-  group_name: string;
 }
 
 @Table({ tableName: 'student_group' })
@@ -49,10 +48,4 @@ export class StudentGroup extends Model<StudentGroup, StudentGroupAttr> {
     onDelete: 'CASCADE',
   })
   group: Group;
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-  })
-  group_name: string;
 }

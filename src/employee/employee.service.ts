@@ -12,6 +12,7 @@ import { ChangePasswordDto } from './dto/changePassword.dto';
 import { Group } from 'src/group/models/group.model';
 import { Subject } from 'src/subject/models/subject.model';
 import { ResetPasswordDto } from './dto/resertPassword.dto';
+import { GroupSubject } from 'src/group_subject/models/group_subject.model';
 
 @Injectable()
 export class EmployeeService {
@@ -46,11 +47,7 @@ export class EmployeeService {
     };
   }
 
-  async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
-  }
-
-  async findAllBySchoolId(school_id: number) {
+  async findAll(school_id: number) {
     return await this.repo.findAll({
       where: { school_id },
     });
@@ -71,23 +68,31 @@ export class EmployeeService {
     });
   }
 
-  async paginate(school_id: number, page: number): Promise<object> {
+  async paginate(
+    school_id: number,
+    role: string,
+    page: number,
+  ): Promise<object> {
     try {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
 
-      const whereClause: any = { school_id, role: 'teacher' };
+      const whereClause: any = { school_id, role };
 
       const employees = await this.repo.findAll({
         where: whereClause,
+        attributes: ['id', 'full_name', 'phone_number', 'role', 'createdAt'],
         include: [
           {
             model: EmployeeGroup,
+            attributes: ['id'],
             include: [{ model: Group, attributes: ['id', 'name'] }],
           },
           {
             model: EmployeeSubject,
+            attributes: ['id'],
+            include: [{ model: Subject, attributes: ['id', 'name'] }],
           },
         ],
         order: [['createdAt', 'DESC']],
@@ -95,20 +100,13 @@ export class EmployeeService {
         limit,
       });
 
-      // teacher bo'lmagan xodimlarni ham kiritish uchun yana bir so'rov
-      const nonTeacherEmployees = await this.repo.findAll({
-        where: { school_id, role: { [Op.ne]: 'teacher' } },
-        offset,
-        limit,
-      });
-
-      const total_count = await this.repo.count({ where: { school_id } });
+      const total_count = await this.repo.count({ where: whereClause });
       const total_pages = Math.ceil(total_count / limit);
 
       return {
         status: 200,
         data: {
-          records: [...employees, ...nonTeacherEmployees],
+          records: [...employees],
           pagination: {
             currentPage: page,
             total_pages,
@@ -126,13 +124,30 @@ export class EmployeeService {
   async findOne(id: number, school_id: number) {
     const employee = await this.repo.findOne({
       where: { id, school_id },
+      attributes: [
+        'id',
+        'full_name',
+        'phone_number',
+        'role',
+        'salary',
+        'createdAt',
+      ],
       include: [
         {
           model: EmployeeGroup,
-          include: [{ model: Group, attributes: ['id', 'name'] }],
-        },
-        {
-          model: EmployeeSubject,
+          attributes: ['id', 'createdAt'],
+          include: [
+            {
+              model: Group,
+              attributes: ['id', 'name', 'price', 'start_date'],
+              include: [
+                {
+                  model: GroupSubject,
+                  include: [{ model: Subject, attributes: ['name'] }],
+                },
+              ],
+            },
+          ],
         },
       ],
     });
@@ -148,7 +163,14 @@ export class EmployeeService {
   async findOneNot(id: number, school_id: number) {
     const employee = await this.repo.findOne({
       where: { id, school_id },
-      attributes: ['id', 'full_name', 'role', 'phone_number', 'login'],
+      attributes: [
+        'id',
+        'full_name',
+        'role',
+        'phone_number',
+        'login',
+        'salary',
+      ],
     });
 
     if (!employee) {
@@ -257,7 +279,7 @@ export class EmployeeService {
     changePasswordDto: ChangePasswordDto,
   ) {
     const { old_password, new_password } = changePasswordDto;
-    const employee = await this.findOne(id, school_id);
+    const employee = await this.repo.findOne({ where: { id, school_id } });
 
     const isOldPasswordValid = await bcrypt.compare(
       old_password,
@@ -302,6 +324,30 @@ export class EmployeeService {
     return await this.repo.findAll({
       where: { school_id: 1, role: 'teacher' },
       attributes: ['full_name'],
+    });
+  }
+
+  async searchName(school_id: number, role: string, name: string) {
+    return await this.repo.findAll({
+      where: { school_id, role, full_name: { [Op.iLike]: `%${name}%` } },
+      include: [
+        {
+          model: EmployeeSubject,
+          include: [{ model: Subject, attributes: ['id', 'name'] }],
+        },
+        {
+          model: EmployeeGroup,
+          include: [{ model: Group, attributes: ['id', 'name'] }],
+        },
+      ],
+      attributes: ['id', 'full_name', 'phone_number', 'role'],
+    });
+  }
+
+  async findAdd(school_id: number) {
+    return await this.repo.findAll({
+      where: { school_id, role: 'teacher' },
+      attributes: ['id', 'full_name'],
     });
   }
 }

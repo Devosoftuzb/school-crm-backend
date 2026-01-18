@@ -32,11 +32,12 @@ import { Customer } from 'src/customer/models/customer.model';
       Salary,
       CostCategory,
       SocialMedia,
-      Customer
+      Customer,
     ]),
     JwtModule,
   ],
   controllers: [StatisticController],
   providers: [StatisticService],
+  exports: [StatisticService],
 })
 export class StatisticModule {}

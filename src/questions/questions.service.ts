@@ -5,83 +5,75 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Question } from './model/question.model';
 import { FilesService } from 'src/common/files/files.service';
 import { Option } from 'src/option/model/option.model';
+import { QuestionText } from 'src/question-text/model/question-text.model';
+import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class QuestionsService {
   constructor(
     @InjectModel(Question) private repo: typeof Question,
+    @InjectModel(Option) private repoOption: typeof Option,
     private readonly fileService: FilesService,
+    private sequelize: Sequelize,
   ) {}
 
   async create(createQuestionDto: CreateQuestionDto, file: any) {
+    const { options, ...questionData } = createQuestionDto;
+
     let file_name: string;
     if (file) {
       file_name = await this.fileService.createFile(file);
     }
+
     const question = await this.repo.create({
+      ...questionData,
       file: file_name,
-      ...createQuestionDto,
     });
+
+    if (options && options.length) {
+      const optionsData = options.map((opt) => ({
+        ...opt,
+        question_id: question.id,
+      }));
+
+      await this.repoOption.bulkCreate(optionsData);
+    }
+
     return {
       message: 'Question created successfully',
-      question,
+      question_id: question.id,
     };
   }
 
-  async findAll() {
+  async findAll(test_id: number) {
     return await this.repo.findAll({
+      where: { test_id },
+      attributes: ['id', 'question', 'file'],
       include: [
         {
-          model: Option, 
-          as: 'option', 
-          order: [['createdAt', 'ASC']], 
+          model: Option,
+          attributes: ['id', 'option', 'is_correct'],
+          separate: true,
+          order: [['id', 'ASC']],
+        },
+        {
+          model: QuestionText,
+          attributes: ['id', 'title', 'text'],
         },
       ],
-      order: [
-        ['createdAt', 'ASC'], 
-      ],
+      order: [['createdAt', 'ASC']],
     });
-  }
-  
-
-  async paginate(page: number): Promise<object> {
-    try {
-      page = Number(page);
-      const limit = 15;
-      const offset = (page - 1) * limit;
-      const user = await this.repo.findAll({
-        include: { all: true },
-        order: [['createdAt', 'DESC']],
-        offset,
-        limit,
-      });
-      const total_count = await this.repo.count();
-      const total_pages = Math.ceil(total_count / limit);
-      const res = {
-        status: 200,
-        data: {
-          records: user,
-          pagination: {
-            currentPage: page,
-            total_pages,
-            total_count,
-          },
-        },
-      };
-      return res;
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
   }
 
   async findOne(id: number) {
     const question = await this.repo.findByPk(id, {
+      attributes: ['id', 'question', 'file', 'text_id'],
       include: [
         {
           model: Option,
-          as: 'option',
-          separate: true, 
-          order: [['createdAt', 'ASC']], 
+          attributes: ['id', 'option', 'is_correct'],
+          separate: true,
+          order: [['id', 'ASC']],
         },
       ],
     });
@@ -112,10 +104,29 @@ export class QuestionsService {
 
     updateQuestionDto.file = file_name;
 
-    await question.update(updateQuestionDto);
+    await this.sequelize.transaction(async (t) => {
+      await question.update(updateQuestionDto, { transaction: t });
+
+      const options = updateQuestionDto.options;
+      if (options && options.length) {
+        for (const opt of options) {
+          if (opt.id) {
+            await this.repoOption.update(
+              { option: opt.option, is_correct: opt.is_correct },
+              { where: { id: opt.id }, transaction: t },
+            );
+          } else {
+            await this.repoOption.create(
+              { ...opt, question_id: id },
+              { transaction: t },
+            );
+          }
+        }
+      }
+    });
 
     return {
-      message: 'Success',
+      message: 'Question updated successfully',
       question,
     };
   }
