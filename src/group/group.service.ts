@@ -112,55 +112,56 @@ export class GroupService {
     page: number,
   ): Promise<object> {
     try {
-      page = Number(page);
+      page = Number(page) || 1;
       const limit = 15;
       const offset = (page - 1) * limit;
-      const groups = await this.repo.findAll({
-        where: { school_id, status: true },
+
+      const { rows, count } = await this.repo.findAndCountAll({
+        where: {
+          school_id,
+          status: true,
+        },
         attributes: ['id', 'name', 'price', 'start_date', 'createdAt', 'level'],
         include: [
           {
             model: GroupSubject,
             attributes: ['id'],
-            include: [{ model: Subject, attributes: ['id', 'name'] }],
+            include: [
+              {
+                model: Subject,
+                attributes: ['id', 'name'],
+              },
+            ],
           },
           {
             model: EmployeeGroup,
             where: { employee_id: teacher_id },
             attributes: ['id'],
-            include: [{ model: Employee, attributes: ['id', 'full_name'] }],
+            required: true,
+            include: [
+              {
+                model: Employee,
+                attributes: ['id', 'full_name'],
+              },
+            ],
           },
         ],
         order: [['createdAt', 'DESC']],
-        offset,
         limit,
+        offset,
+        distinct: true, 
       });
-      const total_count = await this.repo.count({
-        where: { school_id, status: true },
-        attributes: ['id', 'name', 'price', 'start_date', 'createdAt', 'level'],
-        include: [
-          {
-            model: GroupSubject,
-            attributes: ['id'],
-            include: [{ model: Subject, attributes: ['id', 'name'] }],
-          },
-          {
-            model: EmployeeGroup,
-            where: { employee_id: teacher_id },
-            attributes: ['id'],
-            include: [{ model: Employee, attributes: ['id', 'full_name'] }],
-          },
-        ],
-      });
-      const total_pages = Math.ceil(total_count / limit);
+
+      const total_pages = Math.ceil(count / limit);
+
       return {
         status: 200,
         data: {
-          records: groups,
+          records: rows,
           pagination: {
             currentPage: page,
             total_pages,
-            total_count,
+            total_count: count,
           },
         },
       };
