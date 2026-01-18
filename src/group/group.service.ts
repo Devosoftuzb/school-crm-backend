@@ -16,6 +16,7 @@ import { Subject } from 'src/subject/models/subject.model';
 import { Op } from 'sequelize';
 import { Employee } from 'src/employee/models/employee.model';
 import { Student } from 'src/student/models/student.model';
+import { Room } from 'src/room/models/room.model';
 
 @Injectable()
 export class GroupService {
@@ -52,6 +53,10 @@ export class GroupService {
         where: { school_id, status: true },
         attributes: ['id', 'name', 'price', 'start_date', 'createdAt', 'level'],
         include: [
+          {
+            model: Room,
+            attributes: ['id', 'name'],
+          },
           {
             model: GroupSubject,
             attributes: ['id'],
@@ -107,6 +112,10 @@ export class GroupService {
         attributes: ['id', 'name', 'price', 'start_date', 'createdAt', 'level'],
         include: [
           {
+            model: Room,
+            attributes: ['id', 'name'],
+          },
+          {
             model: GroupSubject,
             attributes: ['id'],
             include: [
@@ -132,7 +141,7 @@ export class GroupService {
         order: [['createdAt', 'DESC']],
         limit,
         offset,
-        distinct: true, 
+        distinct: true,
       });
 
       const total_pages = Math.ceil(count / limit);
@@ -192,6 +201,10 @@ export class GroupService {
         'level',
       ],
       include: [
+        {
+          model: Room,
+          attributes: ['id', 'name'],
+        },
         {
           model: EmployeeGroup,
           attributes: ['id', 'createdAt'],
@@ -339,6 +352,10 @@ export class GroupService {
       },
       attributes: ['id', 'name', 'price', 'start_date', 'createdAt', 'level'],
       include: [
+        {
+          model: Room,
+          attributes: ['id', 'name'],
+        },
         {
           model: GroupSubject,
           attributes: ['id'],
