@@ -56,12 +56,12 @@ export class StudentService {
   //   });
   // }
 
-  // async findBySchoolIdNot(school_id: number) {
-  //   return await this.repo.findAll({
-  //     where: { school_id },
-  //     attributes: ['id', 'full_name'],
-  //   });
-  // }
+  async findBySchoolIdNot(school_id: number) {
+    return await this.repo.findAll({
+      where: { school_id },
+      attributes: ['id', 'full_name'],
+    });
+  }
 
   // async findByTeacherId(school_id: number, teacher_id: number) {
   //   try {
