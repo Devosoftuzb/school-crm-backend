@@ -1018,19 +1018,55 @@ export class PaymentService {
         delete whereClause.discountSum;
       }
 
+      const baseWhere = {
+        school_id,
+        createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
+        ...(allowedGroupIds && { group_id: { [Op.in]: allowedGroupIds } }),
+        ...(group_id && { group_id }),
+      };
+
+      const paymentGroupInclude = {
+        model: Group,
+        attributes: ['id', 'name', 'price'],
+        required: true,
+        on: literal(
+          `"Payment"."group_id" = "group"."id" AND "Payment"."price" = CAST("group"."price" AS INTEGER)`,
+        ),
+      };
+
+      // 2. Half payment count - yarim to'lov (chegirmasiz lekin guruh narxidan kam)
+      const halfPaymentGroupInclude = {
+        model: Group,
+        attributes: ['id', 'name', 'price'],
+        required: true,
+        on: literal(
+          `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER) AND "Payment"."price" > 0`,
+        ),
+      };
+
       const [paymentCount, halfPaymentCount, discountCount] = await Promise.all(
         [
           this.repo.count({
-            where: { ...whereClause, discount: 0, discountSum: 0 },
-            include: [groupInclude],
+            where: {
+              ...baseWhere,
+              discount: 0,
+              discountSum: 0,
+            },
+            include: [paymentGroupInclude],
           }),
-          this.repo.count({
-            where: { ...whereClause, discount: 0, discountSum: 0 },
-            include: [groupInclude],
-          }),
+
           this.repo.count({
             where: {
-              ...whereClause,
+              ...baseWhere,
+              discount: 0,
+              discountSum: 0,
+            },
+            include: [halfPaymentGroupInclude],
+          }),
+          // Chegirmali to'lovlar
+          this.repo.count({
+            where: {
+              ...baseWhere,
               [Op.or]: [
                 { discount: { [Op.ne]: 0 } },
                 { discountSum: { [Op.ne]: 0 } },
@@ -1088,7 +1124,7 @@ export class PaymentService {
 
           return {
             id: user.id,
-            student_name: user.student?.full_name || 'O‘chirilgan o‘quvchi',
+            student_name: user.student?.full_name || "O'chirilgan o'quvchi",
             teacher_name,
             group_name: user.group.name,
             group_price: user.group.price,

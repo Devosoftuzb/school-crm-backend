@@ -43,23 +43,6 @@ export class GroupService {
     };
   }
 
-  async findAll(school_id: number) {
-    return await this.repo.findAll({
-      where: { school_id, status: true },
-    });
-  }
-
-  async findBySchoolId(school_id: number) {
-    return await this.repo.findAll({
-      where: { school_id, status: true },
-      include: [
-        {
-          model: GroupSubject,
-        },
-      ],
-    });
-  }
-
   async paginate(school_id: number, page: number): Promise<object> {
     try {
       page = Number(page);
@@ -112,41 +95,56 @@ export class GroupService {
     page: number,
   ): Promise<object> {
     try {
-      page = Number(page);
+      page = Number(page) || 1;
       const limit = 15;
       const offset = (page - 1) * limit;
-      const groups = await this.repo.findAll({
-        where: { school_id, status: true },
-        attributes: ['id', 'name', 'price', 'start_date', 'createdAt'],
+
+      const { rows, count } = await this.repo.findAndCountAll({
+        where: {
+          school_id,
+          status: true,
+        },
+        attributes: ['id', 'name', 'price', 'start_date', 'createdAt', 'level'],
         include: [
           {
             model: GroupSubject,
             attributes: ['id'],
-            include: [{ model: Subject, attributes: ['id', 'name'] }],
+            include: [
+              {
+                model: Subject,
+                attributes: ['id', 'name'],
+              },
+            ],
           },
           {
             model: EmployeeGroup,
             where: { employee_id: teacher_id },
             attributes: ['id'],
-            include: [{ model: Employee, attributes: ['id', 'full_name'] }],
+            required: true,
+            include: [
+              {
+                model: Employee,
+                attributes: ['id', 'full_name'],
+              },
+            ],
           },
         ],
         order: [['createdAt', 'DESC']],
-        offset,
         limit,
+        offset,
+        distinct: true,
       });
-      const total_count = await this.repo.count({
-        where: { school_id, status: true },
-      });
-      const total_pages = Math.ceil(total_count / limit);
+
+      const total_pages = Math.ceil(count / limit);
+
       return {
         status: 200,
         data: {
-          records: groups,
+          records: rows,
           pagination: {
             currentPage: page,
             total_pages,
-            total_count,
+            total_count: count,
           },
         },
       };
@@ -221,83 +219,6 @@ export class GroupService {
     return group;
   }
 
-  async findOneNotInclude(id: number, school_id: number) {
-    const group = await this.repo.findOne({
-      where: { id, school_id, status: true },
-      include: [
-        {
-          model: GroupSubject,
-        },
-      ],
-    });
-
-    if (!group) {
-      throw new BadRequestException(
-        `Group with id ${id} not found in school ${school_id}`,
-      );
-    }
-
-    return group;
-  }
-
-  async findOneStudent(id: number, school_id: number) {
-    const group = await this.repo.findOne({
-      where: { id, school_id, status: true },
-      include: [
-        {
-          model: StudentGroup,
-        },
-      ],
-    });
-
-    if (!group) {
-      throw new BadRequestException(
-        `Group with id ${id} not found in school ${school_id}`,
-      );
-    }
-
-    return group;
-  }
-
-  async findOnePayment(id: number, school_id: number) {
-    const group = await this.repo.findOne({
-      where: { id, school_id, status: true },
-      include: [
-        {
-          model: School,
-        },
-        {
-          model: EmployeeGroup,
-        },
-        {
-          model: StudentGroup,
-        },
-      ],
-    });
-
-    if (!group) {
-      throw new BadRequestException(
-        `Group with id ${id} not found in school ${school_id}`,
-      );
-    }
-
-    return group;
-  }
-
-  async findOneGroup(id: number, school_id: number) {
-    const group = await this.repo.findOne({
-      where: { id, school_id, status: true },
-      attributes: ['id', 'name', 'price'],
-    });
-
-    if (!group) {
-      throw new BadRequestException(
-        `Group with id ${id} not found in school ${school_id}`,
-      );
-    }
-
-    return group;
-  }
 
   async update(school_id: number, id: number, updateGroupDto: UpdateGroupDto) {
     const group = await this.findOne(school_id, id);
@@ -338,30 +259,6 @@ export class GroupService {
     };
   }
 
-  async getEmployeeGroup(employee_id: number, school_id: number) {
-    const groups = await this.repo.findAll({
-      where: { school_id, status: true },
-      include: [
-        {
-          model: GroupSubject,
-        },
-        {
-          model: EmployeeGroup,
-          where: { employee_id },
-          required: true,
-        },
-      ],
-    });
-
-    if (!groups.length) {
-      throw new BadRequestException(
-        `No groups found for employee ${employee_id} in school ${school_id}`,
-      );
-    }
-
-    return groups;
-  }
-
   async findAdd(school_id: number) {
     return await this.repo.findAll({
       where: { school_id, status: true },
@@ -373,7 +270,13 @@ export class GroupService {
     return await this.repo.findAll({
       where: { school_id, status: true },
       attributes: ['id', 'name'],
-      include: [{ model: EmployeeGroup, where: { employee_id: teacher_id }, attributes: ['id'] }],
+      include: [
+        {
+          model: EmployeeGroup,
+          where: { employee_id: teacher_id },
+          attributes: ['id'],
+        },
+      ],
     });
   }
 
