@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Body,
+  Version,
 } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { Response } from 'express';
@@ -17,6 +18,7 @@ import { CookieGetter } from 'src/common/decorators/cookieGetter.decorator';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'User login' })
   @Post('login')
   async login(

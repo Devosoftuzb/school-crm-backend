@@ -6,6 +6,8 @@ import { User } from './models/user.model';
 import * as bcrypt from 'bcrypt';
 import { Employee } from 'src/employee/models/employee.model';
 import { ChangePasswordDto } from './dto/changePassword.dto';
+import { Op } from 'sequelize';
+import { School } from 'src/school/models/school.model';
 
 @Injectable()
 export class UserService {
@@ -63,30 +65,38 @@ export class UserService {
     };
   }
 
-  async findAll() {
+  async findAll(role: string) {
     const owners = await this.repo.findAll({
-      where: { role: 'owner' },
-      include: { all: true },
+      where: { role },
+      attributes: ['id', 'full_name'],
       order: [['createdAt', 'ASC']],
     });
 
     return owners;
   }
 
-  async paginate(page: number): Promise<object> {
+  async paginate(role: string, page: number): Promise<object> {
     try {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
-        where: { role: 'owner' },
-        include: { all: true },
+        where: { role },
+        attributes: [
+          'id',
+          'full_name',
+          'phone_number',
+          'login',
+          'role',
+          'createdAt',
+        ],
+        include: [{ model: School, attributes: ['name'] }],
         order: [['createdAt', 'ASC']],
         offset,
         limit,
       });
       const total_count = await this.repo.count({
-        where: { role: 'owner' },
+        where: { role },
       });
       const total_pages = Math.ceil(total_count / limit);
       const res = {
@@ -107,15 +117,9 @@ export class UserService {
   }
 
   async findOne(id: number) {
-    const user = await this.repo.findByPk(id, { include: { all: true } });
-    if (!user) {
-      throw new BadRequestException(`User with id ${id} not found`);
-    }
-    return user;
-  }
-
-  async findOneNot(id: number) {
-    const user = await this.repo.findByPk(id);
+    const user = await this.repo.findByPk(id, {
+      attributes: ['id', 'full_name', 'phone_number', 'login'],
+    });
     if (!user) {
       throw new BadRequestException(`User with id ${id} not found`);
     }
@@ -147,7 +151,7 @@ export class UserService {
   }
 
   async delete(id: number) {
-    const user = await this.findOne(id);
+    const user = await this.repo.findByPk(id);
     await user.destroy();
 
     return {
@@ -177,5 +181,13 @@ export class UserService {
     return {
       message: 'Password changed successfully',
     };
+  }
+
+  async searchName(role: string, name: string) {
+    return await this.repo.findAll({
+      where: { role, full_name: { [Op.iLike]: `%${name}%` } },
+      attributes: ['id', 'full_name', 'phone_number', 'login', 'role'],
+      include: [{ model: School, attributes: ['name'] }],
+    });
   }
 }

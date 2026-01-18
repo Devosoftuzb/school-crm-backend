@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Version,
 } from '@nestjs/common';
 import { EmployeeGroupService } from './employee_group.service';
 import { CreateEmployeeGroupDto } from './dto/create-employee_group.dto';
@@ -22,6 +23,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 export class EmployeeGroupController {
   constructor(private readonly employeeGroupService: EmployeeGroupService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Employee Group create' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post()
@@ -29,13 +31,7 @@ export class EmployeeGroupController {
     return this.employeeGroupService.create(createEmployeeGroupDto);
   }
 
-  @ApiOperation({ summary: 'Employee Group view all' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @Get()
-  findAll() {
-    return this.employeeGroupService.findAll();
-  }
-
+  @Version('1')
   @ApiOperation({ summary: 'Employee Group view by ID' })
   @Roles('owner', 'administrator')
   @Get(':id')
@@ -43,6 +39,7 @@ export class EmployeeGroupController {
     return this.employeeGroupService.findOne(+id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Employee Group remove by ID' })
   @Roles('owner', 'administrator')
   @Delete(':id')

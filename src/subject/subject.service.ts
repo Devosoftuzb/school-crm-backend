@@ -3,6 +3,7 @@ import { CreateSubjectDto } from './dto/create-subject.dto';
 import { UpdateSubjectDto } from './dto/update-subject.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Subject } from './models/subject.model';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class SubjectService {
@@ -16,11 +17,7 @@ export class SubjectService {
     };
   }
 
-  async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
-  }
-
-  async findAllBySchoolId(school_id: number) {
+  async findAll(school_id: number) {
     return await this.repo.findAll({
       where: { school_id },
     });
@@ -33,6 +30,7 @@ export class SubjectService {
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
         where: { school_id: school_id },
+        attributes: ['id', 'name', 'createdAt'],
         offset,
         limit,
       });
@@ -61,6 +59,7 @@ export class SubjectService {
         id,
         school_id,
       },
+      attributes: ['id', 'name'],
     });
 
     if (!subject) {
@@ -91,5 +90,22 @@ export class SubjectService {
     return {
       message: 'Subject removed successfully',
     };
+  }
+
+  async findAdd(school_id: number) {
+    return await this.repo.findAll({
+      where: { school_id },
+      attributes: ['id', 'name'],
+    });
+  }
+
+  async searchName(school_id: number, name: string) {
+    return await this.repo.findAll({
+      where: {
+        school_id,
+        name: { [Op.iLike]: `%${name}%` },
+      },
+      attributes: ['id', 'name', 'createdAt'],
+    });
   }
 }

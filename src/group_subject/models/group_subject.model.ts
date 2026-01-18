@@ -7,10 +7,11 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { Group } from 'src/group/models/group.model';
+import { Subject } from 'src/subject/models/subject.model';
 
 interface GroupSubjectAttr {
   group_id: number;
-  subject_name: string;
+  subject_id: number;
 }
 
 @Table({ tableName: 'group_subject' })
@@ -35,9 +36,16 @@ export class GroupSubject extends Model<GroupSubject, GroupSubjectAttr> {
   })
   group: Group;
 
+  @ForeignKey(() => Subject)
   @Column({
-    type: DataType.STRING,
+    type: DataType.INTEGER,
+    onDelete: 'CASCADE',
     allowNull: false,
   })
-  subject_name: string;
+  subject_id: number;
+
+  @BelongsTo(() => Subject, {
+    onDelete: 'CASCADE',
+  })
+  subject: Subject;
 }

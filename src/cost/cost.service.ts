@@ -4,6 +4,9 @@ import { UpdateCostDto } from './dto/update-cost.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Cost } from './model/cost.model';
 import { Op } from 'sequelize';
+import { CostCategory } from 'src/cost-category/models/cost-category.model';
+import * as XLSX from 'xlsx';
+import { Response } from 'express';
 
 @Injectable()
 export class CostService {
@@ -17,159 +20,69 @@ export class CostService {
     };
   }
 
-  async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
-  }
-
-  async findAllBySchoolId(school_id: number) {
-    return await this.repo.findAll({
-      where: { school_id },
-    });
-  }
-
-  async paginate(
-    school_id: number,
-    year: number,
-    month: number,
-    page: number,
-  ): Promise<object> {
+  async paginateUniversal(params: {
+    school_id: number;
+    page: number;
+    year?: number;
+    month?: number;
+    category_id?: number;
+  }): Promise<object> {
     try {
-      page = Number(page);
+      const { school_id, page, year, month, category_id } = params;
+
       const limit = 15;
-      const offset = (page - 1) * limit;
+      const currentPage = Number(page) || 1;
+      const offset = (currentPage - 1) * limit;
 
-      const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 1);
+      const whereCondition: any = { school_id };
 
-      const condition = {
-        school_id,
-        createdAt: {
-          [Op.gte]: startDate,
-          [Op.lt]: endDate,
-        },
-      };
+      if (year && month) {
+        whereCondition.createdAt = {
+          [Op.gte]: new Date(year, month - 1, 1),
+          [Op.lt]: new Date(year, month, 1),
+        };
+      } else if (year) {
+        whereCondition.createdAt = {
+          [Op.gte]: new Date(year, 0, 1),
+          [Op.lt]: new Date(year + 1, 0, 1),
+        };
+      }
 
-      const cost = await this.repo.findAll({
-        where: condition,
-        include: { all: true },
-        offset,
+      if (category_id) {
+        whereCondition.category_id = category_id;
+      }
+
+      const records = await this.repo.findAll({
+        where: whereCondition,
+        attributes: [
+          'id',
+          'price',
+          'method',
+          'month',
+          'description',
+          'createdAt',
+        ],
+        include: [{ model: CostCategory, attributes: ['name'] }],
         limit,
+        offset,
+        order: [['createdAt', 'DESC']],
       });
+
       const total_count = await this.repo.count({
-        where: condition,
+        where: whereCondition,
       });
-      const total_pages = Math.ceil(total_count / limit);
-      const res = {
+
+      return {
         status: 200,
         data: {
-          records: cost,
+          records,
           pagination: {
-            currentPage: page,
-            total_pages,
+            currentPage,
+            total_pages: Math.ceil(total_count / limit),
             total_count,
           },
         },
       };
-      return res;
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
-  }
-
-  async paginateYear(
-    school_id: number,
-    year: number,
-    page: number,
-  ): Promise<object> {
-    try {
-      page = Number(page);
-      const limit = 15;
-      const offset = (page - 1) * limit;
-
-      const startDate = new Date(year, 0, 1);
-      const endDate = new Date(year + 1, 0, 1);
-
-      const condition = {
-        school_id,
-        createdAt: {
-          [Op.gte]: startDate,
-          [Op.lt]: endDate,
-        },
-      };
-
-      const cost = await this.repo.findAll({
-        where: condition,
-        include: { all: true },
-        offset,
-        limit,
-      });
-      const total_count = await this.repo.count({
-        where: condition,
-      });
-      const total_pages = Math.ceil(total_count / limit);
-      const res = {
-        status: 200,
-        data: {
-          records: cost,
-          pagination: {
-            currentPage: page,
-            total_pages,
-            total_count,
-          },
-        },
-      };
-      return res;
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
-  }
-
-  async paginateCategory(
-    school_id: number,
-    year: number,
-    month: number,
-    category_id: number,
-    page: number,
-  ): Promise<object> {
-    try {
-      page = Number(page);
-      const limit = 15;
-      const offset = (page - 1) * limit;
-
-      const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 1);
-
-      const condition = {
-        school_id,
-        category_id,
-        createdAt: {
-          [Op.gte]: startDate,
-          [Op.lt]: endDate,
-        },
-      };
-
-      const cost = await this.repo.findAll({
-        where: condition,
-        include: { all: true },
-        offset,
-        limit,
-      });
-      const total_count = await this.repo.count({
-        where: condition,
-      });
-      const total_pages = Math.ceil(total_count / limit);
-      const res = {
-        status: 200,
-        data: {
-          records: cost,
-          pagination: {
-            currentPage: page,
-            total_pages,
-            total_count,
-          },
-        },
-      };
-      return res;
     } catch (error) {
       throw new BadRequestException(error.message);
     }
@@ -181,7 +94,6 @@ export class CostService {
         id,
         school_id,
       },
-      include: { all: true },
     });
 
     if (!cost) {
@@ -209,4 +121,142 @@ export class CostService {
       message: 'Cost removed successfully',
     };
   }
+
+  async excelCostHistory(
+    school_id: number,
+    year?: number,
+    month?: number,
+    category_id?: number,
+    res?: Response,
+  ) {
+    try {
+      const whereCondition: any = { school_id };
+
+      if (year && month) {
+        whereCondition.createdAt = {
+          [Op.gte]: new Date(year, month - 1, 1),
+          [Op.lt]: new Date(year, month, 1),
+        };
+      } else if (year) {
+        whereCondition.createdAt = {
+          [Op.gte]: new Date(year, 0, 1),
+          [Op.lt]: new Date(year + 1, 0, 1),
+        };
+      } else {
+        throw new BadRequestException('Kamida year berilishi kerak');
+      }
+
+      if (category_id) {
+        whereCondition.category_id = category_id;
+      }
+
+      const rawData = await this.repo.findAll({
+        where: whereCondition,
+        attributes: [
+          'id',
+          'price',
+          'method',
+          'month',
+          'description',
+          'createdAt',
+        ],
+        include: [{ model: CostCategory, attributes: ['name'] }],
+        order: [['createdAt', 'DESC']],
+      });
+
+      if (!rawData.length) {
+        throw new BadRequestException("Ma'lumot topilmadi");
+      }
+
+      const dataToExport = rawData.map((item) => ({
+        Kategoriya: item.costCategory?.name || 'Nomaʼlum',
+        Suma: Number(item.price).toLocaleString('uz-UZ'),
+        "To'lov turi": item.method,
+        Oy: this.monthNames(Number(item.month)),
+        Izoh: item.description || '',
+        "To'lov sanasi": this.formatDate(item.createdAt),
+      }));
+
+      const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+      const worksheet = this.createWorksheet(dataToExport);
+
+      worksheet['!cols'] = [
+        { wch: 20 }, // Kategoriya
+        { wch: 15 }, // Suma
+        { wch: 15 }, // To'lov turi
+        { wch: 12 }, // Oy
+        { wch: 30 }, // Izoh
+        { wch: 18 }, // To'lov sanasi
+      ];
+
+      let sheetName = 'Xarajatlar';
+      if (year && month) {
+        sheetName = `${this.monthNames(month)} ${year}`;
+      } else if (year) {
+        sheetName = `${year} yil`;
+      }
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+      const excelBuffer: Buffer = XLSX.write(workbook, {
+        type: 'buffer',
+        bookType: 'xlsx',
+      }) as Buffer;
+
+      let fileName = 'cost_history.xlsx';
+      if (category_id) {
+        fileName = `cost_category_${category_id}_${month || ''}_${year}.xlsx`;
+      } else if (year && month) {
+        fileName = `cost_${month}_${year}.xlsx`;
+      } else if (year) {
+        fileName = `cost_${year}.xlsx`;
+      }
+
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${fileName}"`,
+      );
+
+      return res.send(excelBuffer);
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException(
+        error.message || 'Excel yaratishda xatolik yuz berdi',
+      );
+    }
+  }
+
+  private createWorksheet<T extends object>(data: T[]): XLSX.WorkSheet {
+    return XLSX.utils.json_to_sheet(data as unknown as object[]);
+  }
+
+  private monthNames = (monthNum: number): string => {
+    const months = [
+      'Yanvar',
+      'Fevral',
+      'Mart',
+      'Aprel',
+      'May',
+      'Iyun',
+      'Iyul',
+      'Avgust',
+      'Sentabr',
+      'Oktabr',
+      'Noyabr',
+      'Dekabr',
+    ];
+    return months[monthNum - 1] || '';
+  };
+
+  private formatDate = (date: Date): string => {
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}.${month}.${year}`;
+  };
 }

@@ -3,6 +3,7 @@ import {
   Post,
   Body,
   UseGuards,
+  Version,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
@@ -18,6 +19,7 @@ import { CreateSmsAttendanceDto, CreateSmsDevDto, CreateSmsPaymentDto } from './
 export class SmsController {
   constructor(private readonly smsService: SmsService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Sms send' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post('payment')
@@ -25,6 +27,7 @@ export class SmsController {
     return this.smsService.sendPayment(createSmsDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Sms send' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post('dev')
@@ -32,6 +35,7 @@ export class SmsController {
     return this.smsService.sendDev(createSmsDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Sms send' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post('attendance')

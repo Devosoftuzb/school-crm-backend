@@ -9,6 +9,8 @@ import { CustomerAnswer } from 'src/customer_answer/model/customer_answer.model'
 import { Customer } from 'src/customer/models/customer.model';
 import { Test } from 'src/test/model/test.model';
 import { QuestionText } from 'src/question-text/model/question-text.model';
+import { Subject } from 'src/subject/models/subject.model';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class CustomerTestService {
@@ -22,13 +24,6 @@ export class CustomerTestService {
     };
   }
 
-  async findAll(school_id: number) {
-    return await this.repo.findAll({
-      where: { school_id },
-      include: { all: true },
-    });
-  }
-
   async paginate(school_id: number, page: number): Promise<object> {
     try {
       page = Number(page);
@@ -36,7 +31,23 @@ export class CustomerTestService {
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
         where: { school_id },
-        include: { all: true },
+        attributes: ['id', 'description', 'result'],
+        include: [
+          {
+            model: Customer,
+            attributes: [
+              'full_name',
+              'phone_number',
+              'is_student',
+              'description',
+            ],
+          },
+          {
+            model: Test,
+            attributes: ['id'],
+            include: [{ model: Subject, attributes: ['name'] }],
+          },
+        ],
         order: [['createdAt', 'DESC']],
         offset,
         limit,
@@ -62,23 +73,44 @@ export class CustomerTestService {
 
   async findOne(id: number) {
     const customer_test = await this.repo.findByPk(id, {
+      attributes: ['id', 'started_at', 'finished_at', 'result'],
       include: [
-        { model: Customer },
+        {
+          model: Customer,
+          attributes: ['id', 'full_name', 'phone_number', 'description'],
+        },
+        {
+          model: Test,
+          attributes: ['count', 'time'],
+          include: [{ model: Subject, attributes: ['name'] }],
+        },
         {
           model: CustomerAnswer,
-          as: 'customer_answer',
+          attributes: ['id', 'is_correct'],
           separate: true,
           order: [['id', 'ASC']],
           include: [
             {
               model: Question,
-              include: [{ model: QuestionText }],
+              attributes: ['question', 'file'],
+              include: [{ model: QuestionText, attributes: ['title', 'text'] }],
             },
-            { model: Option },
+            { model: Option, attributes: ['option', 'is_correct'] },
           ],
         },
-        { model: Test },
       ],
+    });
+
+    if (!customer_test) {
+      throw new BadRequestException(`Customer with id ${id} not found`);
+    }
+
+    return customer_test;
+  }
+
+  async findNote(id: number) {
+    const customer_test = await this.repo.findByPk(id, {
+      attributes: ['description'],
     });
 
     if (!customer_test) {
@@ -105,5 +137,29 @@ export class CustomerTestService {
     return {
       message: 'Customer Test removed successfully',
     };
+  }
+
+  async searchName(school_id: number, name: string) {
+    return await this.repo.findAll({
+      where: { school_id },
+      attributes: ['id', 'description', 'result'],
+      include: [
+        {
+          model: Customer,
+          where: { full_name: { [Op.iLike]: `%${name}%` } },
+          attributes: [
+            'full_name',
+            'phone_number',
+            'is_student',
+            'description',
+          ],
+        },
+        {
+          model: Test,
+          attributes: ['id'],
+          include: [{ model: Subject, attributes: ['name'] }],
+        },
+      ],
+    });
   }
 }

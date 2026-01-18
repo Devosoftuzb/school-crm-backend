@@ -57,6 +57,7 @@ export class User extends Model<User, UserAttr> {
   role: string;
 
   @HasMany(() => School, {
+    foreignKey: 'owner_id',
     onDelete: 'CASCADE',
     hooks: true,
   })

@@ -7,8 +7,8 @@ export class CreateEmployeeSubjectDto {
   @IsInt()
   employee_id: number;
 
-  @ApiProperty({ example: "Backend", description: 'Subject name' })
+  @ApiProperty({ example: 1, description: 'Subject ID' })
   @IsNotEmpty()
-  @IsString()
-  subject_name: string;
+  @IsInt()
+  subject_id: number;
 }

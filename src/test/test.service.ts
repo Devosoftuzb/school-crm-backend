@@ -7,6 +7,7 @@ import { Subject } from 'src/subject/models/subject.model';
 import { Question } from 'src/questions/model/question.model';
 import { Option } from 'src/option/model/option.model';
 import { QuestionText } from 'src/question-text/model/question-text.model';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class TestService {
@@ -34,7 +35,8 @@ export class TestService {
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
         where: { school_id },
-        include: [{ model: Subject, attributes: ['school_id', 'name'] }],
+        attributes: ['id', 'count', 'time'],
+        include: [{ model: Subject, attributes: ['name'] }],
         order: [['createdAt', 'DESC']],
         offset,
         limit,
@@ -87,6 +89,16 @@ export class TestService {
     return test;
   }
 
+  async findOneNot(id: number) {
+    const test = await this.repo.findByPk(id);
+
+    if (!test) {
+      throw new BadRequestException(`Test with id ${id} not found`);
+    }
+
+    return test;
+  }
+
   async update(id: number, updateTestDto: UpdateTestDto) {
     const test = await this.findOne(id);
     await test.update(updateTestDto);
@@ -104,5 +116,21 @@ export class TestService {
     return {
       message: 'Test removed successfully',
     };
+  }
+
+  async searchName(school_id: number, name: string) {
+    return await this.repo.findAll({
+      where: {
+        school_id,
+      },
+      attributes: ['count', 'time'],
+      include: [
+        {
+          model: Subject,
+          where: { name: { [Op.iLike]: `%${name}%` } },
+          attributes: ['name'],
+        },
+      ],
+    });
   }
 }

@@ -72,8 +72,8 @@ export class School extends Model<School, SchoolAttr> {
   owner_id: number;
 
   @BelongsTo(() => User, {
+    foreignKey: 'owner_id',
     onDelete: 'CASCADE',
-    hooks: true,
   })
   owner: User;
 
