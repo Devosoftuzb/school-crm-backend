@@ -75,6 +75,18 @@ export class PaymentController {
   @ApiOperation({ summary: 'Export excel by payment' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator', 'teacher')
+  @Get('history/all/excel')
+  async excelAllHistory(
+    @Query('school_id') school_id: number,
+    @Res() res: Response,
+  ) {
+    return this.paymentService.excelAllHistory(school_id, res);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Export excel by payment' })
+  @ApiBearerAuth('access-token')
+  @Roles('owner', 'administrator', 'teacher')
   @Get('history/excel')
   async excelHistory(
     @Query('school_id') school_id: number,

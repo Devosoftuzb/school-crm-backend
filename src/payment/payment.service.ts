@@ -275,6 +275,147 @@ export class PaymentService {
     return result;
   }
 
+  async excelAllHistory(school_id: number, res: Response) {
+    try {
+      const allUsers = await this.repo.findAll({
+        where: { school_id },
+        attributes: [
+          'id',
+          'method',
+          'price',
+          'discount',
+          'discountSum',
+          'month',
+          'year',
+          'status',
+          'description',
+          'createdAt',
+        ],
+        include: [
+          {
+            model: Group,
+            attributes: ['id', 'name', 'price'],
+          },
+          {
+            model: Student,
+            attributes: ['full_name'],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+      });
+
+      if (!allUsers.length) {
+        throw new BadRequestException("Ma'lumotlar topilmadi");
+      }
+      
+      const uniqueGroupIds = [
+        ...new Set(allUsers.map((u) => u.group?.id).filter(Boolean)),
+      ];
+
+      const groupsWithTeachers = await this.repoGroup.findAll({
+        where: {
+          id: { [Op.in]: uniqueGroupIds },
+          school_id,
+        },
+        include: [
+          {
+            model: EmployeeGroup,
+            attributes: ['employee_id'],
+            include: [
+              {
+                model: Employee,
+                attributes: ['full_name'],
+              },
+            ],
+          },
+        ],
+      });
+
+      const teacherMap = new Map<number, string>();
+      groupsWithTeachers.forEach((group) => {
+        const teacherName =
+          group.employee?.[0]?.employee?.full_name || 'Nomaʼlum';
+        teacherMap.set(group.id, teacherName);
+      });
+
+      const excelData: any[] = [];
+
+      for (const user of allUsers) {
+        const teacher_name = user.group?.id
+          ? teacherMap.get(user.group.id) || 'Nomaʼlum'
+          : 'Nomaʼlum';
+
+        const statusText =
+          user.status === 'delete'
+            ? "O'chirilgan"
+            : user.status === 'update'
+              ? "O'zgartirilgan"
+              : 'Tasdiqlangan';
+
+        excelData.push({
+          "O'quvchi (F . I . O)":
+            user.student?.full_name || "O'chirilgan o'quvchi",
+          "O'qituvchi (F . I . O)": teacher_name,
+          'Guruh nomi': user.group?.name || 'N/A',
+          'Guruh narxi':
+            Number(user.group?.price || 0).toLocaleString('uz-UZ') + " so'm",
+          "To'lov turi": user.method,
+          "To'langan summa":
+            Number(user.price).toLocaleString('uz-UZ') + " so'm",
+          'Chegirma (%)': user.discount + ' %',
+          Yil: user.year ? user.year + ' yil' : '',
+          Oy: user.month ? this.monthNames(Number(user.month)) : '',
+          "To'lov sanasi": this.formatDate(user.createdAt),
+          Izoh: user.description || '',
+          Holati: statusText,
+        });
+      }
+
+      const workbook = XLSX.utils.book_new();
+      const worksheet = this.createWorksheet(excelData);
+
+      worksheet['!cols'] = [
+        { wch: 25 },
+        { wch: 25 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 15 },
+        { wch: 18 },
+        { wch: 15 },
+        { wch: 10 },
+        { wch: 12 },
+        { wch: 18 },
+        { wch: 30 },
+        { wch: 15 },
+      ];
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Barcha to'lovlar");
+
+      const excelBuffer = XLSX.write(workbook, {
+        type: 'buffer',
+        bookType: 'xlsx',
+      });
+
+      const fileName = `payment_history_school_${school_id}.xlsx`;
+
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${fileName}"`,
+      );
+
+      return res.send(excelBuffer);
+    } catch (error) {
+      console.error(error);
+      throw new BadRequestException(
+        error.message || 'Excel yaratishda xatolik',
+      );
+    }
+  }
+
   async excelHistory(
     school_id: number,
     year?: number,
