@@ -11,6 +11,8 @@ import {
   UploadedFile,
   Query,
   Put,
+  Version,
+  BadRequestException,
 } from '@nestjs/common';
 import { QuestionsService } from './questions.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
@@ -27,6 +29,7 @@ import { ImageValidationPipe } from 'src/common/pipes/image-validation.pipe';
 export class QuestionsController {
   constructor(private readonly questionsService: QuestionsService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Question create' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
@@ -34,44 +37,58 @@ export class QuestionsController {
   @UseInterceptors(FileInterceptor('file'))
   @Post()
   create(
-    @Body() createQuestionDto: CreateQuestionDto,
+    @Body() body: any,
     @UploadedFile(new ImageValidationPipe()) file: Express.Multer.File,
   ) {
-    return this.questionsService.create(createQuestionDto, file);
+    body.test_id = Number(body.test_id);
+    body.text_id = body.text_id ? Number(body.text_id) : null;
+    if (body.options && typeof body.options === 'string') {
+      body.options = JSON.parse(body.options);
+    }
+    return this.questionsService.create(body, file);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Question view all' })
-  @Get()
-  findAll() {
-    return this.questionsService.findAll();
+  @Get('all/:test_id')
+  findAll(@Param('test_id') test_id: string) {
+    return this.questionsService.findAll(+test_id);
   }
 
-  @ApiOperation({ summary: 'User pagination' })
-  @Get('page')
-  paginate(@Query('page') page: number) {
-    return this.questionsService.paginate(page);
-  }
-
+  @Version('1')
   @ApiOperation({ summary: 'Question view by ID' })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.questionsService.findOne(+id);
   }
 
-  @ApiOperation({ summary: 'Question update by ID' })
+  @Version('1')
+  @ApiOperation({ summary: 'Question update' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator')
   @UseInterceptors(FileInterceptor('file'))
   @Put(':id')
   update(
-    @Param('id') id: string,
-    @Body() updateQuestionDto: UpdateQuestionDto,
+    @Param('id') id: number,
+    @Body() body: any,
     @UploadedFile(new ImageValidationPipe()) file: Express.Multer.File,
   ) {
-    return this.questionsService.update(+id, updateQuestionDto, file);
+    body.test_id = Number(body.test_id);
+    body.text_id = body.text_id ? Number(body.text_id) : null;
+
+    if (body.options && typeof body.options === 'string') {
+      try {
+        body.options = JSON.parse(body.options);
+      } catch (err) {
+        throw new BadRequestException('Options format not valid');
+      }
+    }
+
+    return this.questionsService.update(id, body, file);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Question remove by ID' })
   @UseGuards(RolesGuard, JwtAuthGuard)
   @ApiBearerAuth('access-token')

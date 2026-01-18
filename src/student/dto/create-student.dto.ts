@@ -51,4 +51,9 @@ export class CreateStudentDto {
   @IsString()
   @IsNotEmpty()
   start_date: string;
+
+  @ApiProperty({ example: 1, description: 'Group ID' })
+  @IsNotEmpty()
+  @IsInt()
+  group_id: number;
 }

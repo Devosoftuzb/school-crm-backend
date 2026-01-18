@@ -8,15 +8,21 @@ export class GroupSubjectService {
   constructor(@InjectModel(GroupSubject) private repo: typeof GroupSubject) {}
 
   async create(createGroupSubjectDto: CreateGroupSubjectDto) {
+    const oldGroupSubject = await this.repo.findOne({
+      where: {
+        subject_id: createGroupSubjectDto.subject_id,
+        group_id: createGroupSubjectDto.group_id,
+      },
+    });
+
+    if (oldGroupSubject) {
+      throw new BadRequestException(`This subject already exists`);
+    }
     const groupSubject = await this.repo.create(createGroupSubjectDto);
     return {
       message: 'Group Subject created successfully',
       groupSubject,
     };
-  }
-
-  async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
   }
 
   async findOne(id: number) {

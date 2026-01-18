@@ -9,6 +9,7 @@ import {
   UseGuards,
   Put,
   Query,
+  Version,
 } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
@@ -23,42 +24,17 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Attendance create' })
   @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Post()
-  create(@Body() createAttendanceDto: CreateAttendanceDto) {
-    return this.attendanceService.create(createAttendanceDto);
+  saveAttendance(@Body() createAttendanceDto: CreateAttendanceDto) {
+    return this.attendanceService.saveAttendance(createAttendanceDto);
   }
 
-  @ApiOperation({ summary: 'Attendance view all by school ID' })
-  @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin')
-  @UseGuards(RolesGuard, JwtAuthGuard)
-  @Get()
-  findAll() {
-    return this.attendanceService.findAll();
-  }
-
-  @ApiOperation({ summary: 'Attendance view all by school ID' })
-  @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
-  @UseGuards(RolesGuard, JwtAuthGuard)
-  @Get(':school_id')
-  findAllByAttendanceId(@Param('school_id') school_id: string) {
-    return this.attendanceService.findAllByAttendanceId(+school_id);
-  }
-
-  @ApiOperation({ summary: 'Attendance paginate' })
-  @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator', 'teacher')
-  @UseGuards(RolesGuard, JwtAuthGuard)
-  @Get(':school_id/page')
-  paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
-    return this.attendanceService.paginate(+school_id, page);
-  }
-
+  @Version('1')
   @ApiOperation({ summary: 'Attendance group history view by ID by school ID' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/:group_id/:year/:month/page')
@@ -69,36 +45,39 @@ export class AttendanceController {
     @Param('month') month: string,
     @Query('page') page: number,
   ) {
-    return this.attendanceService.findGroupHistory(+school_id, +group_id, +year, +month, page);
+    return this.attendanceService.findGroupHistory(
+      +school_id,
+      +group_id,
+      +year,
+      +month,
+      page,
+    );
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Attendance view by ID by school ID' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator', 'teacher')
   @UseGuards(RolesGuard, JwtAuthGuard)
-  @Get(':school_id/:id')
-  findOne(@Param('id') id: string, @Param('school_id') school_id: string) {
-    return this.attendanceService.findOne(+id, +school_id);
-  }
-
-  @ApiOperation({ summary: 'Attendance update by ID by school ID' })
-  @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator', 'teacher')
-  @UseGuards(RolesGuard, JwtAuthGuard)
-  @Put(':school_id')
-  update(
+  @Get('group/:school_id/:group_id')
+  findGroupStudent(
     @Param('school_id') school_id: string,
-    @Body() updateAttendanceDto: UpdateAttendanceDto,
+    @Param('group_id') group_id: string,
   ) {
-    return this.attendanceService.update(+school_id, updateAttendanceDto);
+    return this.attendanceService.findGroupStudent(+school_id, +group_id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Attendance remove by ID by school ID' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator', 'teacher')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Delete(':school_id/:group_id/:student_id')
-  remove(@Param('group_id') group_id: string, @Param('student_id') student_id: string, @Param('school_id') school_id: string) {
+  remove(
+    @Param('group_id') group_id: string,
+    @Param('student_id') student_id: string,
+    @Param('school_id') school_id: string,
+  ) {
     return this.attendanceService.remove(+group_id, +student_id, +school_id);
   }
 }

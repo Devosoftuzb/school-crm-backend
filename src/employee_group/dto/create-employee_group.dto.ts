@@ -11,9 +11,4 @@ export class CreateEmployeeGroupDto {
   @IsNotEmpty()
   @IsInt()
   group_id: number;
-
-  @ApiProperty({ example: "Backend", description: 'Group name' })
-  @IsNotEmpty()
-  @IsString()
-  group_name: string;
 }

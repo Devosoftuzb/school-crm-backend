@@ -46,4 +46,14 @@ export class CreateGroupDto {
   @IsBoolean()
   @IsNotEmpty()
   status: boolean;
+
+  @ApiProperty({ example: 1, description: 'Subject ID' })
+  @IsInt()
+  @IsNotEmpty()
+  subject_id: number;
+
+  @ApiProperty({ example: 1, description: 'Teacher ID' })
+  @IsInt()
+  @IsNotEmpty()
+  teacher_id: number;
 }

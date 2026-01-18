@@ -11,6 +11,7 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  Version,
 } from '@nestjs/common';
 import { SchoolService } from './school.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
@@ -29,6 +30,7 @@ import { ImageValidationPipe } from 'src/common/pipes/image-validation.pipe';
 export class SchoolController {
   constructor(private readonly schoolService: SchoolService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'School create' })
   @Roles('superadmin', 'admin')
   @UseInterceptors(FileInterceptor('image'))
@@ -40,6 +42,7 @@ export class SchoolController {
     return this.schoolService.create(createSchoolDto, image);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'School view all' })
   @Roles('superadmin', 'admin')
   @Get()
@@ -47,6 +50,7 @@ export class SchoolController {
     return this.schoolService.findAll();
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'User pagination' })
   @Roles('superadmin', 'admin')
   @Get('page')
@@ -54,6 +58,7 @@ export class SchoolController {
     return this.schoolService.paginate(page);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'School view by ID' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get(':id')
@@ -61,6 +66,7 @@ export class SchoolController {
     return this.schoolService.findOne(+id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'School update by ID' })
   @Roles('superadmin', 'admin', 'owner')
   @UseInterceptors(FileInterceptor('image'))
@@ -73,10 +79,29 @@ export class SchoolController {
     return this.schoolService.update(+id, updateSchoolDto, image);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'School remove by ID' })
   @Roles('superadmin', 'admin')
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.schoolService.remove(+id);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'School navbar' })
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
+  @Get('navbar/:id')
+  navbarLogo(@Param('id') id: string) {
+    return this.schoolService.navbarLogo(+id);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Search user by name' })
+  @ApiBearerAuth('access-token')
+  @Roles('superadmin', 'admin')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('search/:name')
+  searchName(@Param('name') name: string) {
+    return this.schoolService.searchName(name);
   }
 }

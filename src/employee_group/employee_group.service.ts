@@ -8,15 +8,21 @@ export class EmployeeGroupService {
   constructor(@InjectModel(EmployeeGroup) private repo: typeof EmployeeGroup) {}
 
   async create(createEmployeeGroupDto: CreateEmployeeGroupDto) {
+    const oldEmployeeGroup = await this.repo.findOne({
+      where: {
+        group_id: createEmployeeGroupDto.group_id,
+        employee_id: createEmployeeGroupDto.employee_id,
+      },
+    });
+
+    if (oldEmployeeGroup) {
+      throw new BadRequestException(`This group already exists`);
+    }
     const employeeGroup = await this.repo.create(createEmployeeGroupDto);
     return {
       message: 'Employee Group created successfully',
       employeeGroup,
     };
-  }
-
-  async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
   }
 
   async findOne(id: number) {

@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateOptionDto } from 'src/option/dto/create-option.dto';
 
 export class CreateQuestionDto {
   @ApiProperty({ example: 'test | writing', description: 'Question type' })
@@ -8,10 +16,12 @@ export class CreateQuestionDto {
   type: string;
 
   @ApiProperty({ example: 1, description: 'Test ID' })
+  @IsNumber()
   @IsNotEmpty()
   test_id: number;
 
   @ApiProperty({ example: 1, description: 'Text ID' })
+  @IsNumber()
   text_id: number;
 
   @ApiProperty({ example: 'media', description: 'Question media' })
@@ -21,4 +31,17 @@ export class CreateQuestionDto {
   @IsString()
   @IsNotEmpty()
   question: string;
+
+  @ApiProperty({
+    type: [CreateOptionDto],
+    description: 'Question options',
+    example: [
+      { option: 'go', is_correct: true },
+      { option: 'went', is_correct: false },
+    ],
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateOptionDto)
+  options: CreateOptionDto[];
 }

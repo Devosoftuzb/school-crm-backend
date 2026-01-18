@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Version,
 } from '@nestjs/common';
 import { GroupSubjectService } from './group_subject.service';
 import { CreateGroupSubjectDto } from './dto/create-group_subject.dto';
@@ -22,6 +23,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 export class GroupSubjectController {
   constructor(private readonly groupSubjectService: GroupSubjectService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Group Subject  create' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post()
@@ -29,13 +31,7 @@ export class GroupSubjectController {
     return this.groupSubjectService.create(createGroupSubjectDto);
   }
 
-  @ApiOperation({ summary: 'Group Subject view all' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @Get()
-  findAll() {
-    return this.groupSubjectService.findAll();
-  }
-
+    @Version('1')
   @ApiOperation({ summary: 'Group Subject view by ID' })
   @Roles('owner', 'administrator')
   @Get(':id')
@@ -43,6 +39,7 @@ export class GroupSubjectController {
     return this.groupSubjectService.findOne(+id);
   }
 
+    @Version('1')
   @ApiOperation({ summary: 'Group Subject remove by ID' })
   @Roles('owner', 'administrator')
   @Delete(':id')
