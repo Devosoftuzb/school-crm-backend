@@ -18,12 +18,6 @@ export class CustomerAnswerController {
      return this.customerAnswerService.create(createCustomerAnswerDto);
    }
  
-   @ApiOperation({ summary: 'CustomerAnswer view all' })
-   @Get()
-   findAll() {
-     return this.customerAnswerService.findAll();
-   }
- 
    @ApiOperation({ summary: 'CustomerAnswer paginate' })
    @Get('page')
    paginate(@Query('page') page: number) {

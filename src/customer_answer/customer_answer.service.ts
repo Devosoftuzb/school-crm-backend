@@ -216,10 +216,6 @@ Return ONLY ONE PHRASE. No explanations.
     }
   }
 
-  async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
-  }
-
   async paginate(page: number): Promise<object> {
     try {
       page = Number(page);
@@ -292,9 +288,9 @@ Return ONLY ONE PHRASE. No explanations.
 
     let average = Math.round((testScore + writingScore) / 2);
 
-    if (testResult === "Noma'lum" || writingResult === "Noma'lum") {
-      average = Math.max(average - 1, 0);
-    }
+    // if (testResult === "Noma'lum" || writingResult === "Noma'lum") {
+    //   average = Math.max(average - 1, 0);
+    // }
 
     return reverseLevels[average] || "Noma'lum";
   }

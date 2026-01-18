@@ -31,7 +31,7 @@ export class CustomerTestService {
       const offset = (page - 1) * limit;
       const user = await this.repo.findAll({
         where: { school_id },
-        attributes: ['id', 'description', 'result'],
+        attributes: ['id', 'description', 'overall_result'],
         include: [
           {
             model: Customer,
@@ -73,7 +73,7 @@ export class CustomerTestService {
 
   async findOne(id: number) {
     const customer_test = await this.repo.findByPk(id, {
-      attributes: ['id', 'started_at', 'finished_at', 'result'],
+      attributes: ['id', 'started_at', 'finished_at', 'test_result', 'writing_result', 'overall_result'],
       include: [
         {
           model: Customer,
