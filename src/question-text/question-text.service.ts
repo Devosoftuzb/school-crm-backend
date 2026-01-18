@@ -22,18 +22,6 @@ export class QuestionTextService {
     });
   }
 
-  // async findOne(id: number) {
-  //   const questionText = await this.repo.findByPk(id, {
-  //     include: { all: true },
-  //   });
-
-  //   if (!questionText) {
-  //     throw new BadRequestException(`Question text with id ${id} not found`);
-  //   }
-
-  //   return questionText;
-  // }
-
   async remove(id: number) {
     const questionText = await this.repo.findByPk(id);
     await questionText.destroy();

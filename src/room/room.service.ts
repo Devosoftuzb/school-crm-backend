@@ -28,61 +28,12 @@ export class RoomService {
     };
   }
 
-  async findAll() {
-    return await this.repo.findAll({ include: { all: true } });
-  }
-
-  async paginate(page: number): Promise<object> {
-    try {
-      page = Number(page);
-      const limit = 15;
-      const offset = (page - 1) * limit;
-      const user = await this.repo.findAll({
-        include: { all: true },
-        offset,
-        limit,
-      });
-      const total_count = await this.repo.count();
-      const total_pages = Math.ceil(total_count / limit);
-      const res = {
-        status: 200,
-        data: {
-          records: user,
-          pagination: {
-            currentPage: page,
-            total_pages,
-            total_count,
-          },
-        },
-      };
-      return res;
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
-  }
-
-  async findOne(id: number) {
-    const room = await this.repo.findByPk(id, { include: { all: true } });
-
-    if (!room) {
-      throw new BadRequestException(`Room with id ${id} not found`);
-    }
-
-    return room;
-  }
-
-  async update(id: number, updateRoomDto: UpdateRoomDto) {
-    const room = await this.findOne(id);
-    await room.update(updateRoomDto);
-
-    return {
-      message: 'Room updated successfully',
-      room,
-    };
+  async findAll(school_id: number) {
+    return await this.repo.findAll({ where: { school_id } });
   }
 
   async remove(id: number) {
-    const room = await this.findOne(id);
+    const room = await this.repo.findByPk(id);
     await room.destroy();
 
     return {

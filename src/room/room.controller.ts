@@ -37,33 +37,9 @@ export class RoomController {
   @Version('1')
   @ApiOperation({ summary: 'Room view all' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @Get()
-  findAll() {
-    return this.roomService.findAll();
-  }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Room pagination' })
-  @Roles('owner', 'administrator')
-  @Get('page')
-  paginate(@Query('page') page: number) {
-    return this.roomService.paginate(page);
-  }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Room view by ID' })
-  @Roles('owner', 'administrator')
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.roomService.findOne(+id);
-  }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Room update by ID' })
-  @Roles('owner', 'administrator')
-  @Put(':id')
-  update(@Param('id') id: string, @Body() updateRoomDto: UpdateRoomDto) {
-    return this.roomService.update(+id, updateRoomDto);
+  @Get('all/:school_id')
+  findAll(@Param('school_id') school_id: string) {
+    return this.roomService.findAll(+school_id);
   }
 
   @Version('1')

@@ -44,12 +44,6 @@ export class SubjectController {
     return this.subjectService.findAdd(+school_id);
   }
 
-  // @ApiOperation({ summary: 'Subject view all by school ID' })
-  // @Get(':school_id')
-  // findAll(@Param('school_id') school_id: string) {
-  //   return this.subjectService.findAll(+school_id);
-  // }
-
   @Version('1')
   @ApiOperation({ summary: 'Subject paginate' })
   @ApiBearerAuth('access-token')

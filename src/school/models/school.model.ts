@@ -15,6 +15,7 @@ import { Employee } from 'src/employee/models/employee.model';
 import { Group } from 'src/group/models/group.model';
 import { Payment } from 'src/payment/models/payment.model';
 import { PaymentMethod } from 'src/payment_method/models/payment_method.model';
+import { Room } from 'src/room/models/room.model';
 import { Salary } from 'src/salary/models/salary.model';
 import { SocialMedia } from 'src/social_media/models/social_media.model';
 import { Student } from 'src/student/models/student.model';
@@ -154,4 +155,10 @@ export class School extends Model<School, SchoolAttr> {
     hooks: true,
   })
   salary: Salary[];
+
+  @HasMany(() => Room, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  room: Room[];
 }

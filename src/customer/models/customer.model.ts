@@ -57,23 +57,23 @@ export class Customer extends Model<Customer, CustomerAttr> {
   @ForeignKey(() => SocialMedia)
   @Column({
     type: DataType.INTEGER,
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
     allowNull: false,
   })
   social_media_id: number;
 
-  @BelongsTo(() => SocialMedia, { onDelete: 'CASCADE' })
+  @BelongsTo(() => SocialMedia, { onDelete: 'SET NULL' })
   social_media: SocialMedia;
 
   @ForeignKey(() => Subject)
   @Column({
     type: DataType.INTEGER,
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
     allowNull: false,
   })
   subject_id: number;
 
-  @BelongsTo(() => Subject, { onDelete: 'CASCADE' })
+  @BelongsTo(() => Subject, { onDelete: 'SET NULL' })
   subject: Subject;
 
   @Column({
@@ -90,7 +90,6 @@ export class Customer extends Model<Customer, CustomerAttr> {
   is_student: boolean
 
   @HasMany(() => CustomerTest, {
-    onDelete: 'CASCADE',
     hooks: true,
   })
   customer_test: CustomerTest[];

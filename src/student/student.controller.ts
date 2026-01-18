@@ -35,20 +35,6 @@ export class StudentController {
     return this.studentService.create(createStudentDto);
   }
 
-  // @ApiOperation({ summary: 'Student view all by school ID' })
-  // @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
-  // @Get(':school_id')
-  // findAll(@Param('school_id') school_id: string) {
-  //   return this.studentService.findAll(+school_id);
-  // }
-
-  // @ApiOperation({ summary: 'Student view all by school ID' })
-  // @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
-  // @Get(':school_id/find')
-  // findBySchoolId(@Param('school_id') school_id: string) {
-  //   return this.studentService.findBySchoolId(+school_id);
-  // }
-
   @Version('1')
   @ApiOperation({ summary: 'Student view all by school ID' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
@@ -56,23 +42,6 @@ export class StudentController {
   findBySchoolIdNot(@Param('school_id') school_id: string) {
     return this.studentService.findBySchoolIdNot(+school_id);
   }
-
-  // @ApiOperation({ summary: 'Student view all by school ID' })
-  // @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
-  // @Get(':school_id/:teacher_id/teacher-student')
-  // findByTeacherId(
-  //   @Param('school_id') school_id: string,
-  //   @Param('teacher_id') teacher_id: string,
-  // ) {
-  //   return this.studentService.findByTeacherId(+school_id, +teacher_id);
-  // }
-
-  // @ApiOperation({ summary: 'Student archive view all by school ID' })
-  // @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
-  // @Get(':school_id/archive-find')
-  // findByArchiveSchoolId(@Param('school_id') school_id: string) {
-  //   return this.studentService.findByArchiveSchoolId(+school_id);
-  // }
 
   @Version('1')
   @ApiOperation({ summary: 'Student paginate archive' })
@@ -120,33 +89,6 @@ export class StudentController {
   findOneNot(@Param('school_id') school_id: string, @Param('id') id: string) {
     return this.studentService.findOneNot(+school_id, +id);
   }
-
-  // @ApiOperation({ summary: 'Student view by ID by school ID' })
-  // @Roles('owner', 'administrator', 'teacher')
-  // @Get(':school_id/:id/payment')
-  // findOnePayment(
-  //   @Param('id') id: string,
-  //   @Param('school_id') school_id: string,
-  // ) {
-  //   return this.studentService.findOnePayment(+id, +school_id);
-  // }
-
-  // @ApiOperation({ summary: 'Student view by ID by school ID' })
-  // @Roles('owner', 'administrator', 'teacher')
-  // @Get(':school_id/:id/group')
-  // findOnePaymentGroup(
-  //   @Param('id') id: string,
-  //   @Param('school_id') school_id: string,
-  // ) {
-  //   return this.studentService.findOnePaymentGroup(+id, +school_id);
-  // }
-
-  // @ApiOperation({ summary: 'Student view by ID by school ID' })
-  // @Roles('owner', 'administrator', 'teacher')
-  // @Get(':school_id/:id/studentGroup')
-  // findOneGroup(@Param('id') id: string, @Param('school_id') school_id: string) {
-  //   return this.studentService.findOneGroup(+id, +school_id);
-  // }
 
   @Version('1')
   @ApiOperation({ summary: 'Student update by ID by school ID' })

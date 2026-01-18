@@ -36,7 +36,6 @@ export class SocialMedia extends Model<SocialMedia, SocialMediaAttr>{
       name: string;
     
       @HasMany(() => Customer, {
-        onDelete: 'CASCADE',
         hooks: true,
       })
       customer: Customer[];

@@ -17,25 +17,4 @@ export class CustomerAnswerController {
    create(@Body() createCustomerAnswerDto: CreateCustomerAnswerDto) {
      return this.customerAnswerService.create(createCustomerAnswerDto);
    }
- 
-  //  @ApiOperation({ summary: 'CustomerAnswer paginate' })
-  //  @Get('page')
-  //  paginate(@Query('page') page: number) {
-  //    return this.customerAnswerService.paginate(page);
-  //  }
- 
-  //  @ApiOperation({ summary: 'CustomerAnswer view by ID' })
-  //  @Get(':id')
-  //  findOne(@Param('id') id: string) {
-  //    return this.customerAnswerService.findOne(+id);
-  //  }
- 
-  //  @ApiOperation({ summary: 'CustomerAnswer remove by ID' })
-  //  @UseGuards(RolesGuard, JwtAuthGuard)
-  //  @ApiBearerAuth('access-token')
-  //  @Roles('owner', 'administrator')
-  //  @Delete(':id')
-  //  remove(@Param('id') id: string) {
-  //    return this.customerAnswerService.remove(+id);
-  //  }
 }

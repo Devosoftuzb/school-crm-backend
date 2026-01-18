@@ -78,13 +78,13 @@ export class Group extends Model<Group, GroupAttr> {
   @ForeignKey(() => Room)
   @Column({
     type: DataType.INTEGER,
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
     allowNull: false,
   })
   room_id: number;
 
   @BelongsTo(() => Room, {
-    onDelete: 'CASCADE',
+    onDelete: 'SET NULL',
   })
   room: School;
 
