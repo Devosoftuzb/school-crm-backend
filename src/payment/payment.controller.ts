@@ -71,7 +71,7 @@ export class PaymentController {
     return response;
   }
 
-  @Version('1')
+  @Version('2')
   @ApiOperation({ summary: 'Export excel by payment' })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator', 'teacher')
