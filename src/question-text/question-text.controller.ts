@@ -40,11 +40,11 @@ export class QuestionTextController {
     return this.questionTextService.findAll(+test_id);
   }
 
-  @ApiOperation({ summary: 'Question text view by ID' })
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.questionTextService.findOne(+id);
-  }
+  // @ApiOperation({ summary: 'Question text view by ID' })
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.questionTextService.findOne(+id);
+  // }
 
   @Version('1')
   @ApiOperation({ summary: 'Question text remove by ID' })

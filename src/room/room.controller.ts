@@ -9,6 +9,7 @@ import {
   UseGuards,
   Put,
   Query,
+  Version,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
@@ -25,6 +26,7 @@ import { UpdateRoomDto } from './dto/update-room.dto';
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Room create' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post()
@@ -32,6 +34,7 @@ export class RoomController {
     return this.roomService.create(createRoomDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Room view all' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get()
@@ -39,6 +42,7 @@ export class RoomController {
     return this.roomService.findAll();
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Room pagination' })
   @Roles('owner', 'administrator')
   @Get('page')
@@ -46,6 +50,7 @@ export class RoomController {
     return this.roomService.paginate(page);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Room view by ID' })
   @Roles('owner', 'administrator')
   @Get(':id')
@@ -53,6 +58,7 @@ export class RoomController {
     return this.roomService.findOne(+id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Room update by ID' })
   @Roles('owner', 'administrator')
   @Put(':id')
@@ -60,6 +66,7 @@ export class RoomController {
     return this.roomService.update(+id, updateRoomDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Room remove by ID' })
   @Roles('owner', 'administrator')
   @Delete(':id')

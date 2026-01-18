@@ -43,7 +43,7 @@ export class PaymentService {
       payment,
     };
   }
-  
+
   async findOne(id: number, school_id: number) {
     const payment = await this.repo.findOne({
       where: {
@@ -51,7 +51,7 @@ export class PaymentService {
         school_id,
       },
       include: [
-        { model: Student, attributes: ['id', 'full_name'] },
+        { model: Student, attributes: ['id', 'full_name', 'start_date'] },
         {
           model: Group,
           attributes: ['id', 'name', 'price'],
@@ -110,7 +110,7 @@ export class PaymentService {
 
     const students = await this.repoStudent.findAll({
       where: { school_id, status: true },
-      attributes: ['id', 'full_name'],
+      attributes: ['id', 'full_name', 'start_date'],
       include: [
         {
           model: StudentGroup,
@@ -176,6 +176,7 @@ export class PaymentService {
       return {
         student_id: student.id,
         student_name: student.full_name,
+        start_date: student.start_date,
         group_id: student.group[0].group.id,
         group_name: student.group[0].group.name,
         group_price: student.group[0].group.price,
@@ -195,7 +196,7 @@ export class PaymentService {
 
     const students = await this.repoStudent.findAll({
       where: { school_id, id: student_id, status: true },
-      attributes: ['id', 'full_name'],
+      attributes: ['id', 'full_name', 'start_date'],
       include: [
         {
           model: StudentGroup,
@@ -262,6 +263,7 @@ export class PaymentService {
         return {
           student_id: student.id,
           student_name: student.full_name,
+          start_date: student.start_date,
           group_id: group.id,
           group_name: group.name,
           group_price: group.price,
@@ -1018,19 +1020,55 @@ export class PaymentService {
         delete whereClause.discountSum;
       }
 
+      const baseWhere = {
+        school_id,
+        createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
+        ...(allowedGroupIds && { group_id: { [Op.in]: allowedGroupIds } }),
+        ...(group_id && { group_id }),
+      };
+
+      const paymentGroupInclude = {
+        model: Group,
+        attributes: ['id', 'name', 'price'],
+        required: true,
+        on: literal(
+          `"Payment"."group_id" = "group"."id" AND "Payment"."price" = CAST("group"."price" AS INTEGER)`,
+        ),
+      };
+
+      // 2. Half payment count - yarim to'lov (chegirmasiz lekin guruh narxidan kam)
+      const halfPaymentGroupInclude = {
+        model: Group,
+        attributes: ['id', 'name', 'price'],
+        required: true,
+        on: literal(
+          `"Payment"."group_id" = "group"."id" AND "Payment"."price" != CAST("group"."price" AS INTEGER) AND "Payment"."price" > 0`,
+        ),
+      };
+
       const [paymentCount, halfPaymentCount, discountCount] = await Promise.all(
         [
           this.repo.count({
-            where: { ...whereClause, discount: 0, discountSum: 0 },
-            include: [groupInclude],
+            where: {
+              ...baseWhere,
+              discount: 0,
+              discountSum: 0,
+            },
+            include: [paymentGroupInclude],
           }),
-          this.repo.count({
-            where: { ...whereClause, discount: 0, discountSum: 0 },
-            include: [groupInclude],
-          }),
+
           this.repo.count({
             where: {
-              ...whereClause,
+              ...baseWhere,
+              discount: 0,
+              discountSum: 0,
+            },
+            include: [halfPaymentGroupInclude],
+          }),
+          // Chegirmali to'lovlar
+          this.repo.count({
+            where: {
+              ...baseWhere,
               [Op.or]: [
                 { discount: { [Op.ne]: 0 } },
                 { discountSum: { [Op.ne]: 0 } },
@@ -1088,7 +1126,7 @@ export class PaymentService {
 
           return {
             id: user.id,
-            student_name: user.student?.full_name || 'O‘chirilgan o‘quvchi',
+            student_name: user.student?.full_name || "O'chirilgan o'quvchi",
             teacher_name,
             group_name: user.group.name,
             group_price: user.group.price,

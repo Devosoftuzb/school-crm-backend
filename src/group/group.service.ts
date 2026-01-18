@@ -43,22 +43,22 @@ export class GroupService {
     };
   }
 
-  async findAll(school_id: number) {
-    return await this.repo.findAll({
-      where: { school_id, status: true },
-    });
-  }
+  // async findAll(school_id: number) {
+  //   return await this.repo.findAll({
+  //     where: { school_id, status: true },
+  //   });
+  // }
 
-  async findBySchoolId(school_id: number) {
-    return await this.repo.findAll({
-      where: { school_id, status: true },
-      include: [
-        {
-          model: GroupSubject,
-        },
-      ],
-    });
-  }
+  // async findBySchoolId(school_id: number) {
+  //   return await this.repo.findAll({
+  //     where: { school_id, status: true },
+  //     include: [
+  //       {
+  //         model: GroupSubject,
+  //       },
+  //     ],
+  //   });
+  // }
 
   async paginate(school_id: number, page: number): Promise<object> {
     try {
@@ -223,83 +223,83 @@ export class GroupService {
     return group;
   }
 
-  async findOneNotInclude(id: number, school_id: number) {
-    const group = await this.repo.findOne({
-      where: { id, school_id, status: true },
-      include: [
-        {
-          model: GroupSubject,
-        },
-      ],
-    });
+  // async findOneNotInclude(id: number, school_id: number) {
+  //   const group = await this.repo.findOne({
+  //     where: { id, school_id, status: true },
+  //     include: [
+  //       {
+  //         model: GroupSubject,
+  //       },
+  //     ],
+  //   });
 
-    if (!group) {
-      throw new BadRequestException(
-        `Group with id ${id} not found in school ${school_id}`,
-      );
-    }
+  //   if (!group) {
+  //     throw new BadRequestException(
+  //       `Group with id ${id} not found in school ${school_id}`,
+  //     );
+  //   }
 
-    return group;
-  }
+  //   return group;
+  // }
 
-  async findOneStudent(id: number, school_id: number) {
-    const group = await this.repo.findOne({
-      where: { id, school_id, status: true },
-      include: [
-        {
-          model: StudentGroup,
-        },
-      ],
-    });
+  // async findOneStudent(id: number, school_id: number) {
+  //   const group = await this.repo.findOne({
+  //     where: { id, school_id, status: true },
+  //     include: [
+  //       {
+  //         model: StudentGroup,
+  //       },
+  //     ],
+  //   });
 
-    if (!group) {
-      throw new BadRequestException(
-        `Group with id ${id} not found in school ${school_id}`,
-      );
-    }
+  //   if (!group) {
+  //     throw new BadRequestException(
+  //       `Group with id ${id} not found in school ${school_id}`,
+  //     );
+  //   }
 
-    return group;
-  }
+  //   return group;
+  // }
 
-  async findOnePayment(id: number, school_id: number) {
-    const group = await this.repo.findOne({
-      where: { id, school_id, status: true },
-      include: [
-        {
-          model: School,
-        },
-        {
-          model: EmployeeGroup,
-        },
-        {
-          model: StudentGroup,
-        },
-      ],
-    });
+  // async findOnePayment(id: number, school_id: number) {
+  //   const group = await this.repo.findOne({
+  //     where: { id, school_id, status: true },
+  //     include: [
+  //       {
+  //         model: School,
+  //       },
+  //       {
+  //         model: EmployeeGroup,
+  //       },
+  //       {
+  //         model: StudentGroup,
+  //       },
+  //     ],
+  //   });
 
-    if (!group) {
-      throw new BadRequestException(
-        `Group with id ${id} not found in school ${school_id}`,
-      );
-    }
+  //   if (!group) {
+  //     throw new BadRequestException(
+  //       `Group with id ${id} not found in school ${school_id}`,
+  //     );
+  //   }
 
-    return group;
-  }
+  //   return group;
+  // }
 
-  async findOneGroup(id: number, school_id: number) {
-    const group = await this.repo.findOne({
-      where: { id, school_id, status: true },
-      attributes: ['id', 'name', 'price'],
-    });
+  // async findOneGroup(id: number, school_id: number) {
+  //   const group = await this.repo.findOne({
+  //     where: { id, school_id, status: true },
+  //     attributes: ['id', 'name', 'price'],
+  //   });
 
-    if (!group) {
-      throw new BadRequestException(
-        `Group with id ${id} not found in school ${school_id}`,
-      );
-    }
+  //   if (!group) {
+  //     throw new BadRequestException(
+  //       `Group with id ${id} not found in school ${school_id}`,
+  //     );
+  //   }
 
-    return group;
-  }
+  //   return group;
+  // }
 
   async update(school_id: number, id: number, updateGroupDto: UpdateGroupDto) {
     const group = await this.findOne(school_id, id);
@@ -340,29 +340,29 @@ export class GroupService {
     };
   }
 
-  async getEmployeeGroup(employee_id: number, school_id: number) {
-    const groups = await this.repo.findAll({
-      where: { school_id, status: true },
-      include: [
-        {
-          model: GroupSubject,
-        },
-        {
-          model: EmployeeGroup,
-          where: { employee_id },
-          required: true,
-        },
-      ],
-    });
+  // async getEmployeeGroup(employee_id: number, school_id: number) {
+  //   const groups = await this.repo.findAll({
+  //     where: { school_id, status: true },
+  //     include: [
+  //       {
+  //         model: GroupSubject,
+  //       },
+  //       {
+  //         model: EmployeeGroup,
+  //         where: { employee_id },
+  //         required: true,
+  //       },
+  //     ],
+  //   });
 
-    if (!groups.length) {
-      throw new BadRequestException(
-        `No groups found for employee ${employee_id} in school ${school_id}`,
-      );
-    }
+  //   if (!groups.length) {
+  //     throw new BadRequestException(
+  //       `No groups found for employee ${employee_id} in school ${school_id}`,
+  //     );
+  //   }
 
-    return groups;
-  }
+  //   return groups;
+  // }
 
   async getGroupLevel(school_id: number, overall: string) {
     const levelRank: Record<string, number> = {

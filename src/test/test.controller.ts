@@ -34,11 +34,11 @@ export class TestController {
     return this.testService.create(createTestDto);
   }
 
-  @ApiOperation({ summary: 'Test view all by school ID' })
-  @Get('getSchoolId/:school_id')
-  findAll(@Param('school_id') school_id: string) {
-    return this.testService.findAll(+school_id);
-  }
+  // @ApiOperation({ summary: 'Test view all by school ID' })
+  // @Get('getSchoolId/:school_id')
+  // findAll(@Param('school_id') school_id: string) {
+  //   return this.testService.findAll(+school_id);
+  // }
 
   @Version('1')
   @ApiOperation({ summary: 'Test paginate' })
@@ -58,11 +58,11 @@ export class TestController {
   }
 
 
-  @ApiOperation({ summary: 'Test view by ID' })
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.testService.findOne(+id);
-  }
+  // @ApiOperation({ summary: 'Test view by ID' })
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.testService.findOne(+id);
+  // }
 
   @Version('1')
   @ApiOperation({ summary: 'Test update by ID' })

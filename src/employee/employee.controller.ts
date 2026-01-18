@@ -62,14 +62,14 @@ export class EmployeeController {
     return this.employeeService.findAll(+school_id);
   }
 
-  @ApiOperation({ summary: 'View employees by school ID' })
-  @UseGuards(RolesGuard, JwtAuthGuard)
-  @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @Get(':school_id/find')
-  findBySchoolId(@Param('school_id') school_id: string) {
-    return this.employeeService.findBySchoolId(+school_id);
-  }
+  // @ApiOperation({ summary: 'View employees by school ID' })
+  // @UseGuards(RolesGuard, JwtAuthGuard)
+  // @ApiBearerAuth('access-token')
+  // @Roles('superadmin', 'admin', 'owner', 'administrator')
+  // @Get(':school_id/find')
+  // findBySchoolId(@Param('school_id') school_id: string) {
+  //   return this.employeeService.findBySchoolId(+school_id);
+  // }
 
   @Version('1')
   @ApiOperation({ summary: 'Paginate employees by school ID' })
@@ -105,38 +105,38 @@ export class EmployeeController {
     return this.employeeService.findOneNot(+id, +school_id);
   }
 
-  @ApiOperation({ summary: 'View employee by ID and school ID' })
-  @UseGuards(RolesGuard, JwtAuthGuard)
-  @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator', 'teacher')
-  @Get(':school_id/:id/subject')
-  findOneSubject(
-    @Param('id') id: string,
-    @Param('school_id') school_id: string,
-  ) {
-    return this.employeeService.findOneSubject(+id, +school_id);
-  }
+  // @ApiOperation({ summary: 'View employee by ID and school ID' })
+  // @UseGuards(RolesGuard, JwtAuthGuard)
+  // @ApiBearerAuth('access-token')
+  // @Roles('owner', 'administrator', 'teacher')
+  // @Get(':school_id/:id/subject')
+  // findOneSubject(
+  //   @Param('id') id: string,
+  //   @Param('school_id') school_id: string,
+  // ) {
+  //   return this.employeeService.findOneSubject(+id, +school_id);
+  // }
 
-  @ApiOperation({ summary: 'View employee by ID and school ID' })
-  @UseGuards(RolesGuard, JwtAuthGuard)
-  @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator', 'teacher')
-  @Get(':school_id/:id/group')
-  findOneGroup(@Param('id') id: string, @Param('school_id') school_id: string) {
-    return this.employeeService.findOneGroup(+id, +school_id);
-  }
+  // @ApiOperation({ summary: 'View employee by ID and school ID' })
+  // @UseGuards(RolesGuard, JwtAuthGuard)
+  // @ApiBearerAuth('access-token')
+  // @Roles('owner', 'administrator', 'teacher')
+  // @Get(':school_id/:id/group')
+  // findOneGroup(@Param('id') id: string, @Param('school_id') school_id: string) {
+  //   return this.employeeService.findOneGroup(+id, +school_id);
+  // }
 
-  @ApiOperation({ summary: 'View employee by ID and school ID' })
-  @UseGuards(RolesGuard, JwtAuthGuard)
-  @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
-  @Get(':school_id/:id/fullname')
-  findOneFullName(
-    @Param('id') id: string,
-    @Param('school_id') school_id: string,
-  ) {
-    return this.employeeService.findOneFullName(+id, +school_id);
-  }
+  // @ApiOperation({ summary: 'View employee by ID and school ID' })
+  // @UseGuards(RolesGuard, JwtAuthGuard)
+  // @ApiBearerAuth('access-token')
+  // @Roles('owner', 'administrator')
+  // @Get(':school_id/:id/fullname')
+  // findOneFullName(
+  //   @Param('id') id: string,
+  //   @Param('school_id') school_id: string,
+  // ) {
+  //   return this.employeeService.findOneFullName(+id, +school_id);
+  // }
 
   @Version('1')
   @ApiOperation({ summary: 'Update employee by ID and school ID' })

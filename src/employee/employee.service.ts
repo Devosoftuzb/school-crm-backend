@@ -53,20 +53,20 @@ export class EmployeeService {
     });
   }
 
-  async findBySchoolId(school_id: number) {
-    return await this.repo.findAll({
-      where: { school_id },
-      include: [
-        {
-          model: EmployeeGroup,
-          include: [{ model: Group, attributes: ['id', 'name'] }],
-        },
-        {
-          model: EmployeeSubject,
-        },
-      ],
-    });
-  }
+  // async findBySchoolId(school_id: number) {
+  //   return await this.repo.findAll({
+  //     where: { school_id },
+  //     include: [
+  //       {
+  //         model: EmployeeGroup,
+  //         include: [{ model: Group, attributes: ['id', 'name'] }],
+  //       },
+  //       {
+  //         model: EmployeeSubject,
+  //       },
+  //     ],
+  //   });
+  // }
 
   async paginate(
     school_id: number,
@@ -181,57 +181,57 @@ export class EmployeeService {
     return employee;
   }
 
-  async findOneSubject(id: number, school_id: number) {
-    const employee = await this.repo.findOne({
-      where: { id, school_id },
-      attributes: [],
-      include: [
-        {
-          model: EmployeeSubject,
-        },
-      ],
-    });
+  // async findOneSubject(id: number, school_id: number) {
+  //   const employee = await this.repo.findOne({
+  //     where: { id, school_id },
+  //     attributes: [],
+  //     include: [
+  //       {
+  //         model: EmployeeSubject,
+  //       },
+  //     ],
+  //   });
 
-    if (!employee) {
-      throw new BadRequestException(
-        `Employee ith id ${id} not found in school ${school_id}`,
-      );
-    }
-    return employee;
-  }
+  //   if (!employee) {
+  //     throw new BadRequestException(
+  //       `Employee ith id ${id} not found in school ${school_id}`,
+  //     );
+  //   }
+  //   return employee;
+  // }
 
-  async findOneGroup(id: number, school_id: number) {
-    const employee = await this.repo.findOne({
-      where: { id, school_id },
-      attributes: [],
-      include: [
-        {
-          model: EmployeeGroup,
-        },
-      ],
-    });
+  // async findOneGroup(id: number, school_id: number) {
+  //   const employee = await this.repo.findOne({
+  //     where: { id, school_id },
+  //     attributes: [],
+  //     include: [
+  //       {
+  //         model: EmployeeGroup,
+  //       },
+  //     ],
+  //   });
 
-    if (!employee) {
-      throw new BadRequestException(
-        `Employee ith id ${id} not found in school ${school_id}`,
-      );
-    }
-    return employee;
-  }
+  //   if (!employee) {
+  //     throw new BadRequestException(
+  //       `Employee ith id ${id} not found in school ${school_id}`,
+  //     );
+  //   }
+  //   return employee;
+  // }
 
-  async findOneFullName(id: number, school_id: number) {
-    const employee = await this.repo.findOne({
-      where: { id, school_id },
-      attributes: ['full_name'],
-    });
+  // async findOneFullName(id: number, school_id: number) {
+  //   const employee = await this.repo.findOne({
+  //     where: { id, school_id },
+  //     attributes: ['full_name'],
+  //   });
 
-    if (!employee) {
-      throw new BadRequestException(
-        `Employee ith id ${id} not found in school ${school_id}`,
-      );
-    }
-    return employee;
-  }
+  //   if (!employee) {
+  //     throw new BadRequestException(
+  //       `Employee ith id ${id} not found in school ${school_id}`,
+  //     );
+  //   }
+  //   return employee;
+  // }
 
   async update(
     id: number,

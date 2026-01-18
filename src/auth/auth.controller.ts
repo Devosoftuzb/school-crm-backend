@@ -29,6 +29,7 @@ export class AuthController {
     return this.authService.login(login, password, res);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'User logout' })
   @HttpCode(HttpStatus.OK)
   @Post('logout')
@@ -41,6 +42,7 @@ export class AuthController {
     return { message: 'Successfully logged out.' };
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'User refresh token generate' })
   @Post('refresh')
   async refreshToken(@Body() body: any, @Res() res: Response) {

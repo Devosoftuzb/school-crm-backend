@@ -42,6 +42,7 @@ export class SmsController {
     return this.smsService.sendGroup(createSmsDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Sms send' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post('dev')

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Version } from '@nestjs/common';
 import { GroupDayService } from './group_day.service';
 import { CreateGroupDayDto } from './dto/create-group_day.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -13,6 +13,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 export class GroupDayController {
   constructor(private readonly groupDayService: GroupDayService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'Group Day  create' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post()
@@ -20,6 +21,7 @@ export class GroupDayController {
     return this.groupDayService.create(createGroupDayDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Group Day view all' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Get()
@@ -27,6 +29,7 @@ export class GroupDayController {
     return this.groupDayService.findAll();
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Group Day view by ID' })
   @Roles('owner', 'administrator')
   @Get(':id')
@@ -34,6 +37,7 @@ export class GroupDayController {
     return this.groupDayService.findOne(+id);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'Group Day remove by ID' })
   @Roles('owner', 'administrator')
   @Delete(':id')

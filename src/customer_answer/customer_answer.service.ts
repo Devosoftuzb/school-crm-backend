@@ -216,50 +216,50 @@ Return ONLY ONE PHRASE. No explanations.
     }
   }
 
-  async paginate(page: number): Promise<object> {
-    try {
-      page = Number(page);
-      const limit = 15;
-      const offset = (page - 1) * limit;
-      const user = await this.repo.findAll({
-        include: { all: true },
-        order: [['createdAt', 'DESC']],
-        offset,
-        limit,
-      });
-      const total_count = await this.repo.count();
-      const total_pages = Math.ceil(total_count / limit);
-      return {
-        status: 200,
-        data: {
-          records: user,
-          pagination: {
-            currentPage: page,
-            total_pages,
-            total_count,
-          },
-        },
-      };
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
-  }
+  // async paginate(page: number): Promise<object> {
+  //   try {
+  //     page = Number(page);
+  //     const limit = 15;
+  //     const offset = (page - 1) * limit;
+  //     const user = await this.repo.findAll({
+  //       include: { all: true },
+  //       order: [['createdAt', 'DESC']],
+  //       offset,
+  //       limit,
+  //     });
+  //     const total_count = await this.repo.count();
+  //     const total_pages = Math.ceil(total_count / limit);
+  //     return {
+  //       status: 200,
+  //       data: {
+  //         records: user,
+  //         pagination: {
+  //           currentPage: page,
+  //           total_pages,
+  //           total_count,
+  //         },
+  //       },
+  //     };
+  //   } catch (error) {
+  //     throw new BadRequestException(error.message);
+  //   }
+  // }
 
-  async findOne(id: number) {
-    const customer_answer = await this.repo.findByPk(id, {
-      include: { all: true },
-    });
-    if (!customer_answer) {
-      throw new BadRequestException(`Customer answer with id ${id} not found`);
-    }
-    return customer_answer;
-  }
+  // async findOne(id: number) {
+  //   const customer_answer = await this.repo.findByPk(id, {
+  //     include: { all: true },
+  //   });
+  //   if (!customer_answer) {
+  //     throw new BadRequestException(`Customer answer with id ${id} not found`);
+  //   }
+  //   return customer_answer;
+  // }
 
-  async remove(id: number) {
-    const customer_answer = await this.findOne(id);
-    await customer_answer.destroy();
-    return { message: 'Customer Answer removed successfully' };
-  }
+  // async remove(id: number) {
+  //   const customer_answer = await this.findOne(id);
+  //   await customer_answer.destroy();
+  //   return { message: 'Customer Answer removed successfully' };
+  // }
 
   private calculateOverallResult(
     testResult: string,
