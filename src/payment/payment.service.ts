@@ -1324,6 +1324,7 @@ export class PaymentService {
           debtors.push({
             student_id: student.id,
             student_name: student.full_name,
+            start_date: student.start_date,
             group_id: group.id,
             group_name: group.name,
             teacher_name: teacherName,
