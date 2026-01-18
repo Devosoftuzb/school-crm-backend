@@ -137,6 +137,20 @@ export class GroupService {
       });
       const total_count = await this.repo.count({
         where: { school_id, status: true },
+        attributes: ['id', 'name', 'price', 'start_date', 'createdAt', 'level'],
+        include: [
+          {
+            model: GroupSubject,
+            attributes: ['id'],
+            include: [{ model: Subject, attributes: ['id', 'name'] }],
+          },
+          {
+            model: EmployeeGroup,
+            where: { employee_id: teacher_id },
+            attributes: ['id'],
+            include: [{ model: Employee, attributes: ['id', 'full_name'] }],
+          },
+        ],
       });
       const total_pages = Math.ceil(total_count / limit);
       return {
@@ -168,7 +182,7 @@ export class GroupService {
         'start_time',
         'end_time',
         'room_id',
-        'level'
+        'level',
       ],
     });
 
@@ -191,7 +205,7 @@ export class GroupService {
         'start_date',
         'start_time',
         'end_time',
-        'level'
+        'level',
       ],
       include: [
         {
@@ -373,7 +387,6 @@ export class GroupService {
       IELTS: 5,
     };
 
-
     const userRank =
       overall === "Noma'lum" || !levelRank[overall]
         ? levelRank.BEGINNER
@@ -425,7 +438,13 @@ export class GroupService {
     return await this.repo.findAll({
       where: { school_id, status: true },
       attributes: ['id', 'name'],
-      include: [{ model: EmployeeGroup, where: { employee_id: teacher_id }, attributes: ['id'] }],
+      include: [
+        {
+          model: EmployeeGroup,
+          where: { employee_id: teacher_id },
+          attributes: ['id'],
+        },
+      ],
     });
   }
 
