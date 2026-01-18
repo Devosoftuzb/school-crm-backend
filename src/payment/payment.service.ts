@@ -307,7 +307,7 @@ export class PaymentService {
       if (!allUsers.length) {
         throw new BadRequestException("Ma'lumotlar topilmadi");
       }
-      
+
       const uniqueGroupIds = [
         ...new Set(allUsers.map((u) => u.group?.id).filter(Boolean)),
       ];
@@ -360,8 +360,7 @@ export class PaymentService {
           'Guruh narxi':
             Number(user.group?.price || 0).toLocaleString('uz-UZ') + " so'm",
           "To'lov turi": user.method,
-          "To'langan summa":
-            Number(user.price).toLocaleString('uz-UZ') + " so'm",
+          "To'langan summa": Number(user.price),
           'Chegirma (%)': user.discount + ' %',
           Yil: user.year ? user.year + ' yil' : '',
           Oy: user.month ? this.monthNames(Number(user.month)) : '',
