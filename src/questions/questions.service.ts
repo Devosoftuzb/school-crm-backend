@@ -48,7 +48,7 @@ export class QuestionsService {
   async findAll(test_id: number) {
     return await this.repo.findAll({
       where: { test_id },
-      attributes: ['id', 'question', 'file'],
+      attributes: ['id', 'question', 'file', 'type'],
       include: [
         {
           model: Option,
@@ -67,7 +67,7 @@ export class QuestionsService {
 
   async findOne(id: number) {
     const question = await this.repo.findByPk(id, {
-      attributes: ['id', 'question', 'file', 'text_id'],
+      attributes: ['id', 'question', 'file', 'text_id', 'type'],
       include: [
         {
           model: Option,

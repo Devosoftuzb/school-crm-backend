@@ -168,6 +168,7 @@ export class GroupService {
         'start_time',
         'end_time',
         'room_id',
+        'level'
       ],
     });
 
@@ -190,6 +191,7 @@ export class GroupService {
         'start_date',
         'start_time',
         'end_time',
+        'level'
       ],
       include: [
         {
