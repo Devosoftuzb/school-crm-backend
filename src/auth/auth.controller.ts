@@ -42,7 +42,7 @@ export class AuthController {
     return { message: 'Successfully logged out.' };
   }
 
-   @Version('1')
+  @Version('1')
   @ApiOperation({ summary: 'User refresh token generate' })
   @Post('refresh')
   async refreshToken(@Body() body: any, @Res() res: Response) {
