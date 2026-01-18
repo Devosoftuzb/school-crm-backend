@@ -113,7 +113,7 @@ export class CustomerController {
   @Version('1')
   @ApiOperation({ summary: 'Search customer by name' })
   @ApiBearerAuth('access-token')
-  @Roles('superadmin', 'admin')
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Get('search/:school_id/:name')
   searchName(

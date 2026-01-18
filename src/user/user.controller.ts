@@ -26,6 +26,7 @@ import { ChangePasswordDto } from './dto/changePassword.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Version('1')
   @ApiOperation({ summary: 'User create' })
   @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin')
@@ -38,22 +39,24 @@ export class UserController {
     return this.userService.create(createUserDto, res);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'User view all' })
   @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin')
   @UseGuards(RolesGuard, JwtAuthGuard)
-  @Get()
-  findAll() {
-    return this.userService.findAll();
+  @Get('add/:role')
+  findAll(@Param('role') role: string,) {
+    return this.userService.findAll(role);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'User pagination' })
   @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin')
   @UseGuards(RolesGuard, JwtAuthGuard)
-  @Get('page')
-  paginate(@Query('page') page: number) {
-    return this.userService.paginate(page);
+  @Get(':role/page')
+  paginate(@Param('role') role: string, @Query('page') page: number) {
+    return this.userService.paginate(role, page);
   }
 
   @Version('1')
@@ -65,7 +68,7 @@ export class UserController {
     return this.userService.findOne(+id);
   }
 
-
+  @Version('1')
   @ApiOperation({ summary: 'User update by ID' })
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
@@ -74,6 +77,7 @@ export class UserController {
     return this.userService.update(+id, updateUpdateDto);
   }
 
+  @Version('1')
   @ApiOperation({ summary: 'User delete by ID' })
   @ApiBearerAuth('access-token')
   @Roles('superadmin', 'admin')
@@ -91,5 +95,15 @@ export class UserController {
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
     return this.userService.changePassword(+id, changePasswordDto);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Search user by name' })
+  @ApiBearerAuth('access-token')
+  @Roles('superadmin', 'admin')
+  @UseGuards(RolesGuard, JwtAuthGuard)
+  @Get('search/:role/:name')
+  searchName(@Param('role') role: string, @Param('name') name: string) {
+    return this.userService.searchName(role, name);
   }
 }
