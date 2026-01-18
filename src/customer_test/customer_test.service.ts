@@ -142,7 +142,7 @@ export class CustomerTestService {
   async searchName(school_id: number, name: string) {
     return await this.repo.findAll({
       where: { school_id },
-      attributes: ['id', 'description', 'result'],
+      attributes: ['id', 'description', 'overall_result'],
       include: [
         {
           model: Customer,
