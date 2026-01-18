@@ -92,7 +92,7 @@ export class CustomerTestService {
           include: [
             {
               model: Question,
-              attributes: ['question', 'file'],
+              attributes: ['question', 'file', 'type'],
               include: [{ model: QuestionText, attributes: ['title', 'text'] }],
             },
             { model: Option, attributes: ['option', 'is_correct'] },
