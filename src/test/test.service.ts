@@ -21,12 +21,12 @@ export class TestService {
     };
   }
 
-  // async findAll(school_id: number) {
-  //   return await this.repo.findAll({
-  //     where: { school_id },
-  //     include: [{ model: Subject, attributes: ['school_id', 'name'] }],
-  //   });
-  // }
+  async findAll(school_id: number) {
+    return await this.repo.findAll({
+      where: { school_id },
+      include: [{ model: Subject, attributes: ['school_id', 'name'] }],
+    });
+  }
 
   async paginate(school_id: number, page: number): Promise<object> {
     try {
@@ -60,34 +60,34 @@ export class TestService {
     }
   }
 
-  // async findOne(id: number) {
-  //   const test = await this.repo.findByPk(id, {
-  //     include: [
-  //       {
-  //         model: Question,
-  //         as: 'questions',
-  //         separate: true,
-  //         order: [['createdAt', 'ASC']],
-  //         include: [
-  //           {
-  //             model: Option,
-  //             as: 'option',
-  //           },
-  //           {
-  //             model: QuestionText,
-  //             as: 'text',
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //   });
+  async findOne(id: number) {
+    const test = await this.repo.findByPk(id, {
+      include: [
+        {
+          model: Question,
+          as: 'questions',
+          separate: true,
+          order: [['createdAt', 'ASC']],
+          include: [
+            {
+              model: Option,
+              as: 'option',
+            },
+            {
+              model: QuestionText,
+              as: 'text',
+            },
+          ],
+        },
+      ],
+    });
 
-  //   if (!test) {
-  //     throw new BadRequestException(`Test with id ${id} not found`);
-  //   }
+    if (!test) {
+      throw new BadRequestException(`Test with id ${id} not found`);
+    }
 
-  //   return test;
-  // }
+    return test;
+  }
 
   async findOneNot(id: number) {
     const test = await this.repo.findByPk(id);
