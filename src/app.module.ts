@@ -62,6 +62,7 @@ import { SalaryModule } from './salary/salary.module';
 import { Salary } from './salary/models/salary.model';
 import { CostCategoryModule } from './cost-category/cost-category.module';
 import { CostCategory } from './cost-category/models/cost-category.model';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -141,6 +142,7 @@ import { CostCategory } from './cost-category/models/cost-category.model';
     CostModule,
     SalaryModule,
     CostCategoryModule,
+    NotificationModule,
   ],
   controllers: [],
   providers: [],
