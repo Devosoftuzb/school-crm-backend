@@ -981,8 +981,8 @@ export class PaymentService {
       }
 
       else if (month && year) {
-        whereClause.year = year;
-        whereClause.month = month;
+        whereClause.year = String(year);
+        whereClause.month = String(month);
       }
       else if (year) {
         const startDate = new Date(year, 0, 1);
@@ -1028,8 +1028,8 @@ export class PaymentService {
         const endDate = new Date(year, month - 1, day + 1);
         baseWhere.createdAt = { [Op.gte]: startDate, [Op.lt]: endDate };
       } else if (month && year) {
-        baseWhere.year = year;
-        baseWhere.month = month;
+        baseWhere.year = String(year);
+        baseWhere.month = String(month);
       } else if (year) {
         const startDate = new Date(year, 0, 1);
         const endDate = new Date(year + 1, 0, 1);
