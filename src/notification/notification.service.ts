@@ -62,7 +62,7 @@ export class NotificationService {
           username: process.env[partner.userEnv],
           password: process.env[partner.passEnv],
         },
-        { timeout: Number(process.env.PARTNER_SERVER_TIMEOUT || 5000) },
+        { timeout: Number(5000) },
       );
 
       const response = await lastValueFrom(response$);
@@ -77,7 +77,7 @@ export class NotificationService {
     }
   }
 
-  async sendToAllPartners(dto: CreateNotificationDto, image_name?: string) {
+  private async sendToAllPartners(dto: CreateNotificationDto, image_name?: string) {
     const results = [];
 
     for (const partner of partnersConfig) {
@@ -91,7 +91,7 @@ export class NotificationService {
         if (image_name) payload.image = image_name;
 
         const response$ = this.httpService.post(
-          `${partner.url}/api/notifications`,
+          `${partner.url}/api/v2/notifications`,
           payload,
           { headers: { Authorization: `Bearer ${token}` } },
         );
