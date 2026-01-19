@@ -155,7 +155,7 @@ export class AttendanceService {
         student_group_id: student.group[0].id,
         full_name: student.full_name,
         debt,
-        attendance: student.attendance[0]?.status || false,
+        attendance: student.attendance[0]?.status || true,
       };
     });
 
