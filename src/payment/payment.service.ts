@@ -919,8 +919,8 @@ export class PaymentService {
 
   async findHistory(options: {
     school_id: number;
-    year?: number;
-    month?: number;
+    year?: string;
+    month?: string;
     day?: number;
     group_id?: number;
     employee_id?: number;
@@ -975,18 +975,18 @@ export class PaymentService {
 
  
       if (day && month && year) {
-        const startDate = new Date(year, month - 1, day);
-        const endDate = new Date(year, month - 1, day + 1);
+        const startDate = new Date(Number(year), Number(month) - 1, day);
+        const endDate = new Date(Number(year), Number(month) - 1, day + 1);
         whereClause.createdAt = { [Op.gte]: startDate, [Op.lt]: endDate };
       }
 
       else if (month && year) {
-        whereClause.year = String(year);
-        whereClause.month = String(month);
+        whereClause.year = year;
+        whereClause.month = month;
       }
       else if (year) {
-        const startDate = new Date(year, 0, 1);
-        const endDate = new Date(year + 1, 0, 1);
+        const startDate = new Date(Number(year), 0, 1);
+        const endDate = new Date(Number(year) + 1, 0, 1);
         whereClause.createdAt = { [Op.gte]: startDate, [Op.lt]: endDate };
       } else {
         throw new BadRequestException('Vaqt parametrlari yetarli emas');
@@ -1024,15 +1024,15 @@ export class PaymentService {
       const baseWhere: any = { school_id };
 
       if (day && month && year) {
-        const startDate = new Date(year, month - 1, day);
-        const endDate = new Date(year, month - 1, day + 1);
+        const startDate = new Date(Number(year), Number(month) - 1, day);
+        const endDate = new Date(Number(year), Number(month) - 1, day + 1);
         baseWhere.createdAt = { [Op.gte]: startDate, [Op.lt]: endDate };
       } else if (month && year) {
-        baseWhere.year = String(year);
-        baseWhere.month = String(month);
+        baseWhere.year = year;
+        baseWhere.month = month;
       } else if (year) {
-        const startDate = new Date(year, 0, 1);
-        const endDate = new Date(year + 1, 0, 1);
+        const startDate = new Date(Number(year), 0, 1);
+        const endDate = new Date(Number(year) + 1, 0, 1);
         baseWhere.createdAt = { [Op.gte]: startDate, [Op.lt]: endDate };
       }
 
