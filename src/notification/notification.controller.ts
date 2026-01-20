@@ -30,7 +30,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
-  @Version('1')
+  @Version('2')
   @ApiOperation({ summary: 'Notification create' })
   @Roles('superadmin', 'admin')
   @UseInterceptors(FileInterceptor('image'))
@@ -42,15 +42,15 @@ export class NotificationController {
     return this.notificationService.create(dto, image);
   }
 
-  @Version('1')
+  @Version('2')
   @ApiOperation({ summary: 'Notification view all' })
-  @Roles('superadmin', 'admin')
+  @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get()
   findAll() {
     return this.notificationService.findAll();
   }
 
-  @Version('1')
+  @Version('2')
   @ApiOperation({ summary: 'User pagination' })
   @Roles('superadmin', 'admin', 'owner', 'administrator', 'teacher')
   @Get('page')
@@ -58,7 +58,7 @@ export class NotificationController {
     return this.notificationService.paginate(page);
   }
 
-  @Version('1')
+  @Version('2')
   @ApiOperation({ summary: 'Notification view by ID' })
   @Roles('superadmin', 'admin')
   @Get(':id')
@@ -66,7 +66,7 @@ export class NotificationController {
     return this.notificationService.findOne(+id);
   }
 
-  @Version('1')
+  @Version('2')
   @ApiOperation({ summary: 'Notification remove by ID' })
   @Roles('superadmin', 'admin')
   @Delete(':id')

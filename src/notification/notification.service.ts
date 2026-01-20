@@ -57,7 +57,7 @@ export class NotificationService {
   ): Promise<string> {
     try {
       const response$ = this.httpService.post(
-        `${partner.url}/auth/v1/login`,
+        `${partner.url}/api/auth/v1/login`,
         {
           username: process.env[partner.userEnv],
           password: process.env[partner.passEnv],
