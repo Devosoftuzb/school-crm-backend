@@ -1057,8 +1057,8 @@ export class PaymentService {
 
   async findHistory(options: {
     school_id: number;
-    year?: number;
-    month?: number;
+    year?: string;
+    month?: string;
     day?: number;
     group_id?: number;
     employee_id?: number;
@@ -1108,24 +1108,23 @@ export class PaymentService {
         }
       }
 
-      let startDate: Date, endDate: Date;
+      let whereClause: any = { school_id };
+
       if (day && month && year) {
-        startDate = new Date(year, month - 1, day);
-        endDate = new Date(year, month - 1, day + 1);
+        const startDate = new Date(Number(year), Number(month) - 1, day);
+        const endDate = new Date(Number(year), Number(month) - 1, day + 1);
+        whereClause.createdAt = { [Op.gte]: startDate, [Op.lt]: endDate };
       } else if (month && year) {
-        startDate = new Date(year, month - 1, 1);
-        endDate = new Date(year, month, 1);
+        whereClause.year = year;
+        whereClause.month = month;
       } else if (year) {
-        startDate = new Date(year, 0, 1);
-        endDate = new Date(year + 1, 0, 1);
+        const startDate = new Date(Number(year), 0, 1);
+        const endDate = new Date(Number(year) + 1, 0, 1);
+        whereClause.createdAt = { [Op.gte]: startDate, [Op.lt]: endDate };
       } else {
         throw new BadRequestException('Vaqt parametrlari yetarli emas');
       }
 
-      let whereClause: any = {
-        school_id,
-        createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
-      };
       if (allowedGroupIds) whereClause.group_id = { [Op.in]: allowedGroupIds };
       if (group_id) whereClause.group_id = group_id;
 
@@ -1153,17 +1152,25 @@ export class PaymentService {
           { discount: { [Op.ne]: 0 } },
           { discountSum: { [Op.ne]: 0 } },
         ];
-      } else if (status === 'all' || !status) {
-        delete whereClause.discount;
-        delete whereClause.discountSum;
       }
 
-      const baseWhere = {
-        school_id,
-        createdAt: { [Op.gte]: startDate, [Op.lt]: endDate },
-        ...(allowedGroupIds && { group_id: { [Op.in]: allowedGroupIds } }),
-        ...(group_id && { group_id }),
-      };
+      const baseWhere: any = { school_id };
+
+      if (day && month && year) {
+        const startDate = new Date(Number(year), Number(month) - 1, day);
+        const endDate = new Date(Number(year), Number(month) - 1, day + 1);
+        baseWhere.createdAt = { [Op.gte]: startDate, [Op.lt]: endDate };
+      } else if (month && year) {
+        baseWhere.year = year;
+        baseWhere.month = month;
+      } else if (year) {
+        const startDate = new Date(Number(year), 0, 1);
+        const endDate = new Date(Number(year) + 1, 0, 1);
+        baseWhere.createdAt = { [Op.gte]: startDate, [Op.lt]: endDate };
+      }
+
+      if (allowedGroupIds) baseWhere.group_id = { [Op.in]: allowedGroupIds };
+      if (group_id) baseWhere.group_id = group_id;
 
       const paymentGroupInclude = {
         model: Group,
@@ -1174,7 +1181,6 @@ export class PaymentService {
         ),
       };
 
-      // 2. Half payment count - yarim to'lov (chegirmasiz lekin guruh narxidan kam)
       const halfPaymentGroupInclude = {
         model: Group,
         attributes: ['id', 'name', 'price'],
@@ -1203,7 +1209,7 @@ export class PaymentService {
             },
             include: [halfPaymentGroupInclude],
           }),
-          // Chegirmali to'lovlar
+
           this.repo.count({
             where: {
               ...baseWhere,
