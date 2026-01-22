@@ -218,6 +218,7 @@ export class StudentService {
         {
           model: Payment,
           attributes: ['id', 'method', 'price', 'month', 'createdAt'],
+          where: { status: { [Op.ne]: 'delete' } },
           include: [{ model: Group, attributes: ['id', 'name', 'price'] }],
         },
       ],

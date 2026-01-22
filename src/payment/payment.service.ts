@@ -328,6 +328,7 @@ export class PaymentService {
         }
 
         whereCondition.createdAt = { [Op.gte]: startDate, [Op.lt]: endDate };
+        whereCondition.status = { [Op.ne]: 'delete' };
       }
 
       const allUsers = await this.repo.findAll({
@@ -399,11 +400,7 @@ export class PaymentService {
           : 'Nomaʼlum';
 
         const statusText =
-          user.status === 'delete'
-            ? "O'chirilgan"
-            : user.status === 'update'
-              ? "O'zgartirilgan"
-              : 'Tasdiqlangan';
+          user.status === 'update' ? "O'zgartirilgan" : 'Tasdiqlangan';
 
         excelData.push({
           "O'quvchi (F . I . O)": user.student
@@ -549,6 +546,7 @@ export class PaymentService {
       const whereCondition: any = {
         school_id,
         group_id: { [Op.in]: allowedGroupIds },
+        status: { [Op.ne]: 'delete' },
       };
 
       if (year && month && day) {
@@ -612,11 +610,7 @@ export class PaymentService {
 
       for (const user of allUsers) {
         const statusText =
-          user.status === 'delete'
-            ? "O'chirilgan"
-            : user.status === 'update'
-              ? "O'zgartirilgan"
-              : 'Tasdiqlangan';
+          user.status === 'update' ? "O'zgartirilgan" : 'Tasdiqlangan';
 
         excelData.push({
           "O'quvchi (F . I . O)":
