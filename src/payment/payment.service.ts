@@ -401,11 +401,7 @@ export class PaymentService {
           : 'Nomaʼlum';
 
         const statusText =
-          user.status === 'delete'
-            ? "O'chirilgan"
-            : user.status === 'update'
-              ? "O'zgartirilgan"
-              : 'Tasdiqlangan';
+          user.status === 'update' ? "O'zgartirilgan" : 'Tasdiqlangan';
 
         excelData.push({
           "O'quvchi (F . I . O)": user.student
@@ -615,11 +611,7 @@ export class PaymentService {
 
       for (const user of allUsers) {
         const statusText =
-          user.status === 'delete'
-            ? "O'chirilgan"
-            : user.status === 'update'
-              ? "O'zgartirilgan"
-              : 'Tasdiqlangan';
+          user.status === 'update' ? "O'zgartirilgan" : 'Tasdiqlangan';
 
         excelData.push({
           "O'quvchi (F . I . O)":
