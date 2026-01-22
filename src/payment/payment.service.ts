@@ -286,7 +286,7 @@ export class PaymentService {
     res?: Response,
   ) {
     try {
-      const whereCondition: any = { school_id };
+      const whereCondition: any = { school_id, status: { [Op.ne]: 'delete' } };
       let statisticData: any = [];
       if (group_id) {
         if (!month || !year) {
@@ -551,6 +551,7 @@ export class PaymentService {
       const whereCondition: any = {
         school_id,
         group_id: { [Op.in]: allowedGroupIds },
+        status: { [Op.ne]: 'delete' },
       };
 
       if (year && month && day) {
@@ -970,21 +971,16 @@ export class PaymentService {
         }
       }
 
-
       let whereClause: any = { school_id };
 
- 
       if (day && month && year) {
         const startDate = new Date(Number(year), Number(month) - 1, day);
         const endDate = new Date(Number(year), Number(month) - 1, day + 1);
         whereClause.createdAt = { [Op.gte]: startDate, [Op.lt]: endDate };
-      }
-
-      else if (month && year) {
+      } else if (month && year) {
         whereClause.year = year;
         whereClause.month = month;
-      }
-      else if (year) {
+      } else if (year) {
         const startDate = new Date(Number(year), 0, 1);
         const endDate = new Date(Number(year) + 1, 0, 1);
         whereClause.createdAt = { [Op.gte]: startDate, [Op.lt]: endDate };
