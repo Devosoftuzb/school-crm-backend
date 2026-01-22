@@ -284,7 +284,7 @@ export class PaymentService {
     res?: Response,
   ) {
     try {
-      const whereCondition: any = { school_id };
+      const whereCondition: any = { school_id, status: { [Op.ne]: 'delete' } };
       let statisticData: any = [];
       if (group_id) {
         if (!month || !year) {
@@ -328,7 +328,6 @@ export class PaymentService {
         }
 
         whereCondition.createdAt = { [Op.gte]: startDate, [Op.lt]: endDate };
-        whereCondition.status = { [Op.ne]: 'delete' };
       }
 
       const allUsers = await this.repo.findAll({
