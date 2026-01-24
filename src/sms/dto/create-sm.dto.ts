@@ -6,17 +6,6 @@ export class CreateSmsPaymentDto {
   @IsNotEmpty()
   @IsInt()
   group_id: number;
-
-  // @ApiProperty({ example: 'September', description: 'Month' })
-  // @IsString()
-  // month: string;
-}
-
-export class CreateSmsDevDto {
-  @ApiProperty({ example: 1, description: 'Group ID' })
-  @IsNotEmpty()
-  @IsInt()
-  group_id: number;
 }
 
 export class CreateSmsAttendanceDto {
