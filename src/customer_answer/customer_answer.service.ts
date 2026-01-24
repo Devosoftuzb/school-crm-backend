@@ -5,7 +5,7 @@ import { CustomerAnswer } from './model/customer_answer.model';
 import { Option } from 'src/option/model/option.model';
 import { CustomerTest } from 'src/customer_test/model/customer_test.model';
 import { Question } from 'src/questions/model/question.model';
-import { GoogleGenerativeAI } from '@google/generative-ai'; // Google AI import
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
