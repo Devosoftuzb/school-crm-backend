@@ -21,7 +21,7 @@ export class QuestionTextService {
       attributes: ['id', 'title']
     });
   }
-
+  
   async remove(id: number) {
     const questionText = await this.repo.findByPk(id);
     await questionText.destroy();

@@ -200,6 +200,7 @@ export class StudentService {
       include: [
         {
           model: StudentGroup,
+          required: false,
           attributes: ['id', 'createdAt'],
           include: [
             {
@@ -208,6 +209,7 @@ export class StudentService {
               include: [
                 {
                   model: GroupSubject,
+                  required: false,
                   attributes: ['id'],
                   include: [{ model: Subject, attributes: ['id', 'name'] }],
                 },
@@ -217,8 +219,9 @@ export class StudentService {
         },
         {
           model: Payment,
-          where: { status: { [Op.ne]: 'delete' } },
+          required: false,
           attributes: ['id', 'method', 'price', 'month', 'createdAt'],
+          where: { status: { [Op.ne]: 'delete' } },
           include: [{ model: Group, attributes: ['id', 'name', 'price'] }],
         },
       ],
