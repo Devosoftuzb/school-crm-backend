@@ -182,7 +182,7 @@ export class StudentService {
     }
   }
 
-  async findOne(school_id: number, id: number) {
+  async findOne(id: number, school_id: number) {
     const student = await this.repo.findOne({
       where: {
         id,
@@ -200,14 +200,17 @@ export class StudentService {
       include: [
         {
           model: StudentGroup,
+          required: false,
           attributes: ['id', 'createdAt'],
           include: [
             {
               model: Group,
+              required: false,
               attributes: ['id', 'name', 'price', 'start_date'],
               include: [
                 {
                   model: GroupSubject,
+                  required: false,
                   attributes: ['id'],
                   include: [{ model: Subject, attributes: ['id', 'name'] }],
                 },
@@ -217,6 +220,7 @@ export class StudentService {
         },
         {
           model: Payment,
+          required: false,
           where: { status: { [Op.ne]: 'delete' } },
           attributes: ['id', 'method', 'price', 'month', 'createdAt'],
           include: [{ model: Group, attributes: ['id', 'name', 'price'] }],
