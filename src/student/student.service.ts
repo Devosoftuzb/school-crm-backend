@@ -182,7 +182,7 @@ export class StudentService {
     }
   }
 
-  async findOne(id: number, school_id: number) {
+  async findOne(school_id: number, id: number) {
     const student = await this.repo.findOne({
       where: {
         id,
