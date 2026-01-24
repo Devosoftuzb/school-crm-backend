@@ -1,15 +1,19 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
+import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
+import * as FormData from 'form-data';
 import { Group } from 'src/group/models/group.model';
 import { Student } from 'src/student/models/student.model';
 import { sendSMS } from 'src/common/utils/senSMS';
 import {
   CreateSmsAttendanceDto,
-  CreateSmsDevDto,
   CreateSmsPaymentDto,
 } from './dto/create-sm.dto';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
 import { Payment } from 'src/payment/models/payment.model';
+import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
+import { Employee } from 'src/employee/models/employee.model';
 import { Op } from 'sequelize';
 
 @Injectable()
@@ -17,7 +21,28 @@ export class SmsService {
   constructor(
     @InjectModel(Group) private repo: typeof Group,
     @InjectModel(Student) private repoStudent: typeof Student,
+    private configService: ConfigService,
   ) {}
+
+  private async getEskizToken(): Promise<string> {
+    try {
+      const data = new FormData();
+      data.append('email', this.configService.get('ESKIZ_EMAIL'));
+      data.append('password', this.configService.get('ESKIZ_PASSWORD'));
+
+      const response = await axios({
+        method: 'post',
+        url: 'http://notify.eskiz.uz/api/auth/login',
+        data,
+        headers: data.getHeaders(),
+      });
+
+      return response.data.data.token;
+    } catch (error) {
+      console.error('Eskiz token olishda xatolik:', error.message);
+      throw new BadRequestException("SMS xizmati bilan bog'lanishda xatolik");
+    }
+  }
 
   async sendPayment(smsDto: CreateSmsPaymentDto) {
     const group = await this.repo.findOne({
@@ -77,126 +102,55 @@ export class SmsService {
 
     if (students.length === 0) return;
 
-    let token = '';
-    let bearerToken = '';
+    const token = await this.getEskizToken();
+    const bearerToken = `Bearer ${token}`;
 
-    try {
-      const axios = require('axios');
-      const FormData = require('form-data');
-      const data = new FormData();
-      data.append('email', '');
-      data.append('password', '');
+    const smsPromises = students.map((student) =>
+      sendSMS(
+        student.parents_phone_number,
+        `Hurmatli ota-ona, ${student.full_name} uchun joriy oy to'lovi kutilmoqda. Iltimos, o'z vaqtida amalga oshiring. CAMELOT LC`,
+        bearerToken,
+      ),
+    );
 
-      const config = {
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: 'http://notify.eskiz.uz/api/auth/login',
-        data,
-      };
+    await Promise.all(smsPromises);
 
-      const response = await axios(config);
-      token = response.data.data.token;
-      bearerToken = `Bearer ${token}`;
-
-      for (let student of students) {
-        sendSMS(
-          student.parents_phone_number,
-          `Hurmatli ota-ona, ${student.full_name} uchun joriy oy to'lovi kutilmoqda. Iltimos, o'z vaqtida amalga oshiring. CAMELOT LC`,
-          bearerToken,
-        );
-      }
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
-  }
-
-  async sendDev(smsDto: CreateSmsDevDto) {
-    const group = await this.repo.findOne({
-      where: { id: smsDto.group_id },
-      include: [
-        {
-          model: StudentGroup,
-        },
-      ],
-    });
-
-    let student = [];
-    for (let i in group.student) {
-      student.push(
-        await this.repoStudent.findByPk(group.student[i].student_id, {}),
-      );
-    }
-    let token = '';
-    let bearerToken = '';
-
-    try {
-      const axios = require('axios');
-      const FormData = require('form-data');
-      const data = new FormData();
-      data.append('email', '');
-      data.append('password', '');
-      const config = {
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: 'http://notify.eskiz.uz/api/auth/login',
-        data,
-      };
-      axios(config)
-        .then(function (response: any) {
-          // console.log(JSON.stringify(response.data));
-          token = JSON.stringify(response.data.data.token).slice(1, -1);
-          bearerToken = `Bearer ${token}`;
-          for (let i in student) {
-            sendSMS(
-              student[i].parents_phone_number,
-              `Assalu alaykum ${student[i].full_name} ning ota-onasi .Sizga ajoyib yangiligimiz bor.Camelot o'quv markazida kelajak kasblaridan biri bo'gan IT(AyTi) kurslariga qabul ochiq.Agarda farzandizngizni kelajakda yetuk mutahassis bo'lishini hohlasangiz kurslarimizda kutib qolamiz. Ma'lumot uchun:+998933279137`,
-              bearerToken,
-            );
-            // sendSMS(student[i].parents_phone_number, 'Bu Eskiz dan test', bearerToken);
-          }
-        })
-        .catch(function (error: any) {
-          console.log(error);
-        });
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
+    return {
+      message: 'SMS muvaffaqiyatli yuborildi',
+      count: students.length,
+    };
   }
 
   async sendAttendance(smsDto: CreateSmsAttendanceDto) {
-    let token = '';
-    let bearerToken = '';
-
-    const student = await this.repoStudent.findByPk(smsDto.student_id, {});
-
     try {
-      const axios = require('axios');
-      const FormData = require('form-data');
-      const data = new FormData();
-      data.append('email', '');
-      data.append('password', '');
-      const config = {
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: 'http://notify.eskiz.uz/api/auth/login',
-        data,
+      const student = await this.repoStudent.findByPk(smsDto.student_id);
+
+      if (!student) {
+        throw new BadRequestException('Student topilmadi');
+      }
+
+      if (!student.parents_phone_number) {
+        throw new BadRequestException('Ota-ona telefon raqami mavjud emas');
+      }
+
+      const token = await this.getEskizToken();
+      const bearerToken = `Bearer ${token}`;
+
+      await sendSMS(
+        student.parents_phone_number,
+        `${student.full_name} bugun darsda qatnashmadi. Doimiy qatnashish, yaxshi natija uchun muhim. Hurmat bilan CAMELOT LC`,
+        bearerToken,
+      );
+
+      return {
+        message: 'SMS muvaffaqiyatli yuborildi',
+        student: student.full_name,
       };
-      axios(config)
-        .then(function (response: any) {
-          // console.log(JSON.stringify(response.data));
-          token = JSON.stringify(response.data.data.token).slice(1, -1);
-          bearerToken = `Bearer ${token}`;
-          sendSMS(
-            student.parents_phone_number,
-            `${student.full_name} bugun darsda qatnashmadi. Doimiy qatnashish, yaxshi natija uchun muhim. Hurmat bilan CAMELOT LC`,
-            bearerToken,
-          );
-        })
-        .catch(function (error: any) {
-          console.log(error);
-        });
     } catch (error) {
-      throw new BadRequestException(error.message);
+      console.error('Davomat SMS yuborishda xatolik:', error);
+      throw new BadRequestException(
+        error.message || 'SMS yuborishda xatolik yuz berdi',
+      );
     }
   }
 }
