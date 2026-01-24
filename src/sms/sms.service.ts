@@ -45,80 +45,90 @@ export class SmsService {
   }
 
   async sendPayment(smsDto: CreateSmsPaymentDto) {
-    const group = await this.repo.findOne({
-      where: { id: smsDto.group_id },
-      include: [
-        {
-          model: StudentGroup,
-          include: [
-            {
-              model: Student,
-              include: [
-                {
-                  model: Payment,
-                  required: false,
-                  where: {
-                    status: { [Op.ne]: 'delete' },
-                    group_id: smsDto.group_id,
+    try {
+      const group = await this.repo.findOne({
+        where: { id: smsDto.group_id },
+        include: [
+          {
+            model: StudentGroup,
+            include: [
+              {
+                model: Student,
+                include: [
+                  {
+                    model: Payment,
+                    required: false,
+                    where: {
+                      status: { [Op.ne]: 'delete' },
+                      group_id: smsDto.group_id,
+                    },
                   },
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    });
-
-    const group_price = group.price;
-    const date = new Date();
-    const currentYear = String(date.getFullYear());
-    let currentMonth = String(date.getMonth() + 1).padStart(2, '0');
-
-    const students = group.student
-      .map((sg) => sg.student)
-      .filter((student) => {
-        let totalPaid = 0;
-        let totalDiscountPercent = 0;
-        let totalDiscountSum = 0;
-
-        for (const payment of student.payment ?? []) {
-          if (payment.year === currentYear && payment.month === currentMonth) {
-            totalPaid += Number(payment.price || 0);
-
-            totalDiscountPercent += Number(payment.discount || 0);
-
-            totalDiscountSum += Number(payment.discountSum || 0);
-          }
-        }
-
-        const priceAfterPercent = Math.round(
-          Number(group_price) * (1 - totalDiscountPercent / 100),
-        );
-
-        const finalPrice = Math.max(priceAfterPercent - totalDiscountSum, 0);
-
-        return totalPaid < finalPrice;
+                ],
+              },
+            ],
+          },
+        ],
       });
 
-    if (students.length === 0) return;
+      const group_price = group.price;
+      const date = new Date();
+      const currentYear = String(date.getFullYear());
+      let currentMonth = String(date.getMonth() + 1).padStart(2, '0');
 
-    const token = await this.getEskizToken();
-    const bearerToken = `Bearer ${token}`;
+      const students = group.student
+        .map((sg) => sg.student)
+        .filter((student) => {
+          let totalPaid = 0;
+          let totalDiscountPercent = 0;
+          let totalDiscountSum = 0;
 
-    const smsPromises = students.map((student) =>
-      sendSMS(
-        student.parents_phone_number,
-        `Hurmatli ota-ona, ${student.full_name} uchun joriy oy to'lovi kutilmoqda. Iltimos, o'z vaqtida amalga oshiring. CAMELOT LC`,
-        bearerToken,
-      ),
-    );
+          for (const payment of student.payment ?? []) {
+            if (
+              payment.year === currentYear &&
+              payment.month === currentMonth
+            ) {
+              totalPaid += Number(payment.price || 0);
 
-    await Promise.all(smsPromises);
+              totalDiscountPercent += Number(payment.discount || 0);
 
-    return {
-      message: 'SMS muvaffaqiyatli yuborildi',
-      count: students.length,
-    };
+              totalDiscountSum += Number(payment.discountSum || 0);
+            }
+          }
+
+          const priceAfterPercent = Math.round(
+            Number(group_price) * (1 - totalDiscountPercent / 100),
+          );
+
+          const finalPrice = Math.max(priceAfterPercent - totalDiscountSum, 0);
+
+          return totalPaid < finalPrice;
+        });
+
+      if (students.length === 0) return;
+
+      const token = await this.getEskizToken();
+      const bearerToken = `Bearer ${token}`;
+
+      const smsPromises = students.map((student) =>
+        sendSMS(
+          student.parents_phone_number,
+          `Hurmatli ota-ona, ${student.full_name} uchun joriy oy to'lovi kutilmoqda. Iltimos, o'z vaqtida amalga oshiring. CAMELOT LC`,
+          bearerToken,
+        ),
+      );
+
+      await Promise.all(smsPromises);
+
+      return {
+        message: 'SMS muvaffaqiyatli yuborildi',
+        count: students.length,
+      };
+    } catch (error) {
+      console.error("To'lov SMS yuborishda xatolik:", error);
+      throw new BadRequestException(
+        error.message || 'SMS yuborishda xatolik yuz berdi',
+      );
+    }
   }
 
   async sendAttendance(smsDto: CreateSmsAttendanceDto) {
