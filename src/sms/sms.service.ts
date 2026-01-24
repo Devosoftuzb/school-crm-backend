@@ -10,6 +10,7 @@ import {
 } from './dto/create-sm.dto';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
 import { Payment } from 'src/payment/models/payment.model';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class SmsService {
@@ -38,6 +39,8 @@ export class SmsService {
         include: [
           {
             model: Payment,
+            required: false,
+            where: { status: { [Op.ne]: 'delete' } },
           },
         ],
       }),
@@ -47,22 +50,27 @@ export class SmsService {
 
     students = students.filter((student) => {
       let totalPaid = 0;
-      let totalDiscount = 0;
+      let totalDiscountPercent = 0;
+      let totalDiscountSum = 0;
 
       for (let payment of student.payment) {
         if (payment.year == currentYear && payment.month == currentMonth) {
-          totalPaid += Number(payment.price);
-          totalDiscount = Number(payment.discount || 0); 
+          totalPaid += Number(payment.price || 0);
+          totalDiscountPercent += Number(payment.discount || 0);
+          totalDiscountSum += Number(payment.discountSum || 0);
         }
       }
 
-      let discountedPrice = Math.round(
-        Number(group_price) * (1 - totalDiscount / 100),
+      let priceAfterPercent = Math.round(
+        Number(group_price) * (1 - totalDiscountPercent / 100),
       );
-      return totalPaid < discountedPrice;
+
+      let finalPrice = Math.max(priceAfterPercent - totalDiscountSum, 0);
+
+      return totalPaid < finalPrice;
     });
 
-    if (students.length === 0) return; 
+    if (students.length === 0) return;
 
     let token = '';
     let bearerToken = '';
