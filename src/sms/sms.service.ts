@@ -16,6 +16,7 @@ import { StudentGroup } from 'src/student_group/models/student_group.model';
 import { Payment } from 'src/payment/models/payment.model';
 import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
 import { Employee } from 'src/employee/models/employee.model';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class SmsService {
@@ -46,75 +47,75 @@ export class SmsService {
   }
 
   async sendPayment(smsDto: CreateSmsPaymentDto) {
-    try {
-      const group = await this.repo.findOne({
-        where: { id: smsDto.group_id },
-        include: [{ model: StudentGroup }],
-      });
+    const group = await this.repo.findOne({
+      where: { id: smsDto.group_id },
+      include: [
+        {
+          model: StudentGroup,
+        },
+      ],
+    });
 
-      if (!group) {
-        throw new BadRequestException('Guruh topilmadi');
-      }
+    const group_price = group.price;
+    const date = new Date();
+    const currentYear = String(date.getFullYear());
+    let currentMonth = String(date.getMonth() + 1).padStart(2, '0');
 
-      const group_price = group.price;
-      const date = new Date();
-      const currentYear = String(date.getFullYear());
-      const currentMonth = String(date.getMonth() + 1).padStart(2, '0');
+    let studentPromises = group.student.map((studentGroup) =>
+      this.repoStudent.findByPk(studentGroup.student_id, {
+        include: [
+          {
+            model: Payment,
+            required: false,
+            where: { status: { [Op.ne]: 'delete' } },
+          },
+        ],
+      }),
+    );
 
-      const studentPromises = group.student.map((studentGroup) =>
-        this.repoStudent.findByPk(studentGroup.student_id, {
-          include: [{ model: Payment }],
-        }),
-      );
+    let students = await Promise.all(studentPromises);
 
-      let students = await Promise.all(studentPromises);
+    students = students.filter((student) => {
+      let totalPaid = 0;
+      let totalDiscountPercent = 0;
+      let totalDiscountSum = 0;
 
-      students = students.filter((student) => {
-        if (!student) return false;
-
-        let totalPaid = 0;
-        let totalDiscount = 0;
-
-        for (const payment of student.payment) {
-          if (payment.year == currentYear && payment.month == currentMonth) {
-            totalPaid += Number(payment.price);
-            totalDiscount = Number(payment.discount || 0);
-          }
+      for (let payment of student.payment) {
+        if (payment.year == currentYear && payment.month == currentMonth) {
+          totalPaid += Number(payment.price || 0);
+          totalDiscountPercent += Number(payment.discount || 0);
+          totalDiscountSum += Number(payment.discountSum || 0);
         }
-
-        const discountedPrice = Math.round(
-          Number(group_price) * (1 - totalDiscount / 100),
-        );
-        return totalPaid < discountedPrice;
-      });
-
-      if (students.length === 0) {
-        return { message: "Barcha studentlar to'lov qilgan", count: 0 };
       }
 
-      const token = await this.getEskizToken();
-      const bearerToken = `Bearer ${token}`;
-
-      const smsPromises = students.map((student) =>
-        sendSMS(
-          student.parents_phone_number,
-          `Hurmatli ota-ona, ${student.full_name} uchun joriy oy to'lovi kutilmoqda. Iltimos, o'z vaqtida amalga oshiring. CAMELOT LC`,
-          bearerToken,
-        ),
+      let priceAfterPercent = Math.round(
+        Number(group_price) * (1 - totalDiscountPercent / 100),
       );
 
-      await Promise.all(smsPromises);
+      let finalPrice = Math.max(priceAfterPercent - totalDiscountSum, 0);
 
-      return {
-        message: 'SMS muvaffaqiyatli yuborildi',
-        count: students.length,
-      };
-    } catch (error) {
-      console.error("To'lov SMS yuborishda xatolik:", error);
-      throw new BadRequestException(
-        error.message || 'SMS yuborishda xatolik yuz berdi',
-      );
-    }
+      return totalPaid < finalPrice;
+    });
+
+    if (students.length === 0) return;
+
+    const token = await this.getEskizToken();
+    const bearerToken = `Bearer ${token}`;
+
+    const smsPromises = students.map((student) =>
+      sendSMS(
+        student.parents_phone_number,
+        `Hurmatli ota-ona, ${student.full_name} uchun joriy oy to'lovi kutilmoqda. Iltimos, o'z vaqtida amalga oshiring. CAMELOT LC`,
+        bearerToken,
+      ),
+    );
+
+    await Promise.all(smsPromises);
+
+    return {
+      message: 'SMS muvaffaqiyatli yuborildi',
+      count: students.length,
+    };
   }
 
   async sendDev(smsDto: CreateSmsDevDto) {
