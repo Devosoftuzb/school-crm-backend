@@ -1,11 +1,4 @@
-
-import {
-  Controller,
-  Post,
-  Body,
-  UseGuards,
-  Version,
-} from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Version } from '@nestjs/common';
 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
@@ -14,7 +7,6 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { SmsService } from './sms.service';
 import {
   CreateSmsAttendanceDto,
-  CreateSmsDevDto,
   CreateSmsGroupDto,
   CreateSmsPaymentDto,
 } from './dto/create-sm.dto';
@@ -40,14 +32,6 @@ export class SmsController {
   @Post('group')
   sendGroup(@Body() createSmsDto: CreateSmsGroupDto) {
     return this.smsService.sendGroup(createSmsDto);
-  }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Sms send' })
-  @Roles('superadmin', 'admin', 'owner', 'administrator')
-  @Post('dev')
-  sendDev(@Body() createSmsDto: CreateSmsDevDto) {
-    return this.smsService.sendDev(createSmsDto);
   }
 
   @Version('1')

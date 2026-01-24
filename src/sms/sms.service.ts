@@ -8,7 +8,6 @@ import { Student } from 'src/student/models/student.model';
 import { sendSMS } from 'src/common/utils/senSMS';
 import {
   CreateSmsAttendanceDto,
-  CreateSmsDevDto,
   CreateSmsGroupDto,
   CreateSmsPaymentDto,
 } from './dto/create-sm.dto';
@@ -121,54 +120,6 @@ export class SmsService {
       message: 'SMS muvaffaqiyatli yuborildi',
       count: students.length,
     };
-  }
-
-  async sendDev(smsDto: CreateSmsDevDto) {
-    try {
-      const group = await this.repo.findOne({
-        where: { id: smsDto.group_id },
-        include: [{ model: StudentGroup }],
-      });
-
-      if (!group || !group.student || group.student.length === 0) {
-        throw new BadRequestException('Guruh yoki studentlar topilmadi');
-      }
-
-      const studentPromises = group.student.map((studentGroup) =>
-        this.repoStudent.findByPk(studentGroup.student_id),
-      );
-
-      const students = (await Promise.all(studentPromises)).filter(
-        (student) => student !== null,
-      );
-
-      if (students.length === 0) {
-        throw new BadRequestException('Studentlar topilmadi');
-      }
-
-      const token = await this.getEskizToken();
-      const bearerToken = `Bearer ${token}`;
-
-      const smsPromises = students.map((student) =>
-        sendSMS(
-          student.parents_phone_number,
-          `Assalomu alaykum ${student.full_name} ning ota-onasi. Sizga ajoyib yangiligimiz bor. Camelot o'quv markazida kelajak kasblaridan biri bo'lgan IT(AyTi) kurslariga qabul ochiq. Agar farzandingizni kelajakda yetuk mutaxassis bo'lishini xohlasangiz kurslarimizda kutib qolamiz. Ma'lumot uchun: +998933279137`,
-          bearerToken,
-        ),
-      );
-
-      await Promise.all(smsPromises);
-
-      return {
-        message: 'SMS muvaffaqiyatli yuborildi',
-        count: students.length,
-      };
-    } catch (error) {
-      console.error('Reklama SMS yuborishda xatolik:', error);
-      throw new BadRequestException(
-        error.message || 'SMS yuborishda xatolik yuz berdi',
-      );
-    }
   }
 
   async sendAttendance(smsDto: CreateSmsAttendanceDto) {
