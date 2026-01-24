@@ -52,6 +52,21 @@ export class SmsService {
       include: [
         {
           model: StudentGroup,
+          include: [
+            {
+              model: Student,
+              include: [
+                {
+                  model: Payment,
+                  required: false,
+                  where: {
+                    status: { [Op.ne]: 'delete' },
+                    group_id: smsDto.group_id,
+                  },
+                },
+              ],
+            },
+          ],
         },
       ],
     });
@@ -61,41 +76,31 @@ export class SmsService {
     const currentYear = String(date.getFullYear());
     let currentMonth = String(date.getMonth() + 1).padStart(2, '0');
 
-    let studentPromises = group.student.map((studentGroup) =>
-      this.repoStudent.findByPk(studentGroup.student_id, {
-        include: [
-          {
-            model: Payment,
-            required: false,
-            where: { status: { [Op.ne]: 'delete' } },
-          },
-        ],
-      }),
-    );
+    const students = group.student
+      .map((sg) => sg.student)
+      .filter((student) => {
+        let totalPaid = 0;
+        let totalDiscountPercent = 0;
+        let totalDiscountSum = 0;
 
-    let students = await Promise.all(studentPromises);
+        for (const payment of student.payment ?? []) {
+          if (payment.year === currentYear && payment.month === currentMonth) {
+            totalPaid += Number(payment.price || 0);
 
-    students = students.filter((student) => {
-      let totalPaid = 0;
-      let totalDiscountPercent = 0;
-      let totalDiscountSum = 0;
+            totalDiscountPercent += Number(payment.discount || 0);
 
-      for (let payment of student.payment) {
-        if (payment.year == currentYear && payment.month == currentMonth) {
-          totalPaid += Number(payment.price || 0);
-          totalDiscountPercent += Number(payment.discount || 0);
-          totalDiscountSum += Number(payment.discountSum || 0);
+            totalDiscountSum += Number(payment.discountSum || 0);
+          }
         }
-      }
 
-      let priceAfterPercent = Math.round(
-        Number(group_price) * (1 - totalDiscountPercent / 100),
-      );
+        const priceAfterPercent = Math.round(
+          Number(group_price) * (1 - totalDiscountPercent / 100),
+        );
 
-      let finalPrice = Math.max(priceAfterPercent - totalDiscountSum, 0);
+        const finalPrice = Math.max(priceAfterPercent - totalDiscountSum, 0);
 
-      return totalPaid < finalPrice;
-    });
+        return totalPaid < finalPrice;
+      });
 
     if (students.length === 0) return;
 
