@@ -86,7 +86,7 @@ export class CustomerTestService {
         },
         {
           model: CustomerAnswer,
-          attributes: ['id', 'is_correct'],
+          attributes: ['id', 'is_correct', 'writing'],
           separate: true,
           order: [['id', 'ASC']],
           include: [
