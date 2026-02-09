@@ -26,7 +26,7 @@ export class GroupService {
     @InjectModel(EmployeeGroup) private employeeGroupRepo: typeof EmployeeGroup,
     @InjectModel(GroupSubject) private subjectGroupRepo: typeof GroupSubject,
     @InjectModel(GroupDay) private dayGroupRepo: typeof GroupDay,
-  ) {}
+  ) { }
 
   async create(createGroupDto: CreateGroupDto) {
     const group = await this.repo.create(createGroupDto);
@@ -320,6 +320,7 @@ export class GroupService {
       offset,
       limit,
       order: [['id', 'ASC']],
+      distinct: true,
     });
 
     const data = groups.map((g) => ({
