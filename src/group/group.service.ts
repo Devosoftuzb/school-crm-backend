@@ -301,8 +301,8 @@ export class GroupService {
       whereCondition.level = targetLevel;
     }
 
-    if (search) {
-      whereCondition.name = { [Op.iLike]: `%${search}%` };
+    if (search && search.trim() !== '' && search.toLowerCase() !== 'all') {
+      whereCondition.name = { [Op.iLike]: `%${search.trim()}%` };
     }
 
     const { rows: groups, count: total } = await this.repo.findAndCountAll({
