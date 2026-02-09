@@ -273,7 +273,13 @@ export class GroupService {
     };
   }
 
-  async getGroupLevel(school_id: number, overall: string) {
+  async getGroupLevel(
+    school_id: number,
+    overall: string,
+    page: number = 1,
+    limit: number = 15,
+    search: string = '',
+  ) {
     const levelRank: Record<string, number> = {
       BEGINNER: 1,
       ELEMENTARY: 2,
@@ -283,14 +289,24 @@ export class GroupService {
     };
 
     const targetLevel =
-      overall === "Noma'lum" || !levelRank[overall] ? 'BEGINNER' : overall;
+      overall === "Noma'lum" || (!levelRank[overall] && overall !== 'all')
+        ? 'BEGINNER'
+        : overall;
+
+    const offset = (page - 1) * limit;
+
+    const whereCondition: any = { school_id, status: true };
+
+    if (overall !== 'all') {
+      whereCondition.level = targetLevel;
+    }
+
+    if (search) {
+      whereCondition.name = { [Op.iLike]: `%${search}%` };
+    }
 
     const groups = await this.repo.findAll({
-      where: {
-        school_id,
-        status: true,
-        level: targetLevel, 
-      },
+      where: whereCondition,
       include: [
         {
           model: EmployeeGroup,
@@ -301,6 +317,9 @@ export class GroupService {
           attributes: ['id'],
         },
       ],
+      offset,
+      limit,
+      order: [['id', 'ASC']],
     });
 
     return groups.map((g) => ({

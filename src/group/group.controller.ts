@@ -108,8 +108,17 @@ export class GroupController {
   getGroupLevel(
     @Param('school_id') school_id: string,
     @Param('overall') overall: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '15',
+    @Query('search') search: string = '',
   ) {
-    return this.groupService.getGroupLevel(+school_id, overall);
+    return this.groupService.getGroupLevel(
+      +school_id,
+      overall,
+      parseInt(page, 10),
+      parseInt(limit, 10),
+      search,
+    );
   }
 
   @Version('1')
