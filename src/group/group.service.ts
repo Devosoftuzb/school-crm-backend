@@ -305,7 +305,7 @@ export class GroupService {
       whereCondition.name = { [Op.iLike]: `%${search}%` };
     }
 
-    const groups = await this.repo.findAll({
+    const { rows: groups, count: total } = await this.repo.findAndCountAll({
       where: whereCondition,
       include: [
         {
@@ -322,13 +322,23 @@ export class GroupService {
       order: [['id', 'ASC']],
     });
 
-    return groups.map((g) => ({
+    const data = groups.map((g) => ({
       id: g.id,
       name: g.name,
       level: g.level,
       teacher: g.employee[0]?.employee?.full_name ?? 'Nomaʼlum',
       student_count: g.student?.length ?? 0,
     }));
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages,
+    };
   }
 
   async findAdd(school_id: number) {
