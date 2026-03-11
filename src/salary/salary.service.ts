@@ -152,8 +152,6 @@ export class SalaryService {
           [Op.gte]: new Date(year, 0, 1),
           [Op.lt]: new Date(year + 1, 0, 1),
         };
-      } else {
-        throw new BadRequestException('Kamida year berilishi kerak');
       }
 
       const rawData = await this.repo.findAll({

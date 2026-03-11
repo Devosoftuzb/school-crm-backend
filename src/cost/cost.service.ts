@@ -142,8 +142,6 @@ export class CostService {
           [Op.gte]: new Date(year, 0, 1),
           [Op.lt]: new Date(year + 1, 0, 1),
         };
-      } else {
-        throw new BadRequestException('Kamida year berilishi kerak');
       }
 
       if (category_id) {
