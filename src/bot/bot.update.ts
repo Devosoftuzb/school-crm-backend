@@ -38,7 +38,7 @@ export class BotUpdate {
 
       ctx.session.step = 'await_fio';
       await ctx.reply(
-        'Assalomu alaykum! *Sayyimov Academy* nazorat botiga xush kelibsiz! 👋\n\n' +
+        'Assalomu alaykum!\n*Sayyimov Academy* nazorat botiga xush kelibsiz! 👋\n\n' +
           'Davom etish uchun ism va familiyangizni kiriting:',
         { parse_mode: 'Markdown', ...Markup.removeKeyboard() },
       );
