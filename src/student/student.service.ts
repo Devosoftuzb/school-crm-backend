@@ -390,9 +390,13 @@ export class StudentService {
     });
   }
 
-  async linkParent(studentId: number, chatId: string): Promise<void> {
+  async linkParent(
+    studentId: number,
+    chatId: string,
+    parentName: string,
+  ): Promise<void> {
     await this.repo.update(
-      { parent_chat_id: chatId },
+      { parents_full_name: parentName, parent_chat_id: chatId },
       { where: { id: studentId } },
     );
   }

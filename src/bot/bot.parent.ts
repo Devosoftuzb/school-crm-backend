@@ -113,7 +113,17 @@ export class BotParentHandler {
       return;
     }
 
-    await this.studentService.linkParent(studentId, chatId);
+    let parentName = ctx.session.fio;
+
+    if (!parentName) {
+      const existing = await this.studentService.findByParentChatId(
+        chatId,
+        this.schoolId,
+      );
+      parentName = existing[0]?.parents_full_name || '';
+    }
+
+    await this.studentService.linkParent(studentId, chatId, parentName);
     ctx.session.step = 'registered';
 
     await ctx.reply(
