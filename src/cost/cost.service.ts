@@ -168,7 +168,7 @@ export class CostService {
 
       const dataToExport = rawData.map((item) => ({
         Kategoriya: item.costCategory?.name || 'Nomaʼlum',
-        Suma: Number(item.price).toLocaleString('uz-UZ'),
+        Suma: Number(item.price),
         "To'lov turi": item.method,
         Oy: this.monthNames(Number(item.month)),
         Izoh: item.description || '',

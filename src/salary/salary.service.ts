@@ -174,7 +174,7 @@ export class SalaryService {
 
       const dataToExport = rawData.map((item) => ({
         'O‘qituvchi (F.I.O)': item.teacher?.full_name || 'Nomaʼlum',
-        Suma: Number(item.price).toLocaleString('uz-UZ'),
+        Suma: Number(item.price),
         'To‘lov turi': item.method,
         Oy: this.monthNames(Number(item.month)),
         Izoh: item.description || '',
