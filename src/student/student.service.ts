@@ -403,7 +403,7 @@ export class StudentService {
 
   async unlinkParent(studentId: number): Promise<void> {
     await this.repo.update(
-      { parent_chat_id: null },
+      { parents_full_name: 'Hurmatli ota-ona', parent_chat_id: null },
       { where: { id: studentId } },
     );
   }
