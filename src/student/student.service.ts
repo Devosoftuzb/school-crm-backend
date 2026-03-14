@@ -352,4 +352,55 @@ export class StudentService {
       attributes: ['id', 'full_name', 'phone_number'],
     });
   }
+
+  async findByPhoneForBot(
+    phone: string,
+    school_id: number,
+  ): Promise<Student[]> {
+    return this.repo.findAll({
+      where: {
+        school_id,
+        status: true,
+        phone_number: { [Op.like]: `%${phone}%` },
+      },
+      attributes: [
+        'id',
+        'full_name',
+        'phone_number',
+        'parent_chat_id',
+        'parents_full_name',
+      ],
+    });
+  }
+
+  async findStudentByIdForBot(id: number): Promise<Student | null> {
+    return this.repo.findOne({
+      where: { id },
+      attributes: ['id', 'full_name', 'phone_number', 'parents_full_name'],
+    });
+  }
+
+  async findByParentChatId(
+    chatId: string,
+    school_id: number,
+  ): Promise<Student[]> {
+    return this.repo.findAll({
+      where: { parent_chat_id: chatId, school_id, status: true },
+      attributes: ['id', 'full_name', 'phone_number', 'parents_full_name'],
+    });
+  }
+
+  async linkParent(studentId: number, chatId: string): Promise<void> {
+    await this.repo.update(
+      { parent_chat_id: chatId },
+      { where: { id: studentId } },
+    );
+  }
+
+  async unlinkParent(studentId: number): Promise<void> {
+    await this.repo.update(
+      { parent_chat_id: null },
+      { where: { id: studentId } },
+    );
+  }
 }
