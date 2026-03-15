@@ -170,7 +170,7 @@ export class AttendanceService {
     school_id: number,
     group_id: number,
     year: number,
-    month: number,
+    month: number | null,
     page: number,
   ): Promise<object> {
     try {
@@ -178,10 +178,15 @@ export class AttendanceService {
       const limit = 15;
       const offset = (page - 1) * limit;
 
-      const dateFilter = {
-        [Op.gte]: new Date(year, month - 1, 1),
-        [Op.lt]: new Date(year, month, 1),
-      };
+      const dateFilter = month
+        ? {
+            [Op.gte]: new Date(year, month - 1, 1),
+            [Op.lt]: new Date(year, month, 1),
+          }
+        : {
+            [Op.gte]: new Date(year, 0, 1),
+            [Op.lt]: new Date(year + 1, 0, 1),
+          };
 
       const currentStudents = await this.repoStudent.findAll({
         where: { school_id },

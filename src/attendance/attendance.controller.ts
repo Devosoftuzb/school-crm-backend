@@ -50,7 +50,7 @@ export class AttendanceController {
       +school_id,
       +group_id,
       +year,
-      +month,
+      month === 'all' ? null : +month,
       page,
     );
   }
@@ -75,14 +75,14 @@ export class AttendanceController {
     @Query('school_id') school_id: number,
     @Query('group_id') group_id: number,
     @Query('year') year: number,
-    @Query('month') month?: number,
+    @Query('month') month?: string, 
     @Res() res?: Response,
   ) {
     return this.attendanceService.excelAttendanceHistory(
       +school_id,
       +group_id,
       +year,
-      month ? +month : undefined,
+      month && month !== 'all' ? +month : undefined, 
       res,
     );
   }
