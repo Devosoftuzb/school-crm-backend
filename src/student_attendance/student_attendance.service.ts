@@ -8,6 +8,24 @@ export class StudentAttendanceService {
     @InjectModel(StudentAttendance) private repo: typeof StudentAttendance,
   ) {}
 
+  async create(school_id: number, student_id: number) {
+    const last = await this.repo.findOne({
+      where: { school_id, student_id },
+      order: [['time', 'DESC']],
+    });
+
+    const type: 'IN' | 'OUT' = last?.type === 'IN' ? 'OUT' : 'IN';
+
+    const attendance = await this.repo.create({
+      school_id,
+      student_id,
+      type,
+      time: new Date(),
+    });
+
+    return attendance;
+  }
+
   async findAll(school_id: number, student_id: number) {
     const attendances = await this.repo.findAll({
       where: { school_id, student_id },

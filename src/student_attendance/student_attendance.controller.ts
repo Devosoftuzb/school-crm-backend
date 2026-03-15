@@ -26,7 +26,16 @@ export class StudentAttendanceController {
     private readonly studentAttendanceService: StudentAttendanceService,
   ) {}
 
-  @ApiOperation({ summary: 'Subject view all by school ID' })
+  @ApiOperation({ summary: 'Create attendance' })
+  @Post('create/:school_id/:student_id')
+  create(
+    @Query('school_id') school_id: number,
+    @Query('student_id') student_id: number,
+  ) {
+    return this.studentAttendanceService.create(school_id, student_id);
+  }
+
+  @ApiOperation({ summary: 'Attendance view all by school ID and student ID' })
   @Get('all')
   findAll(
     @Query('school_id') school_id: number,
@@ -36,7 +45,7 @@ export class StudentAttendanceController {
   }
 
   @Version('1')
-  @ApiOperation({ summary: 'Subject paginate' })
+  @ApiOperation({ summary: 'Attendance paginate by school ID and student ID' })
   @Get('page')
   paginate(
     @Query('school_id') school_id: number,
