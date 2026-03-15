@@ -1,3 +1,4 @@
+import { HikvisionModule } from './hikvision/hikvision.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
@@ -147,6 +148,7 @@ import { StudentAttendance } from './student_attendance/models/student_attendanc
     CostCategoryModule,
     BotModule,
     StudentAttendanceModule,
+    HikvisionModule,
   ],
   controllers: [],
   providers: [],
