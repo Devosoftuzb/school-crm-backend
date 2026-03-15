@@ -194,6 +194,7 @@ export class StudentService {
         'phone_number',
         'parents_full_name',
         'parents_phone_number',
+        'parent_chat_id',
         'status',
         'createdAt',
       ],

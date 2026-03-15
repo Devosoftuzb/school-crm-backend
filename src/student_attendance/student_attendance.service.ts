@@ -9,43 +9,69 @@ export class StudentAttendanceService {
   ) {}
 
   async findAll(school_id: number, student_id: number) {
-    return await this.repo.findAll({
+    const attendances = await this.repo.findAll({
       where: { school_id, student_id },
+      attributes: ['id', 'type', 'time'],
+      order: [['time', 'DESC']],
     });
+
+    const grouped = new Map<string, { type: string; time: Date }[]>();
+
+    for (const a of attendances) {
+      const date = new Date(a.time).toISOString().split('T')[0];
+      if (!grouped.has(date)) grouped.set(date, []);
+      grouped.get(date)!.push({ type: a.type, time: a.time });
+    }
+
+    const result = Array.from(grouped.entries()).map(([date, records]) => ({
+      date,
+      records,
+    }));
+
+    return result;
   }
 
-  async paginate(
-    school_id: number,
-    student_id: number,
-    page: number,
-  ): Promise<object> {
-    try {
-      page = Number(page);
-      const limit = 15;
-      const offset = (page - 1) * limit;
-      const user = await this.repo.findAll({
-        where: { school_id, student_id },
-        offset,
-        limit,
+  async paginate(school_id: number, student_id: number, page: number) {
+    page = Number(page);
+    const limit = 10;
+    const offset = (page - 1) * limit;
+
+    const attendances = await this.repo.findAll({
+      where: { school_id, student_id },
+      attributes: ['id', 'type', 'time'],
+      order: [['time', 'DESC']],
+    });
+
+    const grouped = new Map<string, { type: string; time: string }[]>();
+
+    for (const a of attendances) {
+      const date = new Date(a.time).toISOString().split('T')[0];
+      if (!grouped.has(date)) grouped.set(date, []);
+      grouped.get(date)!.push({
+        type: a.type,
+        time: new Date(a.time).toTimeString().slice(0, 5),
       });
-      const total_count = await this.repo.count({
-        where: { school_id, student_id },
-      });
-      const total_pages = Math.ceil(total_count / limit);
-      const res = {
-        status: 200,
-        data: {
-          records: user,
-          pagination: {
-            currentPage: page,
-            total_pages,
-            total_count,
-          },
-        },
-      };
-      return res;
-    } catch (error) {
-      throw new BadRequestException(error.message);
     }
+
+    const allDates = Array.from(grouped.entries()).map(([date, records]) => ({
+      date,
+      records,
+    }));
+
+    const total_count = allDates.length;
+    const total_pages = Math.ceil(total_count / limit);
+    const paginatedData = allDates.slice(offset, offset + limit);
+
+    return {
+      status: 200,
+      data: {
+        records: paginatedData,
+        pagination: {
+          currentPage: page,
+          total_pages,
+          total_count,
+        },
+      },
+    };
   }
 }
