@@ -39,9 +39,8 @@ export class HikvisionService {
     const student = await this.studentRepo.findByPk(student_id);
     if (!student) throw new NotFoundException('Student topilmadi');
 
-    if (!student.hikvision_code) {
-      throw new NotFoundException("Studentda hikvision_code yo'q");
-    }
+    const hikvision_code =
+      student.hikvision_code ?? `S${String(student_id).padStart(5, '0')}`; // S01189
 
     try {
       const imageBase64 = file.buffer.toString('base64');
@@ -49,10 +48,12 @@ export class HikvisionService {
       await this.client.post('/ISAPI/Intelligent/FDLib/FDSetUp', {
         faceLibType: 'blackFD',
         FDID: '1',
-        FPID: student.hikvision_code,
+        FPID: hikvision_code,
         name: student.full_name,
         faceData: imageBase64,
       });
+
+      await student.update({ hikvision_code });
 
       this.logger.log(`✅ Yuz qo'shildi: ${student.full_name}`);
       return {
@@ -68,15 +69,15 @@ export class HikvisionService {
   async deleteFace(student_id: number) {
     const student = await this.studentRepo.findByPk(student_id);
     if (!student) throw new NotFoundException('Student topilmadi');
-
-    if (!student.hikvision_code) {
+    if (!student.hikvision_code)
       throw new NotFoundException("Studentda hikvision_code yo'q");
-    }
 
     try {
       await this.client.delete(
         `/ISAPI/Intelligent/FDLib/FDSetUp/${student.hikvision_code}`,
       );
+
+      await student.update({ hikvision_code: null });
 
       this.logger.log(`🗑️ Yuz o'chirildi: ${student.full_name}`);
       return {

@@ -195,6 +195,7 @@ export class StudentService {
         'parents_full_name',
         'parents_phone_number',
         'parent_chat_id',
+        'hikvision_code',
         'status',
         'createdAt',
       ],
