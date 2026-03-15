@@ -10,6 +10,7 @@ import {
 import { Attendance } from 'src/attendance/models/attendance.model';
 import { Payment } from 'src/payment/models/payment.model';
 import { School } from 'src/school/models/school.model';
+import { StudentAttendance } from 'src/student_attendance/models/student_attendance.model';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
 
 interface StudentAttr {
@@ -94,4 +95,10 @@ export class Student extends Model<Student, StudentAttr> {
     hooks: true,
   })
   attendance: Attendance[];
+
+  @HasMany(() => StudentAttendance, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  student_attendance: StudentAttendance[];
 }

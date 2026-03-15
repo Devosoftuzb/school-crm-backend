@@ -18,6 +18,7 @@ import { PaymentMethod } from 'src/payment_method/models/payment_method.model';
 import { Salary } from 'src/salary/models/salary.model';
 import { SocialMedia } from 'src/social_media/models/social_media.model';
 import { Student } from 'src/student/models/student.model';
+import { StudentAttendance } from 'src/student_attendance/models/student_attendance.model';
 import { Subject } from 'src/subject/models/subject.model';
 import { Test } from 'src/test/model/test.model';
 import { User } from 'src/user/models/user.model';
@@ -154,4 +155,10 @@ export class School extends Model<School, SchoolAttr> {
     hooks: true,
   })
   salary: Salary[];
+
+  @HasMany(() => StudentAttendance, {
+    onDelete: 'CASCADE',
+    hooks: true,
+  })
+  student_attendance: StudentAttendance[];
 }
