@@ -6,7 +6,6 @@ import { Attendance } from './models/attendance.model';
 import { Student } from 'src/student/models/student.model';
 import { Op } from 'sequelize';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
-import { SmsService } from 'src/sms/sms.service';
 import { Group } from 'src/group/models/group.model';
 import { Payment } from 'src/payment/models/payment.model';
 import * as XLSX from 'xlsx';
@@ -17,7 +16,7 @@ export class AttendanceService {
   constructor(
     @InjectModel(Attendance) private repo: typeof Attendance,
     @InjectModel(Student) private repoStudent: typeof Student,
-    private smsService: SmsService,
+    @InjectModel(Group) private repoGroup: typeof Group,
   ) {}
 
   async saveAttendance(dto: CreateAttendanceDto) {
@@ -62,10 +61,6 @@ export class AttendanceService {
       }
 
       attendance.push(record);
-
-      if (isCreated && !record.status) {
-        await this.smsService.sendAttendance({ student_id: item.student_id });
-      }
     }
 
     return {
@@ -291,12 +286,14 @@ export class AttendanceService {
             [Op.lt]: new Date(year + 1, 0, 1),
           };
 
+      const group = await this.repoGroup.findOne({
+        where: { id: group_id },
+        attributes: ['name'],
+      });
+      const groupName = group?.name || `guruh_${group_id}`;
+
       const allAttendances = await this.repo.findAll({
-        where: {
-          school_id,
-          group_id,
-          createdAt: dateFilter,
-        },
+        where: { school_id, group_id, createdAt: dateFilter },
         attributes: ['student_id', 'status', 'createdAt'],
         order: [['createdAt', 'ASC']],
       });
@@ -361,12 +358,11 @@ export class AttendanceService {
         };
         const studentDates = attendanceMap.get(student.id) || new Map();
         for (const date of uniqueDates) {
-          const [y, m, d] = date.split('-');
+          const [, m, d] = date.split('-');
           const label = `${d}.${m}`;
           const status = studentDates.get(date);
           record[label] = status === undefined ? '-' : status ? '✓' : '✗';
         }
-
         const vals = [...studentDates.values()];
         record['Kelgan'] = vals.filter(Boolean).length;
         record['Kelmagan'] = vals.filter((v) => !v).length;
@@ -399,28 +395,28 @@ export class AttendanceService {
       const workbook = XLSX.utils.book_new();
       const worksheet = this.createWorksheet(dataToExport);
 
-      const cols = [
+      worksheet['!cols'] = [
         { wch: 28 },
         ...uniqueDates.map(() => ({ wch: 6 })),
         { wch: 10 },
         { wch: 10 },
       ];
-      worksheet['!cols'] = cols;
 
       const sheetName = month
-        ? `${this.monthNames(month)} ${year}`
-        : `${year} yil`;
+        ? `${groupName} ${this.monthNames(month)} ${year}`
+        : `${groupName} ${year}`;
 
-      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName.slice(0, 31)); // Excel 31 ta belgi limit
 
       const excelBuffer = XLSX.write(workbook, {
         type: 'buffer',
         bookType: 'xlsx',
       }) as Buffer;
 
+      const safeName = groupName.replace(/[^a-zA-Z0-9_\-]/g, '_');
       const fileName = month
-        ? `attendance_${group_id}_${month}_${year}.xlsx`
-        : `attendance_${group_id}_${year}.xlsx`;
+        ? `davomat_${safeName}_${month}_${year}.xlsx`
+        : `davomat_${safeName}_${year}.xlsx`;
 
       res.setHeader(
         'Content-Type',

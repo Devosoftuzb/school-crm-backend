@@ -8,7 +8,7 @@ import { Student } from 'src/student/models/student.model';
 import { SmsModule } from 'src/sms/sms.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Attendance, Student]), JwtModule, SmsModule],
+  imports: [SequelizeModule.forFeature([Attendance, Student]), JwtModule],
   controllers: [AttendanceController],
   providers: [AttendanceService],
 })
