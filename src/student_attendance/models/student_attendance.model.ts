@@ -13,6 +13,7 @@ interface StudentAttendanceAttr {
   school_id: number;
   student_id: number;
   type: 'IN' | 'OUT';
+  time?: Date;
 }
 
 @Table({ tableName: 'student_attendance' })

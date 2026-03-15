@@ -78,6 +78,13 @@ export class Student extends Model<Student, StudentAttr> {
   @Column({ type: DataType.STRING, allowNull: true, defaultValue: null })
   parent_chat_id: string | null;
 
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    unique: true,
+  })
+  hikvision_code: string;
+
   @HasMany(() => StudentGroup, {
     onDelete: 'CASCADE',
     hooks: true,
