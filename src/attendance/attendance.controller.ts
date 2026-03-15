@@ -10,14 +10,15 @@ import {
   Put,
   Query,
   Version,
+  Res,
 } from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
-import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { Response } from 'express';
 
 @ApiTags('Attendance')
 @Controller('attendance')
@@ -65,6 +66,25 @@ export class AttendanceController {
     @Param('group_id') group_id: string,
   ) {
     return this.attendanceService.findGroupStudent(+school_id, +group_id);
+  }
+
+  @Get('excel')
+  @Version('1')
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  async excelAttendance(
+    @Query('school_id') school_id: number,
+    @Query('group_id') group_id: number,
+    @Query('year') year: number,
+    @Query('month') month?: number,
+    @Res() res?: Response,
+  ) {
+    return this.attendanceService.excelAttendanceHistory(
+      +school_id,
+      +group_id,
+      +year,
+      month ? +month : undefined,
+      res,
+    );
   }
 
   @Version('1')

@@ -63,6 +63,7 @@ import { Salary } from './salary/models/salary.model';
 import { CostCategoryModule } from './cost-category/cost-category.module';
 import { CostCategory } from './cost-category/models/cost-category.model';
 import { BotModule } from './bot/bot.module';
+import { StudentAttendanceModule } from './student_attendance/student_attendance.module';
 
 @Module({
   imports: [
@@ -142,7 +143,8 @@ import { BotModule } from './bot/bot.module';
     CostModule,
     SalaryModule,
     CostCategoryModule,
-    BotModule
+    BotModule,
+    StudentAttendanceModule
   ],
   controllers: [],
   providers: [],

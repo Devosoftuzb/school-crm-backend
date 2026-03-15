@@ -1,16 +1,13 @@
-import {
-  Controller,
-  Post,
-  Body,
-  UseGuards,
-  Version,
-} from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Version } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { SmsService } from './sms.service';
-import { CreateSmsAttendanceDto, CreateSmsPaymentDto } from './dto/create-sm.dto';
+import {
+  CreateSmsAttendanceDto,
+  CreateSmsPaymentDto,
+} from './dto/create-sm.dto';
 
 @ApiTags('Sms')
 @Controller('sms')
@@ -25,6 +22,14 @@ export class SmsController {
   @Post('payment')
   sendPayment(@Body() createSmsDto: CreateSmsPaymentDto) {
     return this.smsService.sendPayment(createSmsDto);
+  }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Sms send' })
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Post('payment-bot')
+  sendPaymentBot(@Body() createSmsDto: CreateSmsPaymentDto) {
+    return this.smsService.sendPaymentBot(createSmsDto);
   }
 
   @Version('1')

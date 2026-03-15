@@ -12,6 +12,7 @@ import { StudentGroup } from 'src/student_group/models/student_group.model';
 import * as XLSX from 'xlsx';
 import { Response } from 'express';
 import { StatisticService } from 'src/statistic/statistic.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PaymentService {
@@ -21,6 +22,7 @@ export class PaymentService {
     @InjectModel(Group) private repoGroup: typeof Group,
     @InjectModel(Employee) private repoEmployee: typeof Employee,
     private statistic: StatisticService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(createPaymentDto: CreatePaymentDto) {
@@ -29,19 +31,105 @@ export class PaymentService {
         id: createPaymentDto.student_id,
         school_id: createPaymentDto.school_id,
       },
+      attributes: ['id', 'full_name', 'parent_chat_id', 'parents_full_name'],
     });
 
     if (!student) {
       throw new BadRequestException(
-        `Student with id ${createPaymentDto.student_id} not found in school ${createPaymentDto.school_id}`,
+        `Student with id ${createPaymentDto.student_id} not found`,
       );
     }
 
     const payment = await this.repo.create(createPaymentDto);
-    return {
-      message: 'Payment created successfully',
-      payment,
-    };
+
+    if (student.parent_chat_id) {
+      this.notifyParent(student, payment).catch(
+        (err) => console.error('Bot notify error:', err),
+      );
+    }
+
+    return { message: 'Payment created successfully', payment };
+  }
+
+  private async notifyParent(
+    student: Student,
+    payment: Payment,
+  ): Promise<void> {
+    const botToken = this.configService.get<string>('BOT_TOKEN');
+    const telegramApi = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+    const months = [
+      'Yanvar',
+      'Fevral',
+      'Mart',
+      'Aprel',
+      'May',
+      'Iyun',
+      'Iyul',
+      'Avgust',
+      'Sentabr',
+      'Oktabr',
+      'Noyabr',
+      'Dekabr',
+    ];
+    const monthName = months[Number(payment.month) - 1] || payment.month;
+
+    const group = await this.repoGroup.findOne({
+      where: { id: payment.group_id },
+      attributes: ['name', 'price'],
+    });
+
+    const groupPrice = Number(group?.price || 0);
+    const paidPrice = Number(payment.price);
+
+    let discountedPrice = groupPrice;
+    if (Number(payment.discount) > 0) {
+      discountedPrice = Math.round(
+        groupPrice * (1 - Number(payment.discount) / 100),
+      );
+    }
+    if (Number(payment.discountSum) > 0) {
+      discountedPrice = Math.max(
+        discountedPrice - Number(payment.discountSum),
+        0,
+      );
+    }
+
+    let discountText = '';
+    if (Number(payment.discount) > 0 || Number(payment.discountSum) > 0) {
+      const parts: string[] = [];
+      if (Number(payment.discount) > 0) parts.push(`${payment.discount}%`);
+      if (Number(payment.discountSum) > 0) {
+        parts.push(
+          `${Number(payment.discountSum).toLocaleString('uz-UZ')} so'm`,
+        );
+      }
+      discountText = `🎁 Chegirma: *${parts.join(' + ')}*\n`;
+    }
+
+    await fetch(telegramApi, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: student.parent_chat_id,
+        parse_mode: 'Markdown',
+        text:
+          `✅ *Farzandingiz to'lov qildi!*\n\n` +
+          `📋 *To'lov tafsiloti:*\n` +
+          `👤 O'quvchi: *${student.full_name}*\n` +
+          (group ? `📚 Guruh: *${group.name}*\n` : '') +
+          `🏷 Guruh narxi: *${groupPrice.toLocaleString('uz-UZ')} so'm*\n` +
+          discountText +
+          (discountText
+            ? `💵 Chegirmadan keyin: *${discountedPrice.toLocaleString('uz-UZ')} so'm*\n`
+            : '') +
+          `💰 To'langan summa: *${paidPrice.toLocaleString('uz-UZ')} so'm*\n` +
+          `📅 Oy: *${monthName} ${payment.year}*\n` +
+          `💳 To'lov turi: *${payment.method}*\n` +
+          (payment.description ? `📝 Izoh: ${payment.description}\n` : '') +
+          `\n🏫 *Sayyimov Academy*`,
+      }),
+    });
   }
 
   async findOne(id: number, school_id: number) {

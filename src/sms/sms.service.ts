@@ -12,8 +12,6 @@ import {
 } from './dto/create-sm.dto';
 import { StudentGroup } from 'src/student_group/models/student_group.model';
 import { Payment } from 'src/payment/models/payment.model';
-import { EmployeeGroup } from 'src/employee_group/models/employee_group.model';
-import { Employee } from 'src/employee/models/employee.model';
 import { Op } from 'sequelize';
 
 @Injectable()
@@ -21,7 +19,7 @@ export class SmsService {
   constructor(
     @InjectModel(Group) private repo: typeof Group,
     @InjectModel(Student) private repoStudent: typeof Student,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
   ) {}
 
   private async getEskizToken(): Promise<string> {
@@ -127,6 +125,103 @@ export class SmsService {
       console.error("To'lov SMS yuborishda xatolik:", error);
       throw new BadRequestException(
         error.message || 'SMS yuborishda xatolik yuz berdi',
+      );
+    }
+  }
+
+  async sendPaymentBot(smsDto: CreateSmsPaymentDto) {
+    try {
+      const group = await this.repo.findOne({
+        where: { id: smsDto.group_id },
+        include: [
+          {
+            model: StudentGroup,
+            include: [
+              {
+                model: Student,
+                include: [
+                  {
+                    model: Payment,
+                    required: false,
+                    where: {
+                      status: { [Op.ne]: 'delete' },
+                      group_id: smsDto.group_id,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      const group_price = group.price;
+      const date = new Date();
+      const currentYear = String(date.getFullYear());
+      const currentMonth = String(date.getMonth() + 1).padStart(2, '0');
+
+      const students = group.student
+        .map((sg) => sg.student)
+        .filter((student) => {
+          if (!student.parent_chat_id) return false;
+
+          let totalPaid = 0;
+          let totalDiscountPercent = 0;
+          let totalDiscountSum = 0;
+
+          for (const payment of student.payment ?? []) {
+            if (
+              payment.year === currentYear &&
+              payment.month === currentMonth
+            ) {
+              totalPaid += Number(payment.price || 0);
+              totalDiscountPercent += Number(payment.discount || 0);
+              totalDiscountSum += Number(payment.discountSum || 0);
+            }
+          }
+
+          const priceAfterPercent = Math.round(
+            Number(group_price) * (1 - totalDiscountPercent / 100),
+          );
+          const finalPrice = Math.max(priceAfterPercent - totalDiscountSum, 0);
+
+          return totalPaid < finalPrice;
+        });
+
+      if (students.length === 0) {
+        return { message: "Barcha o'quvchilar to'lagan", count: 0 };
+      }
+
+      const botToken = this.configService.get<string>('BOT_TOKEN');
+      const telegramApi = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+      const botPromises = students.map((student) =>
+        fetch(telegramApi, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: student.parent_chat_id,
+            text:
+              `⚠️ *To'lov eslatmasi*\n\n` +
+              `Hurmatli ${student.parents_full_name}, *${student.full_name}* uchun ` +
+              `joriy oy to'lovi kutilmoqda.\n\n` +
+              `Iltimos, o'z vaqtida amalga oshiring.\n\n` +
+              `🏫 *Sayyimov Academy*`,
+            parse_mode: 'Markdown',
+          }),
+        }),
+      );
+
+      await Promise.all(botPromises);
+
+      return {
+        message: 'Bot xabarlari muvaffaqiyatli yuborildi',
+        count: students.length,
+      };
+    } catch (error) {
+      console.error('Bot xabar yuborishda xatolik:', error);
+      throw new BadRequestException(
+        error.message || 'Bot xabar yuborishda xatolik yuz berdi',
       );
     }
   }

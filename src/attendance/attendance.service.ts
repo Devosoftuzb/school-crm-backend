@@ -9,6 +9,8 @@ import { StudentGroup } from 'src/student_group/models/student_group.model';
 import { SmsService } from 'src/sms/sms.service';
 import { Group } from 'src/group/models/group.model';
 import { Payment } from 'src/payment/models/payment.model';
+import * as XLSX from 'xlsx';
+import { Response } from 'express';
 
 @Injectable()
 export class AttendanceService {
@@ -27,6 +29,13 @@ export class AttendanceService {
           id: item.student_id,
           school_id: item.school_id,
         },
+        include: [
+          {
+            model: StudentGroup,
+            where: { group_id: item.group_id },
+            required: true,
+          },
+        ],
       });
 
       if (!student) continue;
@@ -173,61 +182,85 @@ export class AttendanceService {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
-      const allStudents = await this.repoStudent.findAll({
+
+      const dateFilter = {
+        [Op.gte]: new Date(year, month - 1, 1),
+        [Op.lt]: new Date(year, month, 1),
+      };
+
+      const currentStudents = await this.repoStudent.findAll({
         where: { school_id },
         include: [
           {
             model: StudentGroup,
             where: { group_id },
+            required: true,
             attributes: ['id'],
           },
         ],
         attributes: ['id', 'full_name'],
       });
 
+      const currentStudentIds = new Set(currentStudents.map((s) => s.id));
+
       const allAttendances = await this.repo.findAll({
-        where: {
-          school_id,
-          group_id,
-          createdAt: {
-            [Op.gte]: new Date(year, month - 1, 1),
-            [Op.lt]: new Date(year, month, 1),
-          },
-        },
+        where: { school_id, group_id, createdAt: dateFilter },
         attributes: ['createdAt', 'status', 'student_id'],
-        order: [['createdAt', 'DESC']],
+        order: [['createdAt', 'ASC']],
       });
 
-      const attendanceMap = new Map();
+      const leftStudentIds = [
+        ...new Set(
+          allAttendances
+            .map((a) => a.student_id)
+            .filter((id) => !currentStudentIds.has(id)),
+        ),
+      ];
 
-      allStudents.forEach((student) => {
-        attendanceMap.set(student.id, {
-          student_group_id: student.group[0].id,
-          student_name: student.full_name,
-          attendance: [],
+      let leftStudents: Student[] = [];
+      if (leftStudentIds.length) {
+        leftStudents = await this.repoStudent.findAll({
+          where: { id: { [Op.in]: leftStudentIds } },
+          attributes: ['id', 'full_name'],
         });
-      });
+      }
 
-      allAttendances.forEach((record) => {
-        const student = attendanceMap.get(record.student_id);
-        if (student) {
-          student.attendance.push({
-            date: record.createdAt.toISOString().split('T')[0],
-            status: record.status,
-          });
-        }
-      });
+      const buildAttendanceMap = (students: Student[], isLeft = false) => {
+        return students.map((student) => {
+          const attendance = allAttendances
+            .filter((a) => a.student_id === student.id)
+            .map((a) => ({
+              date: new Date(a.createdAt).toISOString().split('T')[0],
+              status: a.status,
+            }));
 
-      const attendanceRecords = Array.from(attendanceMap.values());
-      const paginatedRecords = attendanceRecords.slice(offset, offset + limit);
+          return {
+            student_id: student.id,
+            student_group_id: !isLeft ? student.group[0].id : null,
+            student_name: student.full_name,
+            is_left: isLeft,
+            attendance,
+          };
+        });
+      };
 
-      const total_count = attendanceRecords.length;
+      const currentRecords = buildAttendanceMap(currentStudents, false);
+      const leftRecords = buildAttendanceMap(leftStudents, true);
+
+      const paginatedCurrent = currentRecords.slice(offset, offset + limit);
+
+      const records = [...paginatedCurrent];
+      if (offset + limit >= currentRecords.length && leftRecords.length) {
+        records.push(...leftRecords);
+      }
+
+      const total_count = currentRecords.length;
       const total_pages = Math.ceil(total_count / limit);
 
       return {
         status: 200,
         data: {
-          records: paginatedRecords,
+          records,
           pagination: {
             currentPage: page,
             total_pages,
@@ -239,6 +272,195 @@ export class AttendanceService {
       throw new BadRequestException(error.message);
     }
   }
+
+  async excelAttendanceHistory(
+    school_id: number,
+    group_id: number,
+    year: number,
+    month?: number,
+    res?: Response,
+  ) {
+    try {
+      const dateFilter = month
+        ? {
+            [Op.gte]: new Date(year, month - 1, 1),
+            [Op.lt]: new Date(year, month, 1),
+          }
+        : {
+            [Op.gte]: new Date(year, 0, 1),
+            [Op.lt]: new Date(year + 1, 0, 1),
+          };
+
+      const allAttendances = await this.repo.findAll({
+        where: {
+          school_id,
+          group_id,
+          createdAt: dateFilter,
+        },
+        attributes: ['student_id', 'status', 'createdAt'],
+        order: [['createdAt', 'ASC']],
+      });
+
+      if (!allAttendances.length) {
+        throw new BadRequestException("Ma'lumot topilmadi");
+      }
+
+      const uniqueDates = [
+        ...new Set(
+          allAttendances.map(
+            (a) => new Date(a.createdAt).toISOString().split('T')[0],
+          ),
+        ),
+      ].sort();
+
+      const currentStudents = await this.repoStudent.findAll({
+        where: { school_id, status: true },
+        attributes: ['id', 'full_name'],
+        include: [
+          {
+            model: StudentGroup,
+            where: { group_id },
+            required: true,
+            attributes: [],
+          },
+        ],
+      });
+
+      const currentStudentIds = new Set(currentStudents.map((s) => s.id));
+
+      const allStudentIds = [
+        ...new Set(allAttendances.map((a) => a.student_id)),
+      ];
+
+      const leftStudentIds = allStudentIds.filter(
+        (id) => !currentStudentIds.has(id),
+      );
+
+      let leftStudents: Student[] = [];
+      if (leftStudentIds.length) {
+        leftStudents = await this.repoStudent.findAll({
+          where: { id: { [Op.in]: leftStudentIds } },
+          attributes: ['id', 'full_name'],
+        });
+      }
+
+      const attendanceMap = new Map<number, Map<string, boolean>>();
+      for (const a of allAttendances) {
+        const date = new Date(a.createdAt).toISOString().split('T')[0];
+        if (!attendanceMap.has(a.student_id)) {
+          attendanceMap.set(a.student_id, new Map());
+        }
+        attendanceMap.get(a.student_id)!.set(date, a.status);
+      }
+
+      const buildRow = (student: Student, isLeft = false) => {
+        const record: Record<string, any> = {
+          "O'quvchi": isLeft
+            ? `${student.full_name} (chiqib ketgan)`
+            : student.full_name,
+        };
+        const studentDates = attendanceMap.get(student.id) || new Map();
+        for (const date of uniqueDates) {
+          const [y, m, d] = date.split('-');
+          const label = `${d}.${m}`;
+          const status = studentDates.get(date);
+          record[label] = status === undefined ? '-' : status ? '✓' : '✗';
+        }
+
+        const vals = [...studentDates.values()];
+        record['Kelgan'] = vals.filter(Boolean).length;
+        record['Kelmagan'] = vals.filter((v) => !v).length;
+        return record;
+      };
+
+      const dataToExport: Record<string, any>[] = [];
+
+      for (const s of currentStudents) {
+        dataToExport.push(buildRow(s, false));
+      }
+
+      if (leftStudents.length) {
+        const separator: Record<string, any> = {
+          "O'quvchi": '— Guruhdan chiqib ketganlar —',
+        };
+        for (const date of uniqueDates) {
+          const [, m, d] = date.split('-');
+          separator[`${d}.${m}`] = '';
+        }
+        separator['Kelgan'] = '';
+        separator['Kelmagan'] = '';
+        dataToExport.push(separator);
+
+        for (const s of leftStudents) {
+          dataToExport.push(buildRow(s, true));
+        }
+      }
+
+      const workbook = XLSX.utils.book_new();
+      const worksheet = this.createWorksheet(dataToExport);
+
+      const cols = [
+        { wch: 28 },
+        ...uniqueDates.map(() => ({ wch: 6 })),
+        { wch: 10 },
+        { wch: 10 },
+      ];
+      worksheet['!cols'] = cols;
+
+      const sheetName = month
+        ? `${this.monthNames(month)} ${year}`
+        : `${year} yil`;
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+      const excelBuffer = XLSX.write(workbook, {
+        type: 'buffer',
+        bookType: 'xlsx',
+      }) as Buffer;
+
+      const fileName = month
+        ? `attendance_${group_id}_${month}_${year}.xlsx`
+        : `attendance_${group_id}_${year}.xlsx`;
+
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${fileName}"`,
+      );
+
+      return res.send(excelBuffer);
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException(
+        error.message || 'Excel yaratishda xatolik yuz berdi',
+      );
+    }
+  }
+
+  private createWorksheet<T extends object>(data: T[]): XLSX.WorkSheet {
+    return XLSX.utils.json_to_sheet(data as unknown as object[]);
+  }
+
+  private monthNames = (monthNum: number): string => {
+    const months = [
+      'Yanvar',
+      'Fevral',
+      'Mart',
+      'Aprel',
+      'May',
+      'Iyun',
+      'Iyul',
+      'Avgust',
+      'Sentabr',
+      'Oktabr',
+      'Noyabr',
+      'Dekabr',
+    ];
+    return months[monthNum - 1] || '';
+  };
 
   async remove(group_id: number, student_id: number, school_id: number) {
     const attendances = await this.repo.findAll({
