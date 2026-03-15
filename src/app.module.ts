@@ -64,6 +64,7 @@ import { CostCategoryModule } from './cost-category/cost-category.module';
 import { CostCategory } from './cost-category/models/cost-category.model';
 import { BotModule } from './bot/bot.module';
 import { StudentAttendanceModule } from './student_attendance/student_attendance.module';
+import { StudentAttendance } from './student_attendance/models/student_attendance.model';
 
 @Module({
   imports: [
@@ -103,6 +104,7 @@ import { StudentAttendanceModule } from './student_attendance/student_attendance
         Cost,
         Salary,
         CostCategory,
+        StudentAttendance,
       ],
       autoLoadModels: true,
       logging: false,
@@ -144,7 +146,7 @@ import { StudentAttendanceModule } from './student_attendance/student_attendance
     SalaryModule,
     CostCategoryModule,
     BotModule,
-    StudentAttendanceModule
+    StudentAttendanceModule,
   ],
   controllers: [],
   providers: [],
