@@ -51,7 +51,7 @@ export class StudentAttendanceService {
 
   async paginate(school_id: number, student_id: number, page: number) {
     page = Number(page);
-    const limit = 10;
+    const limit = 15;
     const offset = (page - 1) * limit;
 
     const attendances = await this.repo.findAll({
