@@ -10,6 +10,7 @@ import axios from 'axios';
 export class HikvisionService {
   private readonly logger = new Logger(HikvisionService.name);
   private lastEventIndex = 0;
+  private processedEventIds = new Set<string>();
 
   constructor(
     @InjectModel(Student)
@@ -156,7 +157,42 @@ export class HikvisionService {
     });
   }
 
-  // ✅ Polling — har 10 sekundda yangi eventlarni olish
+  // ✅ Server ishga tushganda mavjud eventlar sonini olish
+  async initLastEventIndex() {
+    try {
+      const res = await this.digestRequest(
+        'POST',
+        '/ISAPI/AccessControl/AcsEvent?format=json',
+        {
+          AcsEventCond: {
+            searchID: '1',
+            searchResultPosition: 0,
+            maxResults: 1,
+            major: 0,
+            minor: 0,
+          },
+        },
+      );
+
+      const total = res.data?.AcsEvent?.totalMatches || 0;
+      this.lastEventIndex = total;
+      this.logger.log(`✅ Event index boshlandi: ${total}`);
+    } catch (err) {
+      this.logger.error(`❌ initLastEventIndex xato: ${err.message}`);
+    }
+  }
+
+  // ✅ IN/OUT — oxirgi attendancega qarab
+  private async getNextType(student_id: number): Promise<'IN' | 'OUT'> {
+    const last = await this.attendanceRepo.findOne({
+      where: { student_id },
+      order: [['createdAt', 'DESC']],
+    });
+
+    if (!last) return 'IN';
+    return last.type === 'IN' ? 'OUT' : 'IN';
+  }
+
   async pollEvents() {
     try {
       const res = await this.digestRequest(
@@ -185,6 +221,17 @@ export class HikvisionService {
         const hikvision_code = event?.employeeNoString;
         if (!hikvision_code) continue;
 
+        // ✅ Dublikat oldini olish
+        const eventId = `${hikvision_code}-${event?.time || ''}`;
+        if (this.processedEventIds.has(eventId)) continue;
+        this.processedEventIds.add(eventId);
+
+        // Set hajmini cheklash
+        if (this.processedEventIds.size > 1000) {
+          const first = this.processedEventIds.values().next().value;
+          this.processedEventIds.delete(first);
+        }
+
         const student = await this.studentRepo.findOne({
           where: { hikvision_code },
         });
@@ -194,9 +241,8 @@ export class HikvisionService {
           continue;
         }
 
-        const type: 'IN' | 'OUT' = event?.currentVerifyMode?.includes('exit')
-          ? 'OUT'
-          : 'IN';
+        // ✅ Oxirgi attendancega qarab IN/OUT
+        const type = await this.getNextType(student.id);
 
         await this.attendanceRepo.create({
           school_id: student.school_id,
