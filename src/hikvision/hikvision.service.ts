@@ -106,12 +106,13 @@ export class HikvisionService {
     const url = `${this.baseURL}${path}`;
     const formHeaders = form.getHeaders();
 
-    // 1. Bo'sh so'rov — 401 + WWW-Authenticate olish
+    // 1. ✅ Bo'sh so'rov — faqat 401 + WWW-Authenticate olish
     let wwwAuth = '';
     try {
-      await axios.post(url, form, {
+      await axios.post(url, null, {
+        // ✅ null — bo'sh body
         httpsAgent: this.agent,
-        headers: formHeaders,
+        headers: { 'Content-Type': 'application/json' },
         timeout: 10000,
       });
     } catch (err) {
@@ -145,6 +146,7 @@ export class HikvisionService {
       .filter(Boolean)
       .join(', ');
 
+    // 2. ✅ Haqiqiy form data bilan so'rov
     return axios.post(url, form, {
       httpsAgent: this.agent,
       timeout: 30000,
