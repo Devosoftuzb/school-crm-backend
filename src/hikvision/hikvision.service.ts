@@ -149,7 +149,23 @@ export class HikvisionService {
     try {
       await this.ensureFDLibExists();
 
-      // 1. Person qo'shish
+      // 1. Avval mavjud userni o'chirish
+      try {
+        await this.digestRequest(
+          'PUT',
+          '/ISAPI/AccessControl/UserInfo/Delete?format=json',
+          {
+            UserInfoDelCond: {
+              EmployeeNoList: [{ employeeNo: hikvision_code }],
+            },
+          },
+        );
+        this.logger.log(`🗑️ Eski user o'chirildi: ${hikvision_code}`);
+      } catch {
+        // Yo'q bo'lsa davom etamiz
+      }
+
+      // 2. Person qo'shish
       await this.digestRequest(
         'POST',
         '/ISAPI/AccessControl/UserInfo/Record?format=json',
@@ -170,7 +186,7 @@ export class HikvisionService {
         },
       );
 
-      // 2. ✅ Yuz qo'shish — XML format
+      // 3. Yuz qo'shish — XML format
       const imageBase64 = file.buffer.toString('base64');
 
       const xmlData = `<?xml version="1.0" encoding="UTF-8"?>
