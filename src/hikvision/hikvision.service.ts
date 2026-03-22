@@ -243,7 +243,7 @@ export class HikvisionService {
           school_id: student.school_id,
           student_id: student.id,
           type,
-          time: event?.time ? new Date(event.time) : new Date(),
+          time: new Date(),
         });
 
         await this.sendTelegramNotification(student, type);
