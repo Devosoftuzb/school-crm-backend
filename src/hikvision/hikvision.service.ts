@@ -157,7 +157,6 @@ export class HikvisionService {
     });
   }
 
-  // ✅ Server ishga tushganda mavjud eventlar sonini olish
   async initLastEventIndex() {
     try {
       const res = await this.digestRequest(
@@ -182,7 +181,6 @@ export class HikvisionService {
     }
   }
 
-  // ✅ IN/OUT — oxirgi attendancega qarab
   private async getNextType(student_id: number): Promise<'IN' | 'OUT'> {
     const last = await this.attendanceRepo.findOne({
       where: { student_id },
@@ -221,12 +219,10 @@ export class HikvisionService {
         const hikvision_code = event?.employeeNoString;
         if (!hikvision_code) continue;
 
-        // ✅ Dublikat oldini olish
         const eventId = `${hikvision_code}-${event?.time || ''}`;
         if (this.processedEventIds.has(eventId)) continue;
         this.processedEventIds.add(eventId);
 
-        // Set hajmini cheklash
         if (this.processedEventIds.size > 1000) {
           const first = this.processedEventIds.values().next().value;
           this.processedEventIds.delete(first);
@@ -241,7 +237,6 @@ export class HikvisionService {
           continue;
         }
 
-        // ✅ Oxirgi attendancega qarab IN/OUT
         const type = await this.getNextType(student.id);
 
         await this.attendanceRepo.create({
@@ -251,12 +246,46 @@ export class HikvisionService {
           time: event?.time ? new Date(event.time) : new Date(),
         });
 
+        await this.sendTelegramNotification(student, type);
+
         this.logger.log(
           `📌 ${student.full_name} — ${type} — ${new Date().toLocaleTimeString()}`,
         );
       }
     } catch (err) {
       this.logger.error(`❌ Polling xato: ${err.message}`);
+    }
+  }
+
+  private async sendTelegramNotification(
+    student: Student,
+    type: 'IN' | 'OUT',
+  ): Promise<void> {
+    try {
+      if (!student.parent_chat_id) return;
+
+      const time = new Date().toLocaleTimeString('uz-UZ', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      const message =
+        type === 'IN'
+          ? `✅ Farzandingiz *${student.full_name}* maktabga keldi 🏫\n🕐 Vaqt: ${time}`
+          : `🏠 Farzandingiz *${student.full_name}* maktabdan chiqdi\n🕐 Vaqt: ${time}`;
+
+      await axios.post(
+        `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`,
+        {
+          chat_id: student.parent_chat_id,
+          text: message,
+          parse_mode: 'Markdown',
+        },
+      );
+
+      this.logger.log(`📱 Telegram xabar yuborildi: ${student.full_name}`);
+    } catch (err) {
+      this.logger.error(`❌ Telegram xabar xatosi: ${err.message}`);
     }
   }
 
@@ -298,7 +327,6 @@ export class HikvisionService {
     try {
       await this.ensureFDLibExists();
 
-      // 1. Avval mavjud userni o'chirish
       try {
         await this.digestRequest(
           'PUT',
@@ -311,10 +339,9 @@ export class HikvisionService {
         );
         this.logger.log(`🗑️ Eski user o'chirildi: ${hikvision_code}`);
       } catch {
-        // Yo'q bo'lsa davom etamiz
+        // else
       }
 
-      // 2. Person qo'shish
       await this.digestRequest(
         'POST',
         '/ISAPI/AccessControl/UserInfo/Record?format=json',
@@ -335,7 +362,6 @@ export class HikvisionService {
         },
       );
 
-      // 3. Yuz qo'shish — multipart
       const FormData = require('form-data');
       const form = new FormData();
 
@@ -414,44 +440,6 @@ export class HikvisionService {
     } catch (err) {
       this.logger.error(`❌ O'chirishda xato: ${err.message}`);
       throw new Error(`Hikvision xato: ${err.message}`);
-    }
-  }
-
-  async verifyFace(student_id: number) {
-    const student = await this.studentRepo.findByPk(student_id);
-    if (!student) throw new NotFoundException('Student topilmadi');
-    if (!student.hikvision_code)
-      throw new NotFoundException("Studentda hikvision_code yo'q");
-
-    try {
-      const res = await this.digestRequest(
-        'POST',
-        '/ISAPI/Intelligent/FDLib/FaceDataRecord/Search?format=json',
-        {
-          searchResultPosition: 0,
-          maxResults: 1,
-          faceLibType: 'blackFD',
-          FDID: '1',
-          FPID: student.hikvision_code,
-        },
-      );
-
-      const total = res.data?.SearchFaceResult?.totalMatches || 0;
-      const exists = total > 0;
-
-      return {
-        success: true,
-        exists,
-        message: exists
-          ? `${student.full_name} qurilmada mavjud ✅`
-          : `${student.full_name} qurilmada yo'q ❌`,
-      };
-    } catch {
-      return {
-        success: false,
-        exists: false,
-        message: `${student.full_name} qurilmada yo'q ❌`,
-      };
     }
   }
 }

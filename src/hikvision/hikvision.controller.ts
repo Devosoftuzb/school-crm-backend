@@ -79,14 +79,4 @@ export class HikvisionController {
   deleteFace(@Param('student_id') student_id: string) {
     return this.hikvisionService.deleteFace(+student_id);
   }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Verify student face exists on device' })
-  @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator', 'superadmin')
-  @UseGuards(RolesGuard, JwtAuthGuard)
-  @Get('face/:student_id/verify')
-  verifyFace(@Param('student_id') student_id: string) {
-    return this.hikvisionService.verifyFace(+student_id);
-  }
 }
