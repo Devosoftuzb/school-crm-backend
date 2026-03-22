@@ -2,7 +2,6 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Student } from 'src/student/models/student.model';
 import { StudentAttendance } from 'src/student_attendance/models/student_attendance.model';
-import * as xml2js from 'xml2js';
 import * as https from 'https';
 import * as crypto from 'crypto';
 import axios from 'axios';
@@ -10,6 +9,7 @@ import axios from 'axios';
 @Injectable()
 export class HikvisionService {
   private readonly logger = new Logger(HikvisionService.name);
+  private isListening = false;
 
   constructor(
     @InjectModel(Student)
@@ -38,14 +38,8 @@ export class HikvisionService {
     return crypto.createHash('md5').update(str).digest('hex');
   }
 
-  private async digestRequest(
-    method: string,
-    path: string,
-    data?: any,
-    extraHeaders?: any,
-  ) {
+  private async buildDigestAuth(method: string, path: string): Promise<string> {
     const url = `${this.baseURL}${path}`;
-    const contentType = extraHeaders?.['Content-Type'] || 'application/json';
 
     let wwwAuth = '';
     try {
@@ -54,7 +48,7 @@ export class HikvisionService {
         url,
         httpsAgent: this.agent,
         timeout: 10000,
-        headers: { 'Content-Type': contentType },
+        headers: { 'Content-Type': 'application/json' },
       });
     } catch (err) {
       const status = err.response?.status;
@@ -72,9 +66,9 @@ export class HikvisionService {
     const cnonce = crypto.randomBytes(8).toString('hex');
     const ha1 = this.md5(`${this.username}:${realm}:${this.password}`);
     const ha2 = this.md5(`${method.toUpperCase()}:${path}`);
-    const response = this.md5(`${ha1}:${nonce}:${nc}:${cnonce}:${qop}:${ha2}`);
+    const resp = this.md5(`${ha1}:${nonce}:${nc}:${cnonce}:${qop}:${ha2}`);
 
-    const authHeader = [
+    return [
       `Digest username="${this.username}"`,
       `realm="${realm}"`,
       `nonce="${nonce}"`,
@@ -82,11 +76,22 @@ export class HikvisionService {
       `qop=${qop}`,
       `nc=${nc}`,
       `cnonce="${cnonce}"`,
-      `response="${response}"`,
+      `response="${resp}"`,
       opaque ? `opaque="${opaque}"` : '',
     ]
       .filter(Boolean)
       .join(', ');
+  }
+
+  private async digestRequest(
+    method: string,
+    path: string,
+    data?: any,
+    extraHeaders?: any,
+  ) {
+    const url = `${this.baseURL}${path}`;
+    const contentType = extraHeaders?.['Content-Type'] || 'application/json';
+    const authHeader = await this.buildDigestAuth(method, path);
 
     return axios({
       method,
@@ -106,11 +111,9 @@ export class HikvisionService {
     const url = `${this.baseURL}${path}`;
     const formHeaders = form.getHeaders();
 
-    // 1. ✅ Bo'sh so'rov — faqat 401 + WWW-Authenticate olish
     let wwwAuth = '';
     try {
       await axios.post(url, null, {
-        // ✅ null — bo'sh body
         httpsAgent: this.agent,
         headers: { 'Content-Type': 'application/json' },
         timeout: 10000,
@@ -146,7 +149,6 @@ export class HikvisionService {
       .filter(Boolean)
       .join(', ');
 
-    // 2. ✅ Haqiqiy form data bilan so'rov
     return axios.post(url, form, {
       httpsAgent: this.agent,
       timeout: 30000,
@@ -155,6 +157,104 @@ export class HikvisionService {
         Authorization: authHeader,
       },
     });
+  }
+
+  // ✅ Real-time event stream
+  async startEventListener() {
+    if (this.isListening) return;
+    this.isListening = true;
+
+    const path = '/ISAPI/Event/notification/alertStream';
+    const url = `${this.baseURL}${path}`;
+
+    this.logger.log('🎧 Event listener ishga tushdi...');
+
+    try {
+      const authHeader = await this.buildDigestAuth('GET', path);
+
+      const res = await axios.get(url, {
+        httpsAgent: this.agent,
+        timeout: 0,
+        responseType: 'stream',
+        headers: {
+          Authorization: authHeader,
+          Accept: 'multipart/x-mixed-replace',
+        },
+      });
+
+      let buffer = '';
+
+      res.data.on('data', async (chunk: Buffer) => {
+        buffer += chunk.toString();
+
+        // XML event ni ajratib olish
+        const xmlMatch = buffer.match(
+          /<EventNotificationAlert[\s\S]*?<\/EventNotificationAlert>/,
+        );
+        if (xmlMatch) {
+          buffer = buffer.replace(xmlMatch[0], '');
+          await this.processEvent(xmlMatch[0]);
+        }
+      });
+
+      res.data.on('end', () => {
+        this.logger.warn(
+          '⚠️ Stream uzildi, 3 sekunddan keyin qayta ulanadi...',
+        );
+        this.isListening = false;
+        setTimeout(() => this.startEventListener(), 3000);
+      });
+
+      res.data.on('error', (err: Error) => {
+        this.logger.error(`❌ Stream xato: ${err.message}`);
+        this.isListening = false;
+        setTimeout(() => this.startEventListener(), 5000);
+      });
+    } catch (err) {
+      this.logger.error(`❌ Event listener xato: ${err.message}`);
+      this.isListening = false;
+      setTimeout(() => this.startEventListener(), 5000);
+    }
+  }
+
+  private async processEvent(xmlStr: string): Promise<void> {
+    try {
+      const { parseStringPromise } = await import('xml2js');
+      const result = await parseStringPromise(xmlStr);
+
+      const event = result?.EventNotificationAlert;
+      const hikvision_code =
+        event?.AccessControllerEvent?.[0]?.employeeNoString?.[0];
+      const rawTime = event?.dateTime?.[0];
+      const direction =
+        event?.AccessControllerEvent?.[0]?.currentVerifyMode?.[0];
+
+      if (!hikvision_code) return;
+
+      const student = await this.studentRepo.findOne({
+        where: { hikvision_code },
+      });
+
+      if (!student) {
+        this.logger.warn(`⚠️ Student topilmadi: ${hikvision_code}`);
+        return;
+      }
+
+      const type: 'IN' | 'OUT' = direction?.includes('exit') ? 'OUT' : 'IN';
+
+      await this.attendanceRepo.create({
+        school_id: student.school_id,
+        student_id: student.id,
+        type,
+        time: rawTime ? new Date(rawTime) : new Date(),
+      });
+
+      this.logger.log(
+        `📌 ${student.full_name} — ${type} — ${new Date().toLocaleTimeString()}`,
+      );
+    } catch (err) {
+      this.logger.error(`❌ Event parse xato: ${err.message}`);
+    }
   }
 
   async ping() {
@@ -232,7 +332,7 @@ export class HikvisionService {
         },
       );
 
-      // 3. ✅ Yuz qo'shish — multipart form-data
+      // 3. Yuz qo'shish — multipart
       const FormData = require('form-data');
       const form = new FormData();
 
@@ -350,53 +450,5 @@ export class HikvisionService {
         message: `${student.full_name} qurilmada yo'q ❌`,
       };
     }
-  }
-
-  async handleEvent(rawXml: string): Promise<void> {
-    return new Promise((resolve) => {
-      xml2js.parseString(rawXml, async (err, result) => {
-        if (err) {
-          this.logger.error(`XML parse xatosi: ${err.message}`);
-          resolve();
-          return;
-        }
-
-        const event = result?.EventNotificationAlert;
-        const hikvision_code =
-          event?.AccessControllerEvent?.[0]?.employeeNoString?.[0];
-        const rawTime = event?.dateTime?.[0];
-        const direction =
-          event?.AccessControllerEvent?.[0]?.currentVerifyMode?.[0];
-
-        if (!hikvision_code) {
-          resolve();
-          return;
-        }
-
-        const student = await this.studentRepo.findOne({
-          where: { hikvision_code },
-        });
-
-        if (!student) {
-          this.logger.warn(`⚠️ Student topilmadi: ${hikvision_code}`);
-          resolve();
-          return;
-        }
-
-        const type: 'IN' | 'OUT' = direction?.includes('exit') ? 'OUT' : 'IN';
-
-        await this.attendanceRepo.create({
-          school_id: student.school_id,
-          student_id: student.id,
-          type,
-          time: rawTime ? new Date(rawTime) : new Date(),
-        });
-
-        this.logger.log(
-          `📌 ${student.full_name} — ${type} — ${new Date().toLocaleTimeString()}`,
-        );
-        resolve();
-      });
-    });
   }
 }

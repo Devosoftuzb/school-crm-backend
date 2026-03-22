@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit, Logger } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { HikvisionService } from './hikvision.service';
 import { HikvisionController } from './hikvision.controller';
@@ -15,4 +15,13 @@ import { JwtModule } from '@nestjs/jwt';
   controllers: [HikvisionController],
   exports: [HikvisionService],
 })
-export class HikvisionModule {}
+export class HikvisionModule implements OnModuleInit {
+  private readonly logger = new Logger(HikvisionModule.name);
+
+  constructor(private readonly hikvisionService: HikvisionService) {}
+
+  onModuleInit() {
+    this.logger.log('🎧 Hikvision event listener ishga tushmoqda...');
+    this.hikvisionService.startEventListener();
+  }
+}
