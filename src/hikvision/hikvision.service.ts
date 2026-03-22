@@ -54,12 +54,19 @@ export class HikvisionService {
         url,
         httpsAgent: this.agent,
         data,
-        headers: extraHeaders,
+        timeout: 10000,
+        headers: {
+          'Content-Type': 'application/json',
+          ...extraHeaders,
+        },
       });
     } catch (err) {
+      const status = err.response?.status;
       wwwAuth = err.response?.headers?.['www-authenticate'] || '';
-      if (!wwwAuth) throw err;
+      if (status !== 401 && !wwwAuth) throw err;
     }
+
+    if (!wwwAuth) throw new Error('WWW-Authenticate header kelmadi');
 
     // 2. Digest parametrlarini parse qilish
     const realm = wwwAuth.match(/realm="([^"]+)"/)?.[1] || '';
@@ -94,6 +101,7 @@ export class HikvisionService {
       url,
       httpsAgent: this.agent,
       data,
+      timeout: 15000,
       headers: {
         Authorization: authHeader,
         'Content-Type': 'application/json',
@@ -140,7 +148,7 @@ export class HikvisionService {
     try {
       await this.ensureFDLibExists();
 
-      // Person qo'shish
+      // 1. Person qo'shish
       await this.digestRequest(
         'POST',
         '/ISAPI/AccessControl/UserInfo/Record?format=json',
@@ -161,27 +169,18 @@ export class HikvisionService {
         },
       );
 
-      // Yuz qo'shish — multipart
-      const FormData = require('form-data');
-      const form = new FormData();
-      form.append(
-        'FaceDataRecord',
-        JSON.stringify({
-          faceLibType: 'blackFD',
-          FDID: '1',
-          FPID: hikvision_code,
-        }),
-      );
-      form.append('img', file.buffer, {
-        filename: `${hikvision_code}.jpg`,
-        contentType: file.mimetype,
-      });
+      // 2. ✅ Yuz qo'shish — base64 bilan (multipart emas)
+      const imageBase64 = file.buffer.toString('base64');
 
       await this.digestRequest(
         'POST',
         '/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json',
-        form,
-        { ...form.getHeaders() },
+        {
+          faceLibType: 'blackFD',
+          FDID: '1',
+          FPID: hikvision_code,
+          faceData: imageBase64,
+        },
       );
 
       await student.update({ hikvision_code });
