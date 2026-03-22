@@ -21,7 +21,10 @@ export class HikvisionModule implements OnModuleInit {
   constructor(private readonly hikvisionService: HikvisionService) {}
 
   onModuleInit() {
-    this.logger.log('🎧 Hikvision event listener ishga tushmoqda...');
-    this.hikvisionService.startEventListener();
+    this.logger.log('🔄 Hikvision polling ishga tushdi...');
+    this.hikvisionService.pollEvents();
+    setInterval(() => {
+      this.hikvisionService.pollEvents();
+    }, 10000);
   }
 }

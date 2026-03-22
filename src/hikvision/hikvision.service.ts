@@ -9,7 +9,7 @@ import axios from 'axios';
 @Injectable()
 export class HikvisionService {
   private readonly logger = new Logger(HikvisionService.name);
-  private isListening = false;
+  private lastEventIndex = 0;
 
   constructor(
     @InjectModel(Student)
@@ -152,108 +152,65 @@ export class HikvisionService {
     return axios.post(url, form, {
       httpsAgent: this.agent,
       timeout: 30000,
-      headers: {
-        ...formHeaders,
-        Authorization: authHeader,
-      },
+      headers: { ...formHeaders, Authorization: authHeader },
     });
   }
 
-  // ✅ Real-time event stream
-  async startEventListener() {
-    if (this.isListening) return;
-    this.isListening = true;
-
-    const path = '/ISAPI/Event/notification/alertStream';
-    const url = `${this.baseURL}${path}`;
-
-    this.logger.log('🎧 Event listener ishga tushdi...');
-
+  // ✅ Polling — har 10 sekundda yangi eventlarni olish
+  async pollEvents() {
     try {
-      const authHeader = await this.buildDigestAuth('GET', path);
-
-      const res = await axios.get(url, {
-        httpsAgent: this.agent,
-        timeout: 0,
-        responseType: 'stream',
-        headers: {
-          Authorization: authHeader,
-          Accept: 'multipart/x-mixed-replace',
+      const res = await this.digestRequest(
+        'POST',
+        '/ISAPI/AccessControl/AcsEvent?format=json',
+        {
+          AcsEventCond: {
+            searchID: '1',
+            searchResultPosition: this.lastEventIndex,
+            maxResults: 20,
+            major: 0,
+            minor: 0,
+          },
         },
-      });
-
-      let buffer = '';
-
-      res.data.on('data', async (chunk: Buffer) => {
-        buffer += chunk.toString();
-
-        // XML event ni ajratib olish
-        const xmlMatch = buffer.match(
-          /<EventNotificationAlert[\s\S]*?<\/EventNotificationAlert>/,
-        );
-        if (xmlMatch) {
-          buffer = buffer.replace(xmlMatch[0], '');
-          await this.processEvent(xmlMatch[0]);
-        }
-      });
-
-      res.data.on('end', () => {
-        this.logger.warn(
-          '⚠️ Stream uzildi, 3 sekunddan keyin qayta ulanadi...',
-        );
-        this.isListening = false;
-        setTimeout(() => this.startEventListener(), 3000);
-      });
-
-      res.data.on('error', (err: Error) => {
-        this.logger.error(`❌ Stream xato: ${err.message}`);
-        this.isListening = false;
-        setTimeout(() => this.startEventListener(), 5000);
-      });
-    } catch (err) {
-      this.logger.error(`❌ Event listener xato: ${err.message}`);
-      this.isListening = false;
-      setTimeout(() => this.startEventListener(), 5000);
-    }
-  }
-
-  private async processEvent(xmlStr: string): Promise<void> {
-    try {
-      const { parseStringPromise } = await import('xml2js');
-      const result = await parseStringPromise(xmlStr);
-
-      const event = result?.EventNotificationAlert;
-      const hikvision_code =
-        event?.AccessControllerEvent?.[0]?.employeeNoString?.[0];
-      const rawTime = event?.dateTime?.[0];
-      const direction =
-        event?.AccessControllerEvent?.[0]?.currentVerifyMode?.[0];
-
-      if (!hikvision_code) return;
-
-      const student = await this.studentRepo.findOne({
-        where: { hikvision_code },
-      });
-
-      if (!student) {
-        this.logger.warn(`⚠️ Student topilmadi: ${hikvision_code}`);
-        return;
-      }
-
-      const type: 'IN' | 'OUT' = direction?.includes('exit') ? 'OUT' : 'IN';
-
-      await this.attendanceRepo.create({
-        school_id: student.school_id,
-        student_id: student.id,
-        type,
-        time: rawTime ? new Date(rawTime) : new Date(),
-      });
-
-      this.logger.log(
-        `📌 ${student.full_name} — ${type} — ${new Date().toLocaleTimeString()}`,
       );
+
+      const data = res.data?.AcsEvent;
+      const list = data?.InfoList || [];
+
+      if (list.length === 0) return;
+
+      this.lastEventIndex += list.length;
+      this.logger.log(`🔄 ${list.length} ta yangi event topildi`);
+
+      for (const event of list) {
+        const hikvision_code = event?.employeeNoString;
+        if (!hikvision_code) continue;
+
+        const student = await this.studentRepo.findOne({
+          where: { hikvision_code },
+        });
+
+        if (!student) {
+          this.logger.warn(`⚠️ Student topilmadi: ${hikvision_code}`);
+          continue;
+        }
+
+        const type: 'IN' | 'OUT' = event?.currentVerifyMode?.includes('exit')
+          ? 'OUT'
+          : 'IN';
+
+        await this.attendanceRepo.create({
+          school_id: student.school_id,
+          student_id: student.id,
+          type,
+          time: event?.time ? new Date(event.time) : new Date(),
+        });
+
+        this.logger.log(
+          `📌 ${student.full_name} — ${type} — ${new Date().toLocaleTimeString()}`,
+        );
+      }
     } catch (err) {
-      this.logger.error(`❌ Event parse xato: ${err.message}`);
+      this.logger.error(`❌ Polling xato: ${err.message}`);
     }
   }
 
