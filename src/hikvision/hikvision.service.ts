@@ -47,19 +47,18 @@ export class HikvisionService {
     const url = `${this.baseURL}${path}`;
     const contentType = extraHeaders?.['Content-Type'] || 'application/json';
 
-    // 1. Avval oddiy so'rov — 401 + WWW-Authenticate olish
+    // 1. Bo'sh so'rov — faqat 401 + WWW-Authenticate olish uchun
     let wwwAuth = '';
     try {
       await axios({
         method,
         url,
         httpsAgent: this.agent,
-        data,
         timeout: 10000,
         headers: {
-          'Content-Type': contentType, // ✅ to'g'ri content-type
-          ...extraHeaders,
+          'Content-Type': contentType,
         },
+        // ✅ data yubormaymiz — faqat auth header olish uchun
       });
     } catch (err) {
       const status = err.response?.status;
@@ -96,16 +95,16 @@ export class HikvisionService {
       .filter(Boolean)
       .join(', ');
 
-    // 3. Digest header bilan qayta so'rov
+    // 3. ✅ Haqiqiy data bilan so'rov
     return axios({
       method,
       url,
       httpsAgent: this.agent,
       data,
-      timeout: 30000, // ✅ timeout oshirildi — rasm uchun
+      timeout: 30000,
       headers: {
         Authorization: authHeader,
-        'Content-Type': contentType, // ✅ to'g'ri content-type
+        'Content-Type': contentType,
         ...extraHeaders,
       },
     });
