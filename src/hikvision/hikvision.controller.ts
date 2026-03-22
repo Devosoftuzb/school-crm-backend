@@ -89,15 +89,4 @@ export class HikvisionController {
   verifyFace(@Param('student_id') student_id: string) {
     return this.hikvisionService.verifyFace(+student_id);
   }
-
-  @Version('1')
-  @ApiOperation({ summary: 'Receive event from Hikvision device (webhook)' })
-  @Post('event')
-  async receiveEvent(@Req() req: Request) {
-    const rawXml = req.body?.toString();
-    if (!rawXml) return 'OK';
-
-    await this.hikvisionService.handleEvent(rawXml);
-    return 'OK';
-  }
 }
