@@ -410,28 +410,6 @@ export class HikvisionService {
       throw new NotFoundException("Studentda hikvision_code yo'q");
 
     try {
-      // 1. Yuzni o'chirish
-      try {
-        await this.digestRequest(
-          'PUT',
-          '/ISAPI/Intelligent/FDLib/FaceDataRecord/Delete?format=json',
-          {
-            FaceInfo: [
-              {
-                faceLibType: 'blackFD',
-                FDID: '1',
-                FPID: student.hikvision_code,
-              },
-            ],
-          },
-        );
-      } catch (err) {
-        this.logger.warn(
-          `⚠️ Yuz o'chirishda xato (davom etamiz): ${err.response?.data ? JSON.stringify(err.response.data) : err.message}`,
-        );
-      }
-
-      // 2. Userni o'chirish
       await this.digestRequest(
         'PUT',
         '/ISAPI/AccessControl/UserInfo/Delete?format=json',
