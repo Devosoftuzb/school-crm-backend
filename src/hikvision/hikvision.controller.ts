@@ -34,7 +34,7 @@ export class HikvisionController {
   @Version('1')
   @ApiOperation({ summary: 'Check device connection' })
   @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'superadmin')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Get('ping')
   ping() {
@@ -45,7 +45,7 @@ export class HikvisionController {
   @ApiOperation({ summary: 'Add student face to device' })
   @ApiConsumes('multipart/form-data')
   @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'superadmin')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Post('face/:student_id')
   @UseInterceptors(FileInterceptor('photo'))
@@ -59,7 +59,7 @@ export class HikvisionController {
   @Version('1')
   @ApiOperation({ summary: 'Delete student face from device' })
   @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'superadmin')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Delete('face/:student_id')
   deleteFace(@Param('student_id') student_id: string) {
@@ -69,7 +69,7 @@ export class HikvisionController {
   @Version('1')
   @ApiOperation({ summary: 'Verify student face exists on device' })
   @ApiBearerAuth('access-token')
-  @Roles('owner', 'administrator')
+  @Roles('owner', 'administrator', 'superadmin')
   @UseGuards(RolesGuard, JwtAuthGuard)
   @Get('face/:student_id/verify')
   verifyFace(@Param('student_id') student_id: string) {
