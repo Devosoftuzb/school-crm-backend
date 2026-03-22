@@ -169,18 +169,22 @@ export class HikvisionService {
         },
       );
 
-      // 2. ✅ Yuz qo'shish — base64 bilan (multipart emas)
+      // 2. ✅ Yuz qo'shish — XML format
       const imageBase64 = file.buffer.toString('base64');
+
+      const xmlData = `<?xml version="1.0" encoding="UTF-8"?>
+<FaceDataRecord>
+  <faceLibType>blackFD</faceLibType>
+  <FDID>1</FDID>
+  <FPID>${hikvision_code}</FPID>
+  <faceData>${imageBase64}</faceData>
+</FaceDataRecord>`;
 
       await this.digestRequest(
         'POST',
         '/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json',
-        {
-          faceLibType: 'blackFD',
-          FDID: '1',
-          FPID: hikvision_code,
-          faceData: imageBase64,
-        },
+        xmlData,
+        { 'Content-Type': 'application/xml' },
       );
 
       await student.update({ hikvision_code });
