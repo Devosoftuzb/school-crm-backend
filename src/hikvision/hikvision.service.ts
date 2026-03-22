@@ -45,6 +45,7 @@ export class HikvisionService {
     extraHeaders?: any,
   ) {
     const url = `${this.baseURL}${path}`;
+    const contentType = extraHeaders?.['Content-Type'] || 'application/json';
 
     // 1. Avval oddiy so'rov — 401 + WWW-Authenticate olish
     let wwwAuth = '';
@@ -56,7 +57,7 @@ export class HikvisionService {
         data,
         timeout: 10000,
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': contentType, // ✅ to'g'ri content-type
           ...extraHeaders,
         },
       });
@@ -101,10 +102,10 @@ export class HikvisionService {
       url,
       httpsAgent: this.agent,
       data,
-      timeout: 15000,
+      timeout: 30000, // ✅ timeout oshirildi — rasm uchun
       headers: {
         Authorization: authHeader,
-        'Content-Type': 'application/json',
+        'Content-Type': contentType, // ✅ to'g'ri content-type
         ...extraHeaders,
       },
     });
