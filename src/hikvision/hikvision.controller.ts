@@ -15,6 +15,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiConsumes,
   ApiOperation,
   ApiTags,
@@ -44,6 +45,19 @@ export class HikvisionController {
   @Version('1')
   @ApiOperation({ summary: 'Add student face to device' })
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        photo: {
+          type: 'string',
+          format: 'binary',
+          description: 'Student yuz rasmi (jpg/png)',
+        },
+      },
+      required: ['photo'],
+    },
+  })
   @ApiBearerAuth('access-token')
   @Roles('owner', 'administrator', 'superadmin')
   @UseGuards(RolesGuard, JwtAuthGuard)

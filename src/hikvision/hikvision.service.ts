@@ -47,7 +47,6 @@ export class HikvisionService {
     const url = `${this.baseURL}${path}`;
     const contentType = extraHeaders?.['Content-Type'] || 'application/json';
 
-    // 1. Bo'sh so'rov — faqat 401 + WWW-Authenticate olish uchun
     let wwwAuth = '';
     try {
       await axios({
@@ -55,10 +54,7 @@ export class HikvisionService {
         url,
         httpsAgent: this.agent,
         timeout: 10000,
-        headers: {
-          'Content-Type': contentType,
-        },
-        // ✅ data yubormaymiz — faqat auth header olish uchun
+        headers: { 'Content-Type': contentType },
       });
     } catch (err) {
       const status = err.response?.status;
@@ -68,15 +64,12 @@ export class HikvisionService {
 
     if (!wwwAuth) throw new Error('WWW-Authenticate header kelmadi');
 
-    // 2. Digest parametrlarini parse qilish
     const realm = wwwAuth.match(/realm="([^"]+)"/)?.[1] || '';
     const nonce = wwwAuth.match(/nonce="([^"]+)"/)?.[1] || '';
     const qop = wwwAuth.match(/qop="?([^",\s]+)"?/)?.[1] || 'auth';
     const opaque = wwwAuth.match(/opaque="([^"]+)"/)?.[1] || '';
-
     const nc = '00000001';
     const cnonce = crypto.randomBytes(8).toString('hex');
-
     const ha1 = this.md5(`${this.username}:${realm}:${this.password}`);
     const ha2 = this.md5(`${method.toUpperCase()}:${path}`);
     const response = this.md5(`${ha1}:${nonce}:${nc}:${cnonce}:${qop}:${ha2}`);
@@ -95,7 +88,6 @@ export class HikvisionService {
       .filter(Boolean)
       .join(', ');
 
-    // 3. ✅ Haqiqiy data bilan so'rov
     return axios({
       method,
       url,
@@ -106,6 +98,59 @@ export class HikvisionService {
         Authorization: authHeader,
         'Content-Type': contentType,
         ...extraHeaders,
+      },
+    });
+  }
+
+  private async digestMultipart(path: string, form: any) {
+    const url = `${this.baseURL}${path}`;
+    const formHeaders = form.getHeaders();
+
+    // 1. Bo'sh so'rov — 401 + WWW-Authenticate olish
+    let wwwAuth = '';
+    try {
+      await axios.post(url, form, {
+        httpsAgent: this.agent,
+        headers: formHeaders,
+        timeout: 10000,
+      });
+    } catch (err) {
+      wwwAuth = err.response?.headers?.['www-authenticate'] || '';
+      if (!wwwAuth) throw err;
+    }
+
+    if (!wwwAuth) throw new Error('WWW-Authenticate header kelmadi');
+
+    const realm = wwwAuth.match(/realm="([^"]+)"/)?.[1] || '';
+    const nonce = wwwAuth.match(/nonce="([^"]+)"/)?.[1] || '';
+    const qop = wwwAuth.match(/qop="?([^",\s]+)"?/)?.[1] || 'auth';
+    const opaque = wwwAuth.match(/opaque="([^"]+)"/)?.[1] || '';
+    const nc = '00000001';
+    const cnonce = crypto.randomBytes(8).toString('hex');
+    const ha1 = this.md5(`${this.username}:${realm}:${this.password}`);
+    const ha2 = this.md5(`POST:${path}`);
+    const resp = this.md5(`${ha1}:${nonce}:${nc}:${cnonce}:${qop}:${ha2}`);
+
+    const authHeader = [
+      `Digest username="${this.username}"`,
+      `realm="${realm}"`,
+      `nonce="${nonce}"`,
+      `uri="${path}"`,
+      `qop=${qop}`,
+      `nc=${nc}`,
+      `cnonce="${cnonce}"`,
+      `response="${resp}"`,
+      opaque ? `opaque="${opaque}"` : '',
+    ]
+      .filter(Boolean)
+      .join(', ');
+
+    return axios.post(url, form, {
+      httpsAgent: this.agent,
+      timeout: 30000,
+      headers: {
+        ...formHeaders,
+        Authorization: authHeader,
       },
     });
   }
@@ -185,22 +230,28 @@ export class HikvisionService {
         },
       );
 
-      // 3. ✅ Yuz qo'shish — XML format, ?format=xml
-      const imageBase64 = file.buffer.toString('base64');
+      // 3. ✅ Yuz qo'shish — multipart form-data
+      const FormData = require('form-data');
+      const form = new FormData();
 
-      const xmlData = `<?xml version="1.0" encoding="UTF-8"?>
-<FaceDataRecord>
-  <faceLibType>blackFD</faceLibType>
-  <FDID>1</FDID>
-  <FPID>${hikvision_code}</FPID>
-  <faceData>${imageBase64}</faceData>
-</FaceDataRecord>`;
+      form.append(
+        'FaceDataRecord',
+        JSON.stringify({
+          faceLibType: 'blackFD',
+          FDID: '1',
+          FPID: hikvision_code,
+        }),
+        { contentType: 'application/json' },
+      );
 
-      await this.digestRequest(
-        'POST',
-        '/ISAPI/Intelligent/FDLib/FaceDataRecord?format=xml',
-        xmlData,
-        { 'Content-Type': 'application/xml' },
+      form.append('img', file.buffer, {
+        filename: `${hikvision_code}.jpg`,
+        contentType: 'image/jpeg',
+      });
+
+      await this.digestMultipart(
+        '/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json',
+        form,
       );
 
       await student.update({ hikvision_code });
