@@ -410,16 +410,28 @@ export class HikvisionService {
       throw new NotFoundException("Studentda hikvision_code yo'q");
 
     try {
-      await this.digestRequest(
-        'PUT',
-        '/ISAPI/Intelligent/FDLib/FaceDataRecord/Delete?format=json',
-        {
-          FaceInfo: [
-            { faceLibType: 'blackFD', FDID: '1', FPID: student.hikvision_code },
-          ],
-        },
-      );
+      // 1. Yuzni o'chirish
+      try {
+        await this.digestRequest(
+          'PUT',
+          '/ISAPI/Intelligent/FDLib/FaceDataRecord/Delete?format=json',
+          {
+            FaceInfo: [
+              {
+                faceLibType: 'blackFD',
+                FDID: '1',
+                FPID: student.hikvision_code,
+              },
+            ],
+          },
+        );
+      } catch (err) {
+        this.logger.warn(
+          `⚠️ Yuz o'chirishda xato (davom etamiz): ${err.response?.data ? JSON.stringify(err.response.data) : err.message}`,
+        );
+      }
 
+      // 2. Userni o'chirish
       await this.digestRequest(
         'PUT',
         '/ISAPI/AccessControl/UserInfo/Delete?format=json',
@@ -438,8 +450,12 @@ export class HikvisionService {
         message: `${student.full_name} qurilmadan o'chirildi`,
       };
     } catch (err) {
-      this.logger.error(`❌ O'chirishda xato: ${err.message}`);
-      throw new Error(`Hikvision xato: ${err.message}`);
+      this.logger.error(
+        `❌ O'chirishda xato: ${err.response?.data ? JSON.stringify(err.response.data) : err.message}`,
+      );
+      throw new Error(
+        `Hikvision xato: ${err.response?.data?.statusString || err.message}`,
+      );
     }
   }
 }
