@@ -43,8 +43,8 @@ export class PaymentService {
     const payment = await this.repo.create(createPaymentDto);
 
     if (student.parent_chat_id) {
-      this.notifyParent(student, payment).catch(
-        (err) => console.error('Bot notify error:', err),
+      this.notifyParent(student, payment).catch((err) =>
+        console.error('Bot notify error:', err),
       );
     }
 
@@ -115,7 +115,7 @@ export class PaymentService {
         parse_mode: 'Markdown',
         text:
           `✅ *Farzandingiz to'lov qildi!*\n\n` +
-          `📋 *To'lov tafsiloti:*\n` +
+          `📋 *To'lov tafsiloti:*\n\n` +
           `👤 O'quvchi: *${student.full_name}*\n` +
           (group ? `📚 Guruh: *${group.name}*\n` : '') +
           `🏷 Guruh narxi: *${groupPrice.toLocaleString('uz-UZ')} so'm*\n` +
@@ -126,8 +126,7 @@ export class PaymentService {
           `💰 To'langan summa: *${paidPrice.toLocaleString('uz-UZ')} so'm*\n` +
           `📅 Oy: *${monthName} ${payment.year}*\n` +
           `💳 To'lov turi: *${payment.method}*\n` +
-          (payment.description ? `📝 Izoh: ${payment.description}\n` : '') +
-          `\n🏫 *Sayyimov Academy*`,
+          (payment.description ? `📝 Izoh: ${payment.description}\n` : ''),
       }),
     });
   }

@@ -205,8 +205,7 @@ export class SmsService {
               `⚠️ *To'lov eslatmasi*\n\n` +
               `Hurmatli ${student.parents_full_name}, *${student.full_name}* uchun ` +
               `joriy oy to'lovi kutilmoqda.\n\n` +
-              `Iltimos, o'z vaqtida amalga oshiring.\n\n` +
-              `🏫 *Sayyimov Academy*`,
+              `Iltimos, o'z vaqtida amalga oshiring.\n`,
             parse_mode: 'Markdown',
           }),
         }),
