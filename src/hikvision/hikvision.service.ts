@@ -271,8 +271,8 @@ export class HikvisionService {
 
       const message =
         type === 'IN'
-          ? `✅ Farzandingiz *${student.full_name}* maktabga keldi 🏫\n🕐 Vaqt: ${time}`
-          : `🏠 Farzandingiz *${student.full_name}* maktabdan chiqdi\n🕐 Vaqt: ${time}`;
+          ? `✅ Farzandingiz ${student.full_name} maktabga keldi\n🕐 Vaqt: ${time}`
+          : `❌ Farzandingiz ${student.full_name} maktabdan chiqdi\n🕐 Vaqt: ${time}`;
 
       await axios.post(
         `https://api.telegram.org/bot${process.env.BOT_TOKEN}/sendMessage`,
