@@ -8,7 +8,7 @@ import { InjectModel } from '@nestjs/sequelize';
 import * as https from 'https';
 import * as crypto from 'crypto';
 import axios, { AxiosInstance } from 'axios';
-import FormData from 'form-data';
+import * as FormData from 'form-data';
 import { Student } from 'src/student/models/student.model';
 import { StudentAttendance } from 'src/student_attendance/models/student_attendance.model';
 import { AddFaceResult, DeleteFaceResult, PingResult } from './hikvision.types';
