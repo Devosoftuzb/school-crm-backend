@@ -8,12 +8,9 @@ import { InjectModel } from '@nestjs/sequelize';
 import * as https from 'https';
 import * as crypto from 'crypto';
 import axios, { AxiosInstance } from 'axios';
+import * as FormData from 'form-data';
 import { Student } from 'src/student/models/student.model';
 import { StudentAttendance } from 'src/student_attendance/models/student_attendance.model';
-
-import { AddFaceResult, DeleteFaceResult, PingResult } from './hikvision.types';
-
-// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface DigestChallenge {
   realm: string;
@@ -22,13 +19,27 @@ interface DigestChallenge {
   opaque: string;
 }
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+interface AddFaceResult {
+  success: boolean;
+  message: string;
+  hikvision_code: string;
+}
+
+interface DeleteFaceResult {
+  success: boolean;
+  message: string;
+}
+
+interface PingResult {
+  success: boolean;
+  message: string;
+  status?: number;
+  error?: string;
+}
 
 const DIGEST_NC = '00000001';
 const MAX_PROCESSED_IDS = 1000;
 const POLL_MAX_RESULTS = 20;
-
-// ─── Service ─────────────────────────────────────────────────────────────────
 
 @Injectable()
 export class HikvisionService implements OnModuleInit {
@@ -39,7 +50,7 @@ export class HikvisionService implements OnModuleInit {
 
   private readonly httpsAgent = new https.Agent({
     rejectUnauthorized: false,
-    keepAlive: false, // har so'rovda yangi TCP — socket hang up oldini oladi
+    keepAlive: false,
   });
 
   private readonly http: AxiosInstance;
@@ -60,8 +71,6 @@ export class HikvisionService implements OnModuleInit {
     await this.initLastEventIndex();
   }
 
-  // ─── Config ────────────────────────────────────────────────────────────────
-
   private get baseURL(): string {
     return `https://${process.env.HIKVISION_IP}`;
   }
@@ -73,8 +82,6 @@ export class HikvisionService implements OnModuleInit {
   private get password(): string {
     return process.env.HIKVISION_PASS ?? 'password';
   }
-
-  // ─── Digest Auth ───────────────────────────────────────────────────────────
 
   private md5(str: string): string {
     return crypto.createHash('md5').update(str).digest('hex');
@@ -126,19 +133,20 @@ export class HikvisionService implements OnModuleInit {
 
   private async fetchDigestChallenge(path: string): Promise<DigestChallenge> {
     const url = `${this.baseURL}${path}`;
+
     try {
       await this.http.get(url, { timeout: 10_000 });
       throw new Error('Qurilma 401 qaytarmadi');
     } catch (err) {
       const wwwAuth: string = err.response?.headers?.['www-authenticate'] ?? '';
+
       if (err.response?.status === 401 && wwwAuth) {
         return this.parseDigestChallenge(wwwAuth);
       }
+
       throw err;
     }
   }
-
-  // ─── HTTP Helpers ──────────────────────────────────────────────────────────
 
   private async digestRequest(
     method: string,
@@ -163,24 +171,22 @@ export class HikvisionService implements OnModuleInit {
     });
   }
 
-  private async uploadFaceAsBase64(
-    path: string,
-    hikvision_code: string,
-    imageBuffer: Buffer,
-  ) {
-    const base64Image = imageBuffer.toString('base64');
+  private async digestMultipart(path: string, form: FormData) {
+    const challenge = await this.fetchDigestChallenge(path);
+    const authorization = this.buildDigestHeader('POST', path, challenge);
 
-    return this.digestRequest('POST', path, {
-      FaceDataRecord: {
-        faceLibType: 'blackFD',
-        FDID: '1',
-        FPID: hikvision_code,
-        faceURL: `data:image/jpeg;base64,${base64Image}`,
+    await this.sleep(300);
+
+    return this.http.post(`${this.baseURL}${path}`, form, {
+      timeout: 60_000,
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      headers: {
+        ...form.getHeaders(),
+        Authorization: authorization,
       },
     });
   }
-
-  // ─── Event Polling ─────────────────────────────────────────────────────────
 
   async initLastEventIndex(): Promise<void> {
     try {
@@ -284,8 +290,6 @@ export class HikvisionService implements OnModuleInit {
     return !last || last.type === 'OUT' ? 'IN' : 'OUT';
   }
 
-  // ─── Telegram ──────────────────────────────────────────────────────────────
-
   private async sendTelegramNotification(
     student: Student,
     type: 'IN' | 'OUT',
@@ -314,8 +318,6 @@ export class HikvisionService implements OnModuleInit {
       this.logger.error(`❌ Telegram xatosi: ${err.message}`);
     }
   }
-
-  // ─── Public API ────────────────────────────────────────────────────────────
 
   async ping(): Promise<PingResult> {
     try {
@@ -347,11 +349,9 @@ export class HikvisionService implements OnModuleInit {
     try {
       await this.ensureFDLibExists();
 
-      // 1. Eski userni o'chirish
       await this.deleteUserFromDevice(hikvision_code);
       await this.sleep(1_500);
 
-      // 2. Yangi user qo'shish
       await this.digestRequest(
         'POST',
         '/ISAPI/AccessControl/UserInfo/Record?format=json',
@@ -374,11 +374,24 @@ export class HikvisionService implements OnModuleInit {
       this.logger.log(`👤 User qo'shildi: ${hikvision_code}`);
       await this.sleep(1_000);
 
-      // 3. Yuz rasmi qo'shish (base64 JSON — tunnel orqali multipart ishlamaydi)
-      await this.uploadFaceAsBase64(
+      const form = new FormData();
+      form.append(
+        'FaceDataRecord',
+        JSON.stringify({
+          faceLibType: 'blackFD',
+          FDID: '1',
+          FPID: hikvision_code,
+        }),
+        { contentType: 'application/json' },
+      );
+      form.append('img', file.buffer, {
+        filename: `${hikvision_code}.jpg`,
+        contentType: 'image/jpeg',
+      });
+
+      await this.digestMultipart(
         '/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json',
-        hikvision_code,
-        file.buffer,
+        form,
       );
 
       await student.update({ hikvision_code });
@@ -425,8 +438,6 @@ export class HikvisionService implements OnModuleInit {
       );
     }
   }
-
-  // ─── Private Device Helpers ────────────────────────────────────────────────
 
   private async ensureFDLibExists(): Promise<void> {
     try {
