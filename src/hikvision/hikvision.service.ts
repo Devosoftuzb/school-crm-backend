@@ -11,7 +11,10 @@ import axios, { AxiosInstance } from 'axios';
 import * as FormData from 'form-data';
 import { Student } from 'src/student/models/student.model';
 import { StudentAttendance } from 'src/student_attendance/models/student_attendance.model';
+
 import { AddFaceResult, DeleteFaceResult, PingResult } from './hikvision.types';
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface DigestChallenge {
   realm: string;
@@ -20,9 +23,13 @@ interface DigestChallenge {
   opaque: string;
 }
 
+// ─── Constants ───────────────────────────────────────────────────────────────
+
 const DIGEST_NC = '00000001';
 const MAX_PROCESSED_IDS = 1000;
 const POLL_MAX_RESULTS = 20;
+
+// ─── Service ─────────────────────────────────────────────────────────────────
 
 @Injectable()
 export class HikvisionService implements OnModuleInit {
@@ -33,7 +40,7 @@ export class HikvisionService implements OnModuleInit {
 
   private readonly httpsAgent = new https.Agent({
     rejectUnauthorized: false,
-    keepAlive: false,
+    keepAlive: false, // har so'rovda yangi TCP — socket hang up oldini oladi
   });
 
   private readonly http: AxiosInstance;
@@ -54,6 +61,8 @@ export class HikvisionService implements OnModuleInit {
     await this.initLastEventIndex();
   }
 
+  // ─── Config ────────────────────────────────────────────────────────────────
+
   private get baseURL(): string {
     return `https://${process.env.HIKVISION_IP}`;
   }
@@ -65,6 +74,8 @@ export class HikvisionService implements OnModuleInit {
   private get password(): string {
     return process.env.HIKVISION_PASS ?? 'password';
   }
+
+  // ─── Digest Auth ───────────────────────────────────────────────────────────
 
   private md5(str: string): string {
     return crypto.createHash('md5').update(str).digest('hex');
@@ -114,22 +125,45 @@ export class HikvisionService implements OnModuleInit {
       .join(', ');
   }
 
-  private async fetchDigestChallenge(path: string): Promise<DigestChallenge> {
+  private async fetchDigestChallenge(
+    path: string,
+    preferPost = false,
+  ): Promise<DigestChallenge> {
     const url = `${this.baseURL}${path}`;
 
-    try {
-      await this.http.get(url, { timeout: 10_000 });
-      throw new Error('Qurilma 401 qaytarmadi');
-    } catch (err) {
-      const wwwAuth: string = err.response?.headers?.['www-authenticate'] ?? '';
-
-      if (err.response?.status === 401 && wwwAuth) {
-        return this.parseDigestChallenge(wwwAuth);
+    const attempt = async (method: 'GET' | 'POST') => {
+      try {
+        await this.http.request({
+          method,
+          url,
+          timeout: 10_000,
+          data: method === 'POST' ? null : undefined,
+        });
+        throw new Error('Qurilma 401 qaytarmadi');
+      } catch (err) {
+        const wwwAuth: string =
+          err.response?.headers?.['www-authenticate'] ?? '';
+        if (err.response?.status === 401 && wwwAuth) {
+          return this.parseDigestChallenge(wwwAuth);
+        }
+        throw err;
       }
+    };
 
-      throw err;
+    // Multipart uchun avval POST null sinab ko'ramiz (ba'zi Hikvision modellari
+    // GET ga socket'ni yopadi), muvaffaqiyatsiz bo'lsa GET ga o'tamiz
+    if (preferPost) {
+      try {
+        return await attempt('POST');
+      } catch {
+        return await attempt('GET');
+      }
     }
+
+    return await attempt('GET');
   }
+
+  // ─── HTTP Helpers ──────────────────────────────────────────────────────────
 
   private async digestRequest(
     method: string,
@@ -155,7 +189,7 @@ export class HikvisionService implements OnModuleInit {
   }
 
   private async digestMultipart(path: string, form: FormData) {
-    const challenge = await this.fetchDigestChallenge(path);
+    const challenge = await this.fetchDigestChallenge(path, true); // POST null bilan 401
     const authorization = this.buildDigestHeader('POST', path, challenge);
 
     await this.sleep(300);
@@ -170,6 +204,8 @@ export class HikvisionService implements OnModuleInit {
       },
     });
   }
+
+  // ─── Event Polling ─────────────────────────────────────────────────────────
 
   async initLastEventIndex(): Promise<void> {
     try {
@@ -273,6 +309,8 @@ export class HikvisionService implements OnModuleInit {
     return !last || last.type === 'OUT' ? 'IN' : 'OUT';
   }
 
+  // ─── Telegram ──────────────────────────────────────────────────────────────
+
   private async sendTelegramNotification(
     student: Student,
     type: 'IN' | 'OUT',
@@ -301,6 +339,8 @@ export class HikvisionService implements OnModuleInit {
       this.logger.error(`❌ Telegram xatosi: ${err.message}`);
     }
   }
+
+  // ─── Public API ────────────────────────────────────────────────────────────
 
   async ping(): Promise<PingResult> {
     try {
@@ -332,9 +372,11 @@ export class HikvisionService implements OnModuleInit {
     try {
       await this.ensureFDLibExists();
 
+      // 1. Eski userni o'chirish
       await this.deleteUserFromDevice(hikvision_code);
       await this.sleep(1_500);
 
+      // 2. Yangi user qo'shish
       await this.digestRequest(
         'POST',
         '/ISAPI/AccessControl/UserInfo/Record?format=json',
@@ -357,6 +399,7 @@ export class HikvisionService implements OnModuleInit {
       this.logger.log(`👤 User qo'shildi: ${hikvision_code}`);
       await this.sleep(1_000);
 
+      // 3. Yuz rasmi qo'shish
       const form = new FormData();
       form.append(
         'FaceDataRecord',
@@ -421,6 +464,8 @@ export class HikvisionService implements OnModuleInit {
       );
     }
   }
+
+  // ─── Private Device Helpers ────────────────────────────────────────────────
 
   private async ensureFDLibExists(): Promise<void> {
     try {
