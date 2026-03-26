@@ -8,7 +8,6 @@ import { InjectModel } from '@nestjs/sequelize';
 import * as https from 'https';
 import * as crypto from 'crypto';
 import axios, { AxiosInstance } from 'axios';
-import * as FormData from 'form-data';
 import { Student } from 'src/student/models/student.model';
 import { StudentAttendance } from 'src/student_attendance/models/student_attendance.model';
 
@@ -125,42 +124,18 @@ export class HikvisionService implements OnModuleInit {
       .join(', ');
   }
 
-  private async fetchDigestChallenge(
-    path: string,
-    preferPost = false,
-  ): Promise<DigestChallenge> {
+  private async fetchDigestChallenge(path: string): Promise<DigestChallenge> {
     const url = `${this.baseURL}${path}`;
-
-    const attempt = async (method: 'GET' | 'POST') => {
-      try {
-        await this.http.request({
-          method,
-          url,
-          timeout: 10_000,
-          data: method === 'POST' ? null : undefined,
-        });
-        throw new Error('Qurilma 401 qaytarmadi');
-      } catch (err) {
-        const wwwAuth: string =
-          err.response?.headers?.['www-authenticate'] ?? '';
-        if (err.response?.status === 401 && wwwAuth) {
-          return this.parseDigestChallenge(wwwAuth);
-        }
-        throw err;
+    try {
+      await this.http.get(url, { timeout: 10_000 });
+      throw new Error('Qurilma 401 qaytarmadi');
+    } catch (err) {
+      const wwwAuth: string = err.response?.headers?.['www-authenticate'] ?? '';
+      if (err.response?.status === 401 && wwwAuth) {
+        return this.parseDigestChallenge(wwwAuth);
       }
-    };
-
-    // Multipart uchun avval POST null sinab ko'ramiz (ba'zi Hikvision modellari
-    // GET ga socket'ni yopadi), muvaffaqiyatsiz bo'lsa GET ga o'tamiz
-    if (preferPost) {
-      try {
-        return await attempt('POST');
-      } catch {
-        return await attempt('GET');
-      }
+      throw err;
     }
-
-    return await attempt('GET');
   }
 
   // ─── HTTP Helpers ──────────────────────────────────────────────────────────
@@ -188,19 +163,19 @@ export class HikvisionService implements OnModuleInit {
     });
   }
 
-  private async digestMultipart(path: string, form: FormData) {
-    const challenge = await this.fetchDigestChallenge(path, true); // POST null bilan 401
-    const authorization = this.buildDigestHeader('POST', path, challenge);
+  private async uploadFaceAsBase64(
+    path: string,
+    hikvision_code: string,
+    imageBuffer: Buffer,
+  ) {
+    const base64Image = imageBuffer.toString('base64');
 
-    await this.sleep(300);
-
-    return this.http.post(`${this.baseURL}${path}`, form, {
-      timeout: 60_000,
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity,
-      headers: {
-        ...form.getHeaders(),
-        Authorization: authorization,
+    return this.digestRequest('POST', path, {
+      FaceDataRecord: {
+        faceLibType: 'blackFD',
+        FDID: '1',
+        FPID: hikvision_code,
+        faceURL: `data:image/jpeg;base64,${base64Image}`,
       },
     });
   }
@@ -399,25 +374,11 @@ export class HikvisionService implements OnModuleInit {
       this.logger.log(`👤 User qo'shildi: ${hikvision_code}`);
       await this.sleep(1_000);
 
-      // 3. Yuz rasmi qo'shish
-      const form = new FormData();
-      form.append(
-        'FaceDataRecord',
-        JSON.stringify({
-          faceLibType: 'blackFD',
-          FDID: '1',
-          FPID: hikvision_code,
-        }),
-        { contentType: 'application/json' },
-      );
-      form.append('img', file.buffer, {
-        filename: `${hikvision_code}.jpg`,
-        contentType: 'image/jpeg',
-      });
-
-      await this.digestMultipart(
+      // 3. Yuz rasmi qo'shish (base64 JSON — tunnel orqali multipart ishlamaydi)
+      await this.uploadFaceAsBase64(
         '/ISAPI/Intelligent/FDLib/FaceDataRecord?format=json',
-        form,
+        hikvision_code,
+        file.buffer,
       );
 
       await student.update({ hikvision_code });
