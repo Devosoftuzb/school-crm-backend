@@ -134,11 +134,13 @@ export class StudentAttendanceService {
         throw new BadRequestException("Ma'lumot topilmadi");
       }
 
-      const uniqueDates = [
-        ...new Set(
-          attendances.map((a) => new Date(a.time).toISOString().split('T')[0]),
-        ),
-      ].sort();
+      // startDate dan endDate gacha BARCHA kunlar ketma-ket
+      const allDays: string[] = [];
+      const cursor = new Date(start);
+      while (cursor <= end) {
+        allDays.push(cursor.toISOString().split('T')[0]);
+        cursor.setDate(cursor.getDate() + 1);
+      }
 
       type StudentDayMap = {
         name: string;
@@ -175,7 +177,7 @@ export class StudentAttendanceService {
       for (const [, studentData] of studentMap) {
         const row: Record<string, any> = { "O'quvchi": studentData.name };
 
-        for (const date of uniqueDates) {
+        for (const date of allDays) {
           const [, mm, dd] = date.split('-');
           const label = `${dd}.${mm}`;
           const record = studentData.days.get(date);
@@ -194,10 +196,7 @@ export class StudentAttendanceService {
       const workbook = XLSX.utils.book_new();
       const worksheet = XLSX.utils.json_to_sheet(dataToExport);
 
-      worksheet['!cols'] = [
-        { wch: 26 },
-        ...uniqueDates.map(() => ({ wch: 10 })),
-      ];
+      worksheet['!cols'] = [{ wch: 26 }, ...allDays.map(() => ({ wch: 10 }))];
 
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Davomat');
 
