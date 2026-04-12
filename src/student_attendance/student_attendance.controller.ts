@@ -9,12 +9,14 @@ import {
   UseGuards,
   Version,
   Query,
+  Res,
 } from '@nestjs/common';
 import { StudentAttendanceService } from './student_attendance.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { Response } from 'express';
 
 @ApiTags('Student Attendance')
 @ApiBearerAuth('access-token')
@@ -53,5 +55,21 @@ export class StudentAttendanceController {
     @Query('page') page: number,
   ) {
     return this.studentAttendanceService.paginate(school_id, student_id, page);
+  }
+
+  @ApiOperation({ summary: 'Download attendance excel by student' })
+  @Get('excel')
+  excelAttendance(
+    @Query('school_id') school_id: number,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Res() res: Response,
+  ) {
+    return this.studentAttendanceService.excelAttendance(
+      school_id,
+      startDate,
+      endDate,
+      res,
+    );
   }
 }

@@ -1,6 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { StudentAttendance } from './models/student_attendance.model';
+import { Op } from 'sequelize';
+import * as XLSX from 'xlsx';
+import { Response } from 'express';
+import { Student } from 'src/student/models/student.model';
 
 @Injectable()
 export class StudentAttendanceService {
@@ -9,8 +13,20 @@ export class StudentAttendanceService {
   ) {}
 
   async create(school_id: number, student_id: number) {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
     const last = await this.repo.findOne({
-      where: { school_id, student_id },
+      where: {
+        school_id,
+        student_id,
+        time: {
+          [Op.between]: [startOfDay, endOfDay],
+        },
+      },
       order: [['time', 'DESC']],
     });
 
@@ -91,5 +107,118 @@ export class StudentAttendanceService {
         },
       },
     };
+  }
+
+  async excelAttendance(
+    school_id: number,
+    startDate: string,
+    endDate: string,
+    res: Response,
+  ) {
+    try {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+
+      const attendances = await this.repo.findAll({
+        where: {
+          school_id,
+          time: { [Op.between]: [start, end] },
+        },
+        attributes: ['student_id', 'type', 'time'],
+        include: [{ model: Student, attributes: ['full_name'] }],
+        order: [['time', 'ASC']],
+      });
+
+      if (!attendances.length) {
+        throw new BadRequestException("Ma'lumot topilmadi");
+      }
+
+      type StudentDayMap = {
+        name: string;
+        days: Map<string, { ins: string[]; outs: string[] }>;
+      };
+
+      const studentMap = new Map<number, StudentDayMap>();
+
+      for (const a of attendances) {
+        const date = new Date(a.time).toISOString().split('T')[0];
+        const timeStr = new Date(a.time).toTimeString().slice(0, 5);
+
+        if (!studentMap.has(a.student_id)) {
+          studentMap.set(a.student_id, {
+            name: a.student?.full_name || `student_${a.student_id}`,
+            days: new Map(),
+          });
+        }
+
+        const studentData = studentMap.get(a.student_id)!;
+        if (!studentData.days.has(date)) {
+          studentData.days.set(date, { ins: [], outs: [] });
+        }
+
+        if (a.type === 'IN') {
+          studentData.days.get(date)!.ins.push(timeStr);
+        } else {
+          studentData.days.get(date)!.outs.push(timeStr);
+        }
+      }
+
+      const allDays: string[] = [];
+      const cursor = new Date(start);
+      while (cursor <= end) {
+        allDays.push(cursor.toISOString().split('T')[0]);
+        cursor.setDate(cursor.getDate() + 1);
+      }
+
+      const dataToExport: Record<string, any>[] = [];
+      for (const [, studentData] of studentMap) {
+        for (const date of allDays) {
+          const [yyyy, mm, dd] = date.split('-');
+          const record = studentData.days.get(date);
+          dataToExport.push({
+            "O'quvchi": studentData.name,
+            Sana: `${dd}.${mm}.${yyyy}`,
+            Holat: record ? 'Kelgan ✓' : 'Kelmagan ✗',
+            'Kirish vaqti': record ? record.ins.join(', ') : '-',
+            'Chiqish vaqti': record ? record.outs.join(', ') : '-',
+          });
+        }
+      }
+
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      worksheet['!cols'] = [
+        { wch: 24 },
+        { wch: 14 },
+        { wch: 14 },
+        { wch: 18 },
+        { wch: 18 },
+      ];
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Davomat');
+
+      const excelBuffer = XLSX.write(workbook, {
+        type: 'buffer',
+        bookType: 'xlsx',
+      }) as Buffer;
+
+      const fileName = `attendance_${school_id}_${startDate}_${endDate}.xlsx`;
+
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${fileName}"`,
+      );
+
+      return res.send(excelBuffer);
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException(
+        error.message || 'Excel yaratishda xatolik yuz berdi',
+      );
+    }
   }
 }

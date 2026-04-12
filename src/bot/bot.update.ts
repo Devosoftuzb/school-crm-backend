@@ -30,7 +30,7 @@ export class BotUpdate {
         ctx.session.step = 'registered';
         await ctx.reply(
           `Assalomu alaykum, *${parentName}*! 👋\n` +
-            `*Sayyimov Academy* nazorat botiga xush kelibsiz!`,
+            `*Sayimov Academy* nazorat botiga xush kelibsiz!`,
           { parse_mode: 'Markdown', ...this.botParentHandler.mainMenu() },
         );
         return;
@@ -38,7 +38,7 @@ export class BotUpdate {
 
       ctx.session.step = 'await_fio';
       await ctx.reply(
-        'Assalomu alaykum!\n*Sayyimov Academy* nazorat botiga xush kelibsiz! 👋\n\n' +
+        'Assalomu alaykum!\n*Sayimov Academy* nazorat botiga xush kelibsiz! 👋\n\n' +
           'Davom etish uchun ism va familiyangizni kiriting:',
         { parse_mode: 'Markdown', ...Markup.removeKeyboard() },
       );
