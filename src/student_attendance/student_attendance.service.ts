@@ -203,7 +203,7 @@ export class StudentAttendanceService {
       const workbook = XLSX.utils.book_new();
       const worksheet = XLSX.utils.json_to_sheet(dataToExport);
 
-      worksheet['!cols'] = [{ wch: 26 }, ...allDays.map(() => ({ wch: 10 }))];
+      worksheet['!cols'] = [{ wch: 26 }, ...allDays.map(() => ({ wch: 20 }))];
 
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Davomat');
 
