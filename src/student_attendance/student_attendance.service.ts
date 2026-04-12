@@ -134,6 +134,12 @@ export class StudentAttendanceService {
         throw new BadRequestException("Ma'lumot topilmadi");
       }
 
+      const uniqueDates = [
+        ...new Set(
+          attendances.map((a) => new Date(a.time).toISOString().split('T')[0]),
+        ),
+      ].sort();
+
       type StudentDayMap = {
         name: string;
         days: Map<string, { ins: string[]; outs: string[] }>;
@@ -164,37 +170,35 @@ export class StudentAttendanceService {
         }
       }
 
-      const allDays: string[] = [];
-      const cursor = new Date(start);
-      while (cursor <= end) {
-        allDays.push(cursor.toISOString().split('T')[0]);
-        cursor.setDate(cursor.getDate() + 1);
-      }
-
       const dataToExport: Record<string, any>[] = [];
+
       for (const [, studentData] of studentMap) {
-        for (const date of allDays) {
-          const [yyyy, mm, dd] = date.split('-');
+        const row: Record<string, any> = { "O'quvchi": studentData.name };
+
+        for (const date of uniqueDates) {
+          const [, mm, dd] = date.split('-');
+          const label = `${dd}.${mm}`;
           const record = studentData.days.get(date);
-          dataToExport.push({
-            "O'quvchi": studentData.name,
-            Sana: `${dd}.${mm}.${yyyy}`,
-            Holat: record ? 'Kelgan ✓' : 'Kelmagan ✗',
-            'Kirish vaqti': record ? record.ins.join(', ') : '-',
-            'Chiqish vaqti': record ? record.outs.join(', ') : '-',
-          });
+
+          if (!record) {
+            row[label] = '✗';
+          } else {
+            const inTime = record.ins[0] || '';
+            row[label] = inTime ? `✓ ${inTime}` : '✓';
+          }
         }
+
+        dataToExport.push(row);
       }
 
       const workbook = XLSX.utils.book_new();
       const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
       worksheet['!cols'] = [
-        { wch: 24 },
-        { wch: 14 },
-        { wch: 14 },
-        { wch: 18 },
-        { wch: 18 },
+        { wch: 26 },
+        ...uniqueDates.map(() => ({ wch: 10 })),
       ];
+
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Davomat');
 
       const excelBuffer = XLSX.write(workbook, {
