@@ -134,7 +134,6 @@ export class StudentAttendanceService {
         throw new BadRequestException("Ma'lumot topilmadi");
       }
 
-      // startDate dan endDate gacha BARCHA kunlar ketma-ket
       const allDays: string[] = [];
       const cursor = new Date(start);
       while (cursor <= end) {
@@ -186,7 +185,15 @@ export class StudentAttendanceService {
             row[label] = '✗';
           } else {
             const inTime = record.ins[0] || '';
-            row[label] = inTime ? `✓ ${inTime}` : '✓';
+            const outTime = record.outs[record.outs.length - 1] || '';
+
+            if (inTime && outTime) {
+              row[label] = `✓ ${inTime}-${outTime}`;
+            } else if (inTime) {
+              row[label] = `✓ ${inTime}`;
+            } else {
+              row[label] = '✓';
+            }
           }
         }
 
