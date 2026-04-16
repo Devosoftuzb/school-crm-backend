@@ -11,6 +11,7 @@ import axios, { AxiosInstance } from 'axios';
 import * as FormData from 'form-data';
 import { Student } from 'src/student/models/student.model';
 import { StudentAttendance } from 'src/student_attendance/models/student_attendance.model';
+import { Op } from 'sequelize';
 
 interface DigestChallenge {
   realm: string;
@@ -282,11 +283,16 @@ export class HikvisionService implements OnModuleInit {
   private async getNextAttendanceType(
     student_id: number,
   ): Promise<'IN' | 'OUT'> {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
     const last = await this.attendanceRepo.findOne({
-      where: { student_id },
+      where: {
+        student_id,
+        createdAt: { [Op.gte]: todayStart },
+      },
       order: [['createdAt', 'DESC']],
     });
-
     return !last || last.type === 'OUT' ? 'IN' : 'OUT';
   }
 

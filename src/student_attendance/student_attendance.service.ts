@@ -192,15 +192,6 @@ export class StudentAttendanceService {
             } else if (inTime) {
               row[label] = `✓ ${inTime}`;
             } else {
-              // ← mana shu holat
-              console.log(
-                `⚠️ Vaqtsiz record | O'quvchi: ${studentData.name} | Sana: ${date}`,
-                {
-                  ins: record.ins,
-                  outs: record.outs,
-                  fullRecord: record,
-                },
-              );
               row[label] = '✓';
             }
           }
