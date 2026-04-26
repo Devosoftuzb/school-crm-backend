@@ -42,6 +42,13 @@ const DIGEST_NC = '00000001';
 const MAX_PROCESSED_IDS = 1000;
 const POLL_MAX_RESULTS = 20;
 
+const MIN_BETWEEN_EVENTS_MS = 60 * 60 * 1000;
+
+const MAX_TELEGRAM_DELAY_MS = 2 * 60 * 60 * 1000;
+
+const TELEGRAM_HOUR_START = 6;
+const TELEGRAM_HOUR_END = 22;
+
 @Injectable()
 export class HikvisionService implements OnModuleInit {
   private readonly logger = new Logger(HikvisionService.name);
@@ -242,9 +249,21 @@ export class HikvisionService implements OnModuleInit {
     }
   }
 
+  private parseEventTime(event: any): Date {
+    const timeStr: string = event?.time ?? '';
+    if (timeStr) {
+      const parsed = new Date(timeStr);
+      if (!isNaN(parsed.getTime())) return parsed;
+    }
+    return new Date();
+  }
+
   private async processEvent(event: any): Promise<void> {
     const hikvision_code: string = event?.employeeNoString;
     if (!hikvision_code) return;
+
+    const eventTime = this.parseEventTime(event);
+    const now = new Date();
 
     const eventId = `${hikvision_code}-${event?.time ?? ''}`;
     if (this.processedEventIds.has(eventId)) return;
@@ -264,46 +283,115 @@ export class HikvisionService implements OnModuleInit {
       return;
     }
 
-    const type = await this.getNextAttendanceType(student.id);
+    const lastAttendance = await this.getLastAttendanceOfDay(
+      student.id,
+      eventTime,
+    );
+
+    if (lastAttendance) {
+      const diffMs =
+        eventTime.getTime() - new Date(lastAttendance.time).getTime();
+      if (diffMs < MIN_BETWEEN_EVENTS_MS) {
+        this.logger.warn(
+          `⏱️ Double-tap skip: ${student.full_name} — ${Math.round(diffMs / 1000)}s o'tgan`,
+        );
+        return;
+      }
+    }
+
+    const type = await this.getNextAttendanceType(student.id, eventTime);
+
+    if (type === null) {
+      this.logger.warn(
+        `⚠️ ${student.full_name} bugun hali IN qilmagan, OUT skip`,
+      );
+      return;
+    }
 
     await this.attendanceRepo.create({
       school_id: student.school_id,
       student_id: student.id,
       type,
-      time: new Date(),
+      time: eventTime,
     });
 
     this.logger.log(
-      `📌 ${student.full_name} — ${type} — ${new Date().toLocaleTimeString()}`,
+      `📌 ${student.full_name} — ${type} — ${eventTime.toLocaleTimeString()}`,
     );
 
-    await this.sendTelegramNotification(student, type);
+    const delayMs = now.getTime() - eventTime.getTime();
+    const isDelayed = delayMs > MAX_TELEGRAM_DELAY_MS;
+
+    if (isDelayed) {
+      this.logger.warn(
+        `📵 Telegram yuborilmadi (kechikkan event: ${Math.round(delayMs / 60000)} daqiqa): ${student.full_name}`,
+      );
+    } else {
+      await this.sendTelegramNotification(student, type, eventTime);
+    }
+  }
+
+  private async getLastAttendanceOfDay(
+    student_id: number,
+    eventTime: Date,
+  ): Promise<StudentAttendance | null> {
+    const dayStart = new Date(eventTime);
+    dayStart.setHours(0, 0, 0, 0);
+
+    const dayEnd = new Date(eventTime);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    return this.attendanceRepo.findOne({
+      where: {
+        student_id,
+        time: { [Op.between]: [dayStart, dayEnd] },
+      },
+      order: [['time', 'DESC']],
+    });
   }
 
   private async getNextAttendanceType(
     student_id: number,
-  ): Promise<'IN' | 'OUT'> {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    eventTime: Date,
+  ): Promise<'IN' | 'OUT' | null> {
+    const dayStart = new Date(eventTime);
+    dayStart.setHours(0, 0, 0, 0);
+
+    const dayEnd = new Date(eventTime);
+    dayEnd.setHours(23, 59, 59, 999);
 
     const last = await this.attendanceRepo.findOne({
       where: {
         student_id,
-        createdAt: { [Op.gte]: todayStart },
+        time: { [Op.between]: [dayStart, dayEnd] },
       },
-      order: [['createdAt', 'DESC']],
+      order: [['time', 'DESC']],
     });
-    return !last || last.type === 'OUT' ? 'IN' : 'OUT';
+
+    if (!last) return 'IN';
+
+    if (last.type === 'IN') return 'OUT';
+
+    return 'IN';
   }
 
   private async sendTelegramNotification(
     student: Student,
     type: 'IN' | 'OUT',
+    eventTime: Date,
   ): Promise<void> {
     if (!student.parent_chat_id) return;
 
+    const hour = eventTime.getHours();
+    if (hour < TELEGRAM_HOUR_START || hour >= TELEGRAM_HOUR_END) {
+      this.logger.warn(
+        `📵 Telegram yuborilmadi (tun vaqti ${hour}:xx): ${student.full_name}`,
+      );
+      return;
+    }
+
     try {
-      const time = new Date().toLocaleTimeString('uz-UZ', {
+      const time = eventTime.toLocaleTimeString('uz-UZ', {
         hour: '2-digit',
         minute: '2-digit',
       });

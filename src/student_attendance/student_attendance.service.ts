@@ -13,10 +13,11 @@ export class StudentAttendanceService {
   ) {}
 
   async create(school_id: number, student_id: number) {
-    const startOfDay = new Date();
+    const now = new Date();
+    const startOfDay = new Date(now);
     startOfDay.setHours(0, 0, 0, 0);
 
-    const endOfDay = new Date();
+    const endOfDay = new Date(now);
     endOfDay.setHours(23, 59, 59, 999);
 
     const last = await this.repo.findOne({
@@ -30,13 +31,16 @@ export class StudentAttendanceService {
       order: [['time', 'DESC']],
     });
 
+    if (!last && false) {
+    }
+
     const type: 'IN' | 'OUT' = last?.type === 'IN' ? 'OUT' : 'IN';
 
     const attendance = await this.repo.create({
       school_id,
       student_id,
       type,
-      time: new Date(),
+      time: now,
     });
 
     return attendance;
@@ -184,6 +188,7 @@ export class StudentAttendanceService {
           if (!record) {
             row[label] = '✗';
           } else {
+            // Birinchi IN va oxirgi OUT ni olamiz
             const inTime = record.ins[0] || '';
             const outTime = record.outs[record.outs.length - 1] || '';
 
