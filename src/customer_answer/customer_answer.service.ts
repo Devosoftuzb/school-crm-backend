@@ -40,7 +40,7 @@ export class CustomerAnswerService {
       const createdAnswers = [];
       let score = 0;
       let customerTestId: number | null = null;
-      let writingResult = "Noma'lum";
+      let writingResult: string | null = null;
       let hasWritingQuestion = false;
 
       for (const answer of createCustomerAnswerDto.list) {
@@ -73,27 +73,17 @@ export class CustomerAnswerService {
               writing,
             );
 
-            if (writingLevel === 'Savolga mos emas') {
-              customerAnswer = await this.repo.create(
-                {
-                  customer_test_id,
-                  question_id,
-                  writing,
-                  is_correct: null,
-                },
-                { transaction },
-              );
-            } else {
-              customerAnswer = await this.repo.create(
-                {
-                  customer_test_id,
-                  question_id,
-                  writing,
-                  is_correct: null,
-                },
-                { transaction },
-              );
+            customerAnswer = await this.repo.create(
+              {
+                customer_test_id,
+                question_id,
+                writing,
+                is_correct: null,
+              },
+              { transaction },
+            );
 
+            if (writingLevel !== 'Savolga mos emas') {
               writingResult = writingLevel;
             }
           }
@@ -117,7 +107,7 @@ export class CustomerAnswerService {
               customer_test_id,
               question_id,
               option_id,
-              is_correct, // Test uchun is_correct majburiy
+              is_correct,
             },
             { transaction },
           );
@@ -128,15 +118,16 @@ export class CustomerAnswerService {
       }
 
       let testResult = "Noma'lum";
-      if (score == 0) testResult = "Noma'lum";
-      else if (score <= 15) testResult = 'BEGINNER';
+      if (score >= 1 && score <= 15) testResult = 'BEGINNER';
       else if (score <= 27) testResult = 'ELEMENTARY';
       else if (score <= 38) testResult = 'PRE INTERMEDIATE';
       else if (score <= 50) testResult = 'INTERMEDIATE';
       else if (score <= 70) testResult = 'IELTS';
-      else testResult = "Noma'lum";
 
-      const overall = this.calculateOverallResult(testResult, writingResult);
+      const overall =
+        hasWritingQuestion && writingResult
+          ? this.calculateOverallResult(testResult, writingResult)
+          : testResult;
 
       if (customerTestId !== null) {
         const updateData: any = {
@@ -145,7 +136,7 @@ export class CustomerAnswerService {
         };
 
         if (hasWritingQuestion) {
-          updateData.writing_result = writingResult;
+          updateData.writing_result = writingResult ?? "Noma'lum";
         }
 
         await this.repoCustomerTest.update(updateData, {
@@ -161,7 +152,9 @@ export class CustomerAnswerService {
         customerAnswers: createdAnswers,
         score,
         test_result: testResult,
-        writing_result: hasWritingQuestion ? writingResult : null,
+        writing_result: hasWritingQuestion
+          ? (writingResult ?? "Noma'lum")
+          : null,
         overall_result: overall,
       };
     } catch (error) {
@@ -187,18 +180,16 @@ If it answers the question, return ONLY ONE of these levels:
 BEGINNER, ELEMENTARY, PRE INTERMEDIATE, INTERMEDIATE, IELTS
 
 Return ONLY ONE PHRASE. No explanations.
-    `;
+      `;
 
       const result = await this.geminiModel.generateContent(prompt);
       const response = await result.response;
       const text = response.text().trim().toUpperCase();
 
-      // Avval "NOT RELEVANT" ni tekshirish
       if (text.includes('NOT RELEVANT')) {
         return 'Savolga mos emas';
       }
 
-      // Darajani topish
       const allowedLevels = [
         'BEGINNER',
         'ELEMENTARY',
@@ -209,9 +200,13 @@ Return ONLY ONE PHRASE. No explanations.
 
       const finalLevel = allowedLevels.find((l) => text.includes(l));
 
-      return finalLevel || "Noma'lum";
+      return finalLevel ?? "Noma'lum";
     } catch (err) {
-      console.error('Gemini API error:', err);
+      if (err.message?.includes('429') || err.message?.includes('quota')) {
+        console.error('⚠️ GEMINI LIMIT TUGADI:', err.message);
+      } else {
+        console.error('Gemini API error:', err.message);
+      }
       return "Noma'lum";
     }
   }
@@ -241,12 +236,8 @@ Return ONLY ONE PHRASE. No explanations.
     const testScore = levels[testResult] ?? 0;
     const writingScore = levels[writingResult] ?? 0;
 
-    let average = Math.round((testScore + writingScore) / 2);
+    const average = Math.round((testScore + writingScore) / 2);
 
-    // if (testResult === "Noma'lum" || writingResult === "Noma'lum") {
-    //   average = Math.max(average - 1, 0);
-    // }
-
-    return reverseLevels[average] || "Noma'lum";
+    return reverseLevels[average] ?? "Noma'lum";
   }
 }
