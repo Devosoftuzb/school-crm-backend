@@ -56,7 +56,7 @@ export class BotUpdate {
       ctx.session.step = undefined;
       ctx.session.role = undefined;
       await ctx.reply(
-        'Assalomu alaykum! *Sayimov Academy* botiga xush kelibsiz! 👋\n\nDavom etish uchun tanlang:',
+        'Assalomu alaykum! *Camelot* botiga xush kelibsiz! 👋\n\nDavom etish uchun tanlang:',
         {
           parse_mode: 'Markdown',
           ...Markup.inlineKeyboard([

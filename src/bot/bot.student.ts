@@ -44,9 +44,10 @@ export class BotStudentHandler {
 
     let fullNumber: string;
     if (/^\d{9}$/.test(normalized)) {
-      fullNumber = '998' + normalized;
+  
+      fullNumber = '+998' + normalized;
     } else if (/^998\d{9}$/.test(normalized)) {
-      fullNumber = normalized;
+      fullNumber = '+' + normalized;
     } else {
       await ctx.reply(
         "❌ Telefon raqam noto'g'ri formatda!\n\n📞 Format:\n*+998 XX XXX XX XX*",
@@ -55,10 +56,24 @@ export class BotStudentHandler {
       return;
     }
 
-    const students = await this.studentService.findByPhoneForBot(
+
+    this.logger.log(
+      `Bot o'quvchi qidirmoqda -> Raqam: ${fullNumber}, SchoolID: ${this.schoolId}`,
+    );
+
+    let students = await this.studentService.findByPhoneForBot(
       fullNumber,
       this.schoolId,
     );
+
+    if (!students.length) {
+      const noPlusNumber = fullNumber.replace('+', '');
+      students = await this.studentService.findByPhoneForBot(
+        noPlusNumber,
+        this.schoolId,
+      );
+    }
+
 
     if (!students.length) {
       await ctx.reply(
@@ -75,7 +90,7 @@ export class BotStudentHandler {
 
     const buttons = students.map((s) => [
       Markup.button.callback(
-        `${s.full_name} | ${s.parents_full_name}`,
+        `${s.full_name} | ${s.parents_full_name || 'Ota-onasi kiritilmagan'}`,
         `select_student:${s.id}`,
       ),
     ]);
