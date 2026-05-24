@@ -14,5 +14,6 @@ import { StudentGroup } from 'src/student_group/models/student_group.model';
   ],
   controllers: [StudentController],
   providers: [StudentService],
+  exports: [StudentService],
 })
 export class StudentModule {}

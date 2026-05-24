@@ -246,7 +246,7 @@ export class StudentService {
         'phone_number',
         'parents_full_name',
         'parents_phone_number',
-        'start_date'
+        'start_date',
       ],
     });
 
@@ -350,6 +350,121 @@ export class StudentService {
         },
       ],
       attributes: ['id', 'full_name', 'phone_number'],
+    });
+  }
+
+  async findByParentChatId(chatId: string, schoolId: number) {
+    return this.repo.findAll({
+      where: { parents_chat_id: chatId, school_id: schoolId, status: true },
+      attributes: [
+        'id',
+        'full_name',
+        'phone_number',
+        'parents_full_name',
+        'parents_phone_number',
+      ],
+    });
+  }
+
+  async findByStudentChatId(chatId: string, schoolId: number) {
+    return this.repo.findAll({
+      where: { student_chat_id: chatId, school_id: schoolId, status: true },
+      attributes: ['id', 'full_name', 'phone_number'],
+    });
+  }
+
+  async findByPhoneForBot(phone: string, schoolId: number) {
+    return this.repo.findAll({
+      where: { phone_number: phone, school_id: schoolId, status: true },
+      attributes: [
+        'id',
+        'full_name',
+        'phone_number',
+        'parents_full_name',
+        'parents_phone_number',
+      ],
+    });
+  }
+
+  async findStudentByIdForBot(id: number) {
+    return this.repo.findOne({
+      where: { id },
+      attributes: [
+        'id',
+        'full_name',
+        'phone_number',
+        'parents_full_name',
+        'parents_phone_number',
+        'parents_chat_id',
+        'student_chat_id',
+      ],
+    });
+  }
+
+  async linkParent(studentId: number, chatId: string, parentName: string) {
+    await this.repo.update(
+      { parents_chat_id: chatId, parents_full_name: parentName },
+      { where: { id: studentId } },
+    );
+  }
+
+  async linkStudent(studentId: number, chatId: string) {
+    await this.repo.update(
+      { student_chat_id: chatId },
+      { where: { id: studentId } },
+    );
+  }
+
+  async unlinkParent(studentId: number) {
+    await this.repo.update(
+      { parents_chat_id: null },
+      { where: { id: studentId } },
+    );
+  }
+
+  async unlinkStudent(studentId: number) {
+    await this.repo.update(
+      { student_chat_id: null },
+      { where: { id: studentId } },
+    );
+  }
+
+  async findAllByParentChatIdInGroup(schoolId: number, groupId: number) {
+    return this.repo.findAll({
+      where: {
+        school_id: schoolId,
+        status: true,
+        parents_chat_id: { [Op.ne]: null },
+      },
+      include: [
+        {
+          model: StudentGroup,
+          where: { group_id: groupId },
+          attributes: [],
+        },
+      ],
+      attributes: ['id', 'full_name', 'parents_chat_id', 'parents_full_name'],
+    });
+  }
+
+  async findAllWithChatIds(
+    schoolId: number,
+    target: 'parents' | 'students' | 'all',
+  ) {
+    const where: any = { school_id: schoolId, status: true };
+
+    if (target === 'parents') where.parents_chat_id = { [Op.ne]: null };
+    if (target === 'students') where.student_chat_id = { [Op.ne]: null };
+    if (target === 'all') {
+      where[Op.or] = [
+        { parents_chat_id: { [Op.ne]: null } },
+        { student_chat_id: { [Op.ne]: null } },
+      ];
+    }
+
+    return this.repo.findAll({
+      where,
+      attributes: ['id', 'parents_chat_id', 'student_chat_id'],
     });
   }
 }

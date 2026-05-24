@@ -20,6 +20,8 @@ interface StudentAttr {
   phone_number: string;
   status: boolean;
   start_date: string;
+  parents_chat_id?: string;
+  student_chat_id?: string;
 }
 
 @Table({ tableName: 'student' })
@@ -32,69 +34,42 @@ export class Student extends Model<Student, StudentAttr> {
   id: number;
 
   @ForeignKey(() => School)
-  @Column({
-    type: DataType.INTEGER,
-    onDelete: 'CASCADE',
-    allowNull: false,
-  })
+  @Column({ type: DataType.INTEGER, onDelete: 'CASCADE', allowNull: false })
   school_id: number;
 
-  @BelongsTo(() => School, {
-    onDelete: 'CASCADE',
-  })
+  @BelongsTo(() => School, { onDelete: 'CASCADE' })
   school: School;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-  })
+  @Column({ type: DataType.STRING, allowNull: false })
   parents_full_name: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-  })
+  @Column({ type: DataType.STRING, allowNull: false })
   parents_phone_number: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-  })
+  @Column({ type: DataType.STRING, allowNull: false })
   full_name: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-  })
+  @Column({ type: DataType.STRING, allowNull: false })
   phone_number: string;
 
-  @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-  })
+  @Column({ type: DataType.BOOLEAN, allowNull: false })
   status: boolean;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-  })
+  @Column({ type: DataType.STRING, allowNull: false })
   start_date: string;
 
-  @HasMany(() => StudentGroup, {
-    onDelete: 'CASCADE',
-    hooks: true,
-  })
+  @Column({ type: DataType.STRING, allowNull: true, defaultValue: null })
+  parents_chat_id: string;
+
+  @Column({ type: DataType.STRING, allowNull: true, defaultValue: null })
+  student_chat_id: string;
+
+  @HasMany(() => StudentGroup, { onDelete: 'CASCADE', hooks: true })
   group: StudentGroup[];
 
-  @HasMany(() => Payment, {
-    hooks: true,
-    onDelete: 'SET NULL',
-  })
+  @HasMany(() => Payment, { hooks: true, onDelete: 'SET NULL' })
   payment: Payment[];
 
-  @HasMany(() => Attendance, {
-    onDelete: 'CASCADE',
-    hooks: true,
-  })
+  @HasMany(() => Attendance, { onDelete: 'CASCADE', hooks: true })
   attendance: Attendance[];
 }

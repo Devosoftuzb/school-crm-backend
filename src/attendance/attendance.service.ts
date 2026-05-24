@@ -9,6 +9,7 @@ import { StudentGroup } from 'src/student_group/models/student_group.model';
 import { SmsService } from 'src/sms/sms.service';
 import { Group } from 'src/group/models/group.model';
 import { Payment } from 'src/payment/models/payment.model';
+import { BotService } from 'src/bot/bot.service';
 
 @Injectable()
 export class AttendanceService {
@@ -16,6 +17,7 @@ export class AttendanceService {
     @InjectModel(Attendance) private repo: typeof Attendance,
     @InjectModel(Student) private repoStudent: typeof Student,
     private smsService: SmsService,
+    private botService: BotService,
   ) {}
 
   async saveAttendance(dto: CreateAttendanceDto) {
@@ -55,7 +57,13 @@ export class AttendanceService {
       attendance.push(record);
 
       if (isCreated && !record.status) {
-        await this.smsService.sendAttendance({ student_id: item.student_id });
+        const result = await this.botService.sendAttendanceNotification({
+          student_id: item.student_id,
+        });
+
+        if (result.via === 'sms') {
+          await this.smsService.sendAttendance({ student_id: item.student_id });
+        }
       }
     }
 
