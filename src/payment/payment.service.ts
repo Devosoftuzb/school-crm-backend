@@ -12,6 +12,7 @@ import { StudentGroup } from 'src/student_group/models/student_group.model';
 import * as XLSX from 'xlsx';
 import { Response } from 'express';
 import { StatisticService } from 'src/statistic/statistic.service';
+import { BotService } from 'src/bot/bot.service';
 
 @Injectable()
 export class PaymentService {
@@ -21,6 +22,7 @@ export class PaymentService {
     @InjectModel(Group) private repoGroup: typeof Group,
     @InjectModel(Employee) private repoEmployee: typeof Employee,
     private statistic: StatisticService,
+    private readonly botService: BotService,
   ) {}
 
   async create(createPaymentDto: CreatePaymentDto) {
@@ -37,7 +39,34 @@ export class PaymentService {
       );
     }
 
+    const group = await this.repoGroup.findOne({
+      where: { id: createPaymentDto.group_id },
+    });
+
+    if (!group) {
+      throw new BadRequestException(
+        `Group with id ${createPaymentDto.group_id} not found`,
+      );
+    }
+
     const payment = await this.repo.create(createPaymentDto);
+
+    this.botService
+      .sendPaymentNotification({
+        student_id: createPaymentDto.student_id,
+        group_name: group.name,
+        group_price: Number(group.price),
+        discount: createPaymentDto.discount ?? 0,
+        discount_sum: createPaymentDto.discountSum ?? 0,
+        paid_amount: createPaymentDto.price,
+        month: createPaymentDto.month,
+        year: createPaymentDto.year,
+        method: createPaymentDto.method,
+      })
+      .catch((err) => {
+        console.error('Bot notification xatolik:', err);
+      });
+
     return {
       message: 'Payment created successfully',
       payment,
