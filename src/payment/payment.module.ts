@@ -13,9 +13,10 @@ import { BotModule } from 'src/bot/bot.module';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([Payment, Student, Group, Employee, BotModule]),
+    SequelizeModule.forFeature([Payment, Student, Group, Employee]),
     JwtModule,
     StatisticModule,
+    BotModule,
   ],
   controllers: [PaymentController],
   providers: [PaymentService],
