@@ -160,7 +160,7 @@ export class BotService {
   async sendBroadcast(dto: {
     target: 'parents' | 'students' | 'all';
     text: string;
-    photo?: string;
+    photo?: Express.Multer.File;
     buttons?: { label: string; url: string }[];
   }): Promise<{ sent: number; failed: number }> {
     let sent = 0;
@@ -199,10 +199,14 @@ export class BotService {
     for (const chatId of chatIds) {
       try {
         if (dto.photo) {
-          await this.bot.telegram.sendPhoto(chatId, dto.photo, {
-            caption: dto.text,
-            reply_markup: inlineKeyboard,
-          });
+          await this.bot.telegram.sendPhoto(
+            chatId,
+            { source: dto.photo.buffer },
+            {
+              caption: dto.text,
+              reply_markup: inlineKeyboard,
+            },
+          );
         } else {
           await this.bot.telegram.sendMessage(chatId, dto.text, {
             reply_markup: inlineKeyboard,

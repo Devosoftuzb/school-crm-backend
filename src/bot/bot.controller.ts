@@ -1,9 +1,18 @@
-import { Body, Controller, Post, UseGuards, Version } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+  Version,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BotService } from './bot.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles-auth-decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Bot Notify')
 @Controller('bot')
@@ -61,15 +70,23 @@ export class BotController {
   @ApiOperation({ summary: 'Broadcast (reklam post)' })
   @Roles('superadmin', 'admin', 'owner', 'administrator')
   @Post('notify/broadcast')
+  @UseInterceptors(FileInterceptor('photo'))
   sendBroadcast(
     @Body()
-    dto: {
+    body: {
       target: 'parents' | 'students' | 'all';
       text: string;
-      photo?: string;
-      buttons?: { label: string; url: string }[];
+      buttons?: string;
     },
+    @UploadedFile() photo?: Express.Multer.File,
   ) {
-    return this.botService.sendBroadcast(dto);
+    const buttons = body.buttons ? JSON.parse(body.buttons) : undefined;
+
+    return this.botService.sendBroadcast({
+      target: body.target,
+      text: body.text,
+      photo,
+      buttons,
+    });
   }
 }
