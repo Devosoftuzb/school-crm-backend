@@ -9,10 +9,11 @@ import { Group } from 'src/group/models/group.model';
 import { Employee } from 'src/employee/models/employee.model';
 import { StatisticService } from 'src/statistic/statistic.service';
 import { StatisticModule } from 'src/statistic/statistic.module';
+import { BotModule } from 'src/bot/bot.module';
 
 @Module({
   imports: [
-    SequelizeModule.forFeature([Payment, Student, Group, Employee]),
+    SequelizeModule.forFeature([Payment, Student, Group, Employee, BotModule]),
     JwtModule,
     StatisticModule,
   ],
