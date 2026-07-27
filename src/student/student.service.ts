@@ -80,13 +80,32 @@ export class StudentService {
     }
   }
 
-  async paginate(school_id: number, page: number): Promise<object> {
+  async paginate(
+    school_id: number,
+    page: number,
+    bot?: string,
+  ): Promise<object> {
     try {
       page = Number(page);
       const limit = 15;
       const offset = (page - 1) * limit;
+
+      const where: any = { school_id, status: true };
+
+      if (bot === 'student') {
+        where.student_chat_id = { [Op.ne]: null };
+      } else if (bot === 'parent') {
+        where.parents_chat_id = { [Op.ne]: null };
+      } else if (bot === 'studentOrParent') {
+        where[Op.or] = [
+          { student_chat_id: { [Op.ne]: null } },
+          { parents_chat_id: { [Op.ne]: null } },
+        ];
+      }
+      // bot === 'all' yoki berilmasa — filtersiz
+
       const user = await this.repo.findAll({
-        where: { school_id: school_id, status: true },
+        where,
         attributes: ['id', 'full_name', 'phone_number', 'status', 'createdAt'],
         include: [
           {
@@ -99,10 +118,10 @@ export class StudentService {
         offset,
         limit,
       });
-      const total_count = await this.repo.count({
-        where: { school_id, status: true },
-      });
+
+      const total_count = await this.repo.count({ where });
       const total_pages = Math.ceil(total_count / limit);
+
       const res = {
         status: 200,
         data: {
@@ -116,7 +135,7 @@ export class StudentService {
       };
       return res;
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new BadRequestException(error);
     }
   }
 

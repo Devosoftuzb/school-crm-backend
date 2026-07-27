@@ -58,8 +58,12 @@ export class StudentController {
   @ApiOperation({ summary: 'Student paginate' })
   @Roles('owner', 'administrator', 'teacher')
   @Get(':school_id/page')
-  paginate(@Query('page') page: number, @Param('school_id') school_id: string) {
-    return this.studentService.paginate(+school_id, page);
+  paginate(
+    @Query('page') page: number,
+    @Query('bot') bot: string,
+    @Param('school_id') school_id: string,
+  ) {
+    return this.studentService.paginate(+school_id, page, bot);
   }
 
   @Version('1')

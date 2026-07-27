@@ -492,8 +492,7 @@ export class StatisticService {
           {
             model: StudentGroup,
 
-            attributes: ['group_id', 'createdAt'], 
-
+            attributes: ['group_id', 'createdAt'],
 
             include: [
               {
@@ -532,7 +531,6 @@ export class StatisticService {
           const groupId = group.id;
           const groupPrice = Number(group.price);
 
-
           const joinedDate = new Date(studentGroup.createdAt);
           const checkDate = new Date(`${currentYear}-${month}-01`);
           const joinedYear = joinedDate.getFullYear();
@@ -544,10 +542,8 @@ export class StatisticService {
             joinedYear > checkYear ||
             (joinedYear === checkYear && joinedMonth > checkMonth)
           ) {
-            continue; 
+            continue;
           }
-          
-
 
           const payments = student.payment.filter(
             (p) => p.group_id === groupId,
@@ -1033,5 +1029,43 @@ export class StatisticService {
     statistics.push({ social: 'Umumiy', count: total });
 
     return { statistics };
+  }
+
+  async getTelegramConnectionStatistics(school_id: number) {
+    const school = await this.repoSchool.findOne({
+      where: { id: school_id },
+    });
+
+    if (!school) {
+      throw new BadRequestException(`School with ID ${school_id} not found`);
+    }
+
+    const notConnected = await this.repoStudent.count({
+      where: {
+        school_id,
+        student_chat_id: { [Op.is]: null },
+        parents_chat_id: { [Op.is]: null },
+      },
+    });
+
+    const studentConnected = await this.repoStudent.count({
+      where: {
+        school_id,
+        student_chat_id: { [Op.ne]: null },
+      },
+    });
+
+    const parentConnected = await this.repoStudent.count({
+      where: {
+        school_id,
+        parents_chat_id: { [Op.ne]: null },
+      },
+    });
+
+    return {
+      not_connected: notConnected,
+      student_connected: studentConnected,
+      parent_connected: parentConnected,
+    };
   }
 }

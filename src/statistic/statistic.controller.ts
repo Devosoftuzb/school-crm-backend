@@ -156,4 +156,12 @@ export class StatisticController {
   ) {
     return this.statisticService.getCustomerStatistics(+school_id, date);
   }
+
+  @Version('1')
+  @ApiOperation({ summary: 'Telegram connection statistics' })
+  @Roles('superadmin', 'admin', 'owner', 'administrator')
+  @Get('telegram-connection/:school_id')
+  getTelegramConnectionStatistics(@Param('school_id') school_id: string) {
+    return this.statisticService.getTelegramConnectionStatistics(+school_id);
+  }
 }
