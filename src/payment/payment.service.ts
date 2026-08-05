@@ -743,7 +743,7 @@ export class PaymentService {
       // 1️⃣ Barcha studentlarni olish
       const allStudents = await this.repoStudent.findAll({
         where: { school_id },
-        attributes: ['id', 'full_name'],
+        attributes: ['id', 'full_name', 'start_date'],
         include: [
           {
             model: StudentGroup,
@@ -783,6 +783,16 @@ export class PaymentService {
         ],
       });
 
+      const monthPadded = String(month).padStart(2, '0');
+      const periodEnd = new Date(
+        Number(year),
+        Number(monthPadded),
+        0,
+        23,
+        59,
+        59,
+      );
+
       const debtors: any[] = [];
 
       for (const student of allStudents) {
@@ -791,15 +801,26 @@ export class PaymentService {
           const groupPrice = Number(group.price);
           const groupId = group.id;
 
-          const joinedDate = new Date(studentGroup.createdAt);
-          const checkDate = new Date(`${year}-${month}-01`);
+          // --- Talaba hali kelmagan yoki guruhga hali qo'shilmagan bo'lsa, o'tkazib yuborish ---
+          const studentStart = student.start_date
+            ? new Date(student.start_date)
+            : null;
+          const groupJoinDate = studentGroup.createdAt
+            ? new Date(studentGroup.createdAt)
+            : null;
 
-          if (
-            joinedDate.getFullYear() > checkDate.getFullYear() ||
-            (joinedDate.getFullYear() === checkDate.getFullYear() &&
-              joinedDate.getMonth() > checkDate.getMonth())
-          )
+          let effectiveStartDate: Date | null = null;
+          if (studentStart && groupJoinDate) {
+            effectiveStartDate =
+              studentStart > groupJoinDate ? studentStart : groupJoinDate;
+          } else {
+            effectiveStartDate = studentStart || groupJoinDate;
+          }
+
+          if (effectiveStartDate && effectiveStartDate > periodEnd) {
             continue;
+          }
+          // ------------------------------------------------------------------------------------
 
           const teacher = group.employee?.[0]?.employee;
           const teacherName = teacher
@@ -816,9 +837,10 @@ export class PaymentService {
           for (const payment of payments) {
             let discountAmount = 0;
             if (payment.discount && payment.discount > 0) {
-              discountAmount = (groupPrice * payment.discount) / 100;
-            } else if (payment.discountSum && payment.discountSum > 0) {
-              discountAmount = payment.discountSum;
+              discountAmount += (groupPrice * payment.discount) / 100;
+            }
+            if (payment.discountSum && payment.discountSum > 0) {
+              discountAmount += payment.discountSum;
             }
             totalPaid += payment.price;
             totalDiscount += discountAmount;
@@ -1236,7 +1258,7 @@ export class PaymentService {
         if (!group) throw new BadRequestException('Guruh topilmadi');
 
         for (const sg of group.student) {
-          students.push({ student: sg.student, group });
+          students.push({ student: sg.student, group, studentGroup: sg });
         }
       } else if (employee_id) {
         // Employee bo'yicha
@@ -1307,6 +1329,9 @@ export class PaymentService {
         }
       }
 
+      // Ko'rilayotgan oyning oxirgi kuni (davr chegarasi)
+      const periodEnd = new Date(Number(year), Number(month), 0, 23, 59, 59);
+
       // Qarzdorlarni hisoblash
       const debtors = [];
 
@@ -1314,6 +1339,27 @@ export class PaymentService {
         const student = entry.student;
         const group = entry.group;
         const studentGroup = entry.studentGroup;
+
+        // --- Talaba hali kelmagan yoki guruhga hali qo'shilmagan bo'lsa, qarzdor hisoblanmasin ---
+        const studentStart = student.start_date
+          ? new Date(student.start_date)
+          : null;
+        const groupJoinDate = studentGroup?.createdAt
+          ? new Date(studentGroup.createdAt)
+          : null;
+
+        let effectiveStartDate: Date | null = null;
+        if (studentStart && groupJoinDate) {
+          effectiveStartDate =
+            studentStart > groupJoinDate ? studentStart : groupJoinDate;
+        } else {
+          effectiveStartDate = studentStart || groupJoinDate;
+        }
+
+        if (effectiveStartDate && effectiveStartDate > periodEnd) {
+          continue; // bu davrda hali kelmagan / guruhga qo'shilmagan
+        }
+        // ------------------------------------------------------------------------------------
 
         const groupPrice = Number(group.price);
         const teacher = group.employee?.[0]?.employee;
@@ -1329,9 +1375,9 @@ export class PaymentService {
         for (const payment of payments) {
           let discountAmount = 0;
           if (payment.discount && payment.discount > 0)
-            discountAmount = (groupPrice * payment.discount) / 100;
-          else if (payment.discountSum && payment.discountSum > 0)
-            discountAmount = payment.discountSum;
+            discountAmount += (groupPrice * payment.discount) / 100;
+          if (payment.discountSum && payment.discountSum > 0)
+            discountAmount += payment.discountSum;
 
           totalPaid += payment.price;
           totalDiscount += discountAmount;
