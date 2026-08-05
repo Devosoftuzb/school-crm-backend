@@ -487,7 +487,7 @@ export class StatisticService {
 
       const allStudents = await this.repoStudent.findAll({
         where: { school_id },
-        attributes: ['id', 'full_name'],
+        attributes: ['id', 'full_name', 'start_date'],
         include: [
           {
             model: StudentGroup,
@@ -521,6 +521,16 @@ export class StatisticService {
         ],
       });
 
+      const monthPadded = String(month).padStart(2, '0');
+      const periodEnd = new Date(
+        Number(currentYear),
+        Number(monthPadded),
+        0,
+        23,
+        59,
+        59,
+      );
+
       let noPayment = 0;
       let halfPayment = 0;
       let fullPayment = 0;
@@ -531,19 +541,26 @@ export class StatisticService {
           const groupId = group.id;
           const groupPrice = Number(group.price);
 
-          const joinedDate = new Date(studentGroup.createdAt);
-          const checkDate = new Date(`${currentYear}-${month}-01`);
-          const joinedYear = joinedDate.getFullYear();
-          const joinedMonth = joinedDate.getMonth();
-          const checkYear = checkDate.getFullYear();
-          const checkMonth = checkDate.getMonth();
+          // --- Talaba hali kelmagan yoki guruhga hali qo'shilmagan bo'lsa, o'tkazib yuborish ---
+          const studentStart = student.start_date
+            ? new Date(student.start_date)
+            : null;
+          const groupJoinDate = studentGroup.createdAt
+            ? new Date(studentGroup.createdAt)
+            : null;
 
-          if (
-            joinedYear > checkYear ||
-            (joinedYear === checkYear && joinedMonth > checkMonth)
-          ) {
+          let effectiveStartDate: Date | null = null;
+          if (studentStart && groupJoinDate) {
+            effectiveStartDate =
+              studentStart > groupJoinDate ? studentStart : groupJoinDate;
+          } else {
+            effectiveStartDate = studentStart || groupJoinDate;
+          }
+
+          if (effectiveStartDate && effectiveStartDate > periodEnd) {
             continue;
           }
+          // ------------------------------------------------------------------------------------
 
           const payments = student.payment.filter(
             (p) => p.group_id === groupId,
@@ -556,9 +573,10 @@ export class StatisticService {
             let discountAmount = 0;
 
             if (payment.discount && payment.discount > 0) {
-              discountAmount = (groupPrice * payment.discount) / 100;
-            } else if (payment.discountSum && payment.discountSum > 0) {
-              discountAmount = payment.discountSum;
+              discountAmount += (groupPrice * payment.discount) / 100;
+            }
+            if (payment.discountSum && payment.discountSum > 0) {
+              discountAmount += payment.discountSum;
             }
 
             totalPaid += payment.price;
@@ -697,12 +715,13 @@ export class StatisticService {
         where: {
           group_id: { [Op.in]: groupIds },
         },
-        attributes: ['student_id', 'group_id'],
+        attributes: ['student_id', 'group_id', 'createdAt'],
       });
 
       const studentGroupMap = studentGroups.map((sg) => ({
         student_id: sg.student_id,
         group_id: sg.group_id,
+        createdAt: sg.createdAt,
       }));
 
       const studentIds = [...new Set(studentGroups.map((sg) => sg.student_id))];
@@ -712,7 +731,7 @@ export class StatisticService {
           id: { [Op.in]: studentIds },
           school_id,
         },
-        attributes: ['id', 'full_name'],
+        attributes: ['id', 'full_name', 'start_date'],
         include: [
           {
             model: Payment,
@@ -741,6 +760,16 @@ export class StatisticService {
         return acc;
       }, {});
 
+      const monthPadded = String(month).padStart(2, '0');
+      const periodEnd = new Date(
+        Number(currentYear),
+        Number(monthPadded),
+        0,
+        23,
+        59,
+        59,
+      );
+
       let noPayment = 0;
       let halfPayment = 0;
       let fullPayment = 0;
@@ -754,6 +783,25 @@ export class StatisticService {
           const groupId = sg.group_id;
           const groupPrice = groupPriceMap[groupId] || 0;
 
+          // --- Talaba hali kelmagan yoki guruhga hali qo'shilmagan bo'lsa, o'tkazib yuborish ---
+          const studentStart = student.start_date
+            ? new Date(student.start_date)
+            : null;
+          const groupJoinDate = sg.createdAt ? new Date(sg.createdAt) : null;
+
+          let effectiveStartDate: Date | null = null;
+          if (studentStart && groupJoinDate) {
+            effectiveStartDate =
+              studentStart > groupJoinDate ? studentStart : groupJoinDate;
+          } else {
+            effectiveStartDate = studentStart || groupJoinDate;
+          }
+
+          if (effectiveStartDate && effectiveStartDate > periodEnd) {
+            continue;
+          }
+          // ------------------------------------------------------------------------------------
+
           const payments = student.payment.filter(
             (p) => p.group_id === groupId,
           );
@@ -765,9 +813,10 @@ export class StatisticService {
             let discountAmount = 0;
 
             if (payment.discount && payment.discount > 0) {
-              discountAmount = (groupPrice * payment.discount) / 100;
-            } else if (payment.discountSum && payment.discountSum > 0) {
-              discountAmount = payment.discountSum;
+              discountAmount += (groupPrice * payment.discount) / 100;
+            }
+            if (payment.discountSum && payment.discountSum > 0) {
+              discountAmount += payment.discountSum;
             }
 
             totalPaid += payment.price;
